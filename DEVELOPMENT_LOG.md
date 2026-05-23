@@ -133,8 +133,8 @@ This file tracks the features implemented, changes made, and the rationale behin
 ## [UI Cleanliness Fix] - May 24, 2026
 
 ### Changes
-- **Removed Minimize Notifications**: Disabled the tray balloon and fallback window that appeared when minimizing the dashboard.
-    - *Rationale*: Constant notifications during standard window management are intrusive and annoying to users.
+- **Streamlined Minimize Notifications**: Re-enabled the tray balloon notification ("Running in system tray") while keeping the custom fallback window disabled.
+    - *Rationale*: Users wanted a subtle "notify only" confirmation that the app is still running in the tray, without the intrusiveness of an extra popup window.
 - **Removed Startup Notification**: Disabled the "Welcome to PinNote" tray balloon on application launch.
     - *Rationale*: Provides a cleaner, silent startup experience.
 
@@ -205,21 +205,7 @@ This file tracks the features implemented, changes made, and the rationale behin
 ### Verification
 - `dotnet build` completed successfully.
 
-### Verification
-- `dotnet build` completed successfully.
+---
 
-### Verification
-- `dotnet build` completed successfully.
+*Log updated on May 24, 2026.*
 
-### Verification
-- `dotnet build` completed successfully.
-
-### Verification
-- `dotnet build` completed successfully.
-
-### Verification
-- `dotnet build` completed successfully.
-
-### Verification
-- `dotnet build -o .\verify-build` completed successfully with 0 warnings and 0 errors.
-    - *Note*: The normal build output was locked by the currently running PinNote process, so verification used a separate output folder.

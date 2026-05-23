@@ -4,13 +4,14 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 
 ## 🚀 Features
 
-- **Dynamic Sticky Notes:** Create, edit, and resize notes with ease.
+- **Dynamic Sticky Notes:** Create, edit, and resize notes from any edge or corner.
+- **Ultra-Small Responsive UI:** Shrink notes down to 100x100; toolbars automatically adapt and scroll to remain accessible.
 - **Always on Top (Pinning):** Pin critical notes to keep them visible above all other windows.
-- **Persistence:** Your notes are automatically saved and restored every time you launch the application.
-- **Central Dashboard:** Manage all your notes from a single, searchable dashboard.
-- **Search & Filter:** Quickly find specific notes using the real-time search functionality.
-- **System Tray Integration:** Minimizes to the system tray for a clutter-free workspace while remaining quickly accessible.
-- **Customizable Appearance:** Adjust note colors, font sizes, and opacity to suit your preference.
+- **Automatic Restoration:** Your notes are automatically restored to their exact screen positions every time you launch the application.
+- **Resizable Dashboard:** A central, resizable dashboard to manage and search all your notes.
+- **Professional Interface:** Clean, centered titles and a streamlined context menu with professional iconography.
+- **System Tray Integration:** Runs silently in the tray with a subtle "notify only" minimize experience.
+- **Customizable Appearance:** Adjust note colors, font sizes (including Extra Small), and opacity.
 - **Auto-Startup:** Option to launch PinNote automatically when Windows starts.
 
 ## 🛠️ Tech Stack

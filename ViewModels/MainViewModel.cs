@@ -152,6 +152,30 @@ namespace PinNote.ViewModels
             }
         }
 
+        private void CreateWelcomeNote()
+        {
+            var welcomeNote = new NoteModel
+            {
+                Title = "Welcome to PinNote",
+                Content = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+  <Paragraph FontWeight=""Bold"" FontSize=""18"">Getting Started with PinNote</Paragraph>
+  <Paragraph>Thank you for choosing PinNote. Here are a few professional tips to get you started:</Paragraph>
+  <List MarkerStyle=""Disc"">
+    <ListItem><Paragraph><FontWeight>Resize &amp; Move:</FontWeight> Grab any edge or corner to resize. Drag the title bar to move.</Paragraph></ListItem>
+    <ListItem><Paragraph><FontWeight>Always on Top:</Paragraph></ListItem>
+    <ListItem><Paragraph><FontWeight>Professional Shortcuts:</FontWeight></Paragraph></ListItem>
+  </List>
+  <Paragraph Margin=""20,0,0,0"">• <FontWeight>Ctrl+B</FontWeight> - Bold | <FontWeight>Ctrl+I</FontWeight> - Italic</Paragraph>
+  <Paragraph Margin=""20,0,0,0"">• <FontWeight>Ctrl+U</FontWeight> - Underline</Paragraph>
+  <Paragraph Margin=""0,10,0,0"">Right-click the note for transparency and text size options. Use the Dashboard to search and manage all your notes.</Paragraph>
+</FlowDocument>",
+                Width = 350,
+                Height = 350
+            };
+            AddNoteViewModel(welcomeNote, true);
+            SaveNotes();
+        }
+
         private void CreateNewNote(bool openWindow = true)
         {
             var newNote = new NoteModel();

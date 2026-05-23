@@ -78,6 +78,7 @@ namespace PinNote.UI
                         ShowInTaskbar = false;
                         WindowState = WindowState.Normal;
                         Hide();
+                        app.ShowTrayBalloon("PinNote", "Running in system tray");
                         return;
                     }
                 }
