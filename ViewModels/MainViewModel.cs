@@ -302,6 +302,17 @@ namespace PinNote.ViewModels
 
         public void ShowAllNotes()
         {
+            ShowAllNotes(minimizeDashboard: false);
+        }
+
+        /// <summary>
+        /// Show all note windows and the dashboard. Optionally minimize the dashboard window
+        /// (useful for auto-start behavior where notes should appear but the main dashboard
+        /// remains minimized).
+        /// </summary>
+        /// <param name="minimizeDashboard">If true, minimize the dashboard after showing notes.</param>
+        public void ShowAllNotes(bool minimizeDashboard)
+        {
             ShowDashboard();
 
             foreach (var window in _openWindows.Values)
@@ -313,6 +324,18 @@ namespace PinNote.ViewModels
                 {
                     window.WindowState = WindowState.Normal;
                 }
+            }
+
+            try
+            {
+                if (minimizeDashboard && _dashboardWindow != null)
+                {
+                    _dashboardWindow.WindowState = WindowState.Minimized;
+                }
+            }
+            catch
+            {
+                // non-fatal
             }
         }
 

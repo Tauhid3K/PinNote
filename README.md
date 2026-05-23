@@ -15,7 +15,7 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 - **Auto-Startup:** Option to launch PinNote automatically when Windows starts.
  - **Theme Support:** Light and Dark themes in the dashboard; a System theme option is available from the tray menu to follow Windows preferences.
  - **Crystal Clear Mode:** A per-note mode that makes the note background transparent and shows note text in the selected color for a minimal overlay look.
- - **Simplified Color Workflow:** The `More colors...` dialog now opens the standard color picker. After picking a color you'll get a simple choice: `Apply`, `Apply + Add to palette`, or `Cancel`.
+ - **Simplified Color Workflow:** The `More colors...` dialog opens the standard system color picker. After picking a color the choice is applied immediately when you press OK. Custom swatches you add inside the color dialog are persisted between runs and will reappear the next time you open the color picker. (The app no longer auto-inserts dialog-picked colors into the in-app palette.)
 
 ## 🛠️ Tech Stack
 

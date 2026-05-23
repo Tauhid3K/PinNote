@@ -59,18 +59,27 @@ namespace PinNote
                     Debug.WriteLine($"App elevated-check error: {ex}");
                 }
 
-                // Show dashboard on startup according to settings.
+                // Show dashboard/notes on startup according to settings.
                 try
                 {
-                    bool showUi = _appStateService.GetShowUiOnStartup();
+                    bool showUi = _appStateService.GetShowUiOnStartup(); // "Start with Windows"
                     bool startMin = _appStateService.GetStartMinimized();
-                    if (showUi && !startMin)
+
+                    if (showUi)
+                    {
+                        // When the user has enabled "Start with Windows", show notes but keep the
+                        // main dashboard minimized so the app starts quietly with notes visible.
+                        _mainViewModel?.ShowAllNotes(minimizeDashboard: true);
+                        // Ensure the tray icon is present so the user can access the app.
+                        EnsureTrayVisible();
+                    }
+                    else if (showUi && !startMin)
                     {
                         _mainViewModel?.ShowAllNotes();
                     }
                     else
                     {
-                        // Ensure tray icon is present so user can access the app.
+                        // Default: only ensure tray icon is visible
                         EnsureTrayVisible();
                     }
                 }
