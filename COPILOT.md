@@ -1,4 +1,4 @@
-# Development Steps Log
+# Development Steps Log (Copilot)
 
 This file records each substantive change made to the repository, why the change was made, and any relevant notes or instructions. It is intended to be updated whenever code or configuration is changed so the project's history is clear for maintainers.
 
@@ -24,7 +24,7 @@ Files changed:
 - UI/NoteWindow.xaml
 - Themes/Light.xaml (added)
 - Themes/Dark.xaml (added)
-- STEPS.md (this file)
+- STEPS.md (migrated to COPILOT.md)
 
 Change summary:
 - Modified hide behavior so "Hide all notes" hides only individual note windows and keeps the main dashboard visible.

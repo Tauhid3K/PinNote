@@ -102,7 +102,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,8,0" VerticalAlignment="Center">
-                            <Button Tag="System" Command="{Binding SetThemeCommand}" CommandParameter="System" ToolTip="System theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE774;">
+                            <Button Tag="System" Command="{Binding SetThemeCommand}" CommandParameter="System" ToolTip="System theme" FontFamily="Segoe MDL2 Assets" Content="&#xE774;">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
                                         <Style.Triggers>
@@ -113,7 +113,7 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Button Tag="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" ToolTip="Light theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE706;">
+                            <Button Tag="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" ToolTip="Light theme" FontFamily="Segoe MDL2 Assets" Content="&#xE706;">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
                                         <Style.Triggers>
@@ -124,7 +124,7 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Button Tag="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" ToolTip="Dark theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE708;">
+                            <Button Tag="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" ToolTip="Dark theme" FontFamily="Segoe MDL2 Assets" Content="&#xE708;">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
                                         <Style.Triggers>
@@ -196,7 +196,8 @@
                     <CheckBox Grid.Column="2"
                               IsChecked="{Binding IsStartupEnabled, Mode=TwoWay}"
                               VerticalAlignment="Center"
-                              Content="Start with Windows" />
+                              Content="Start with Windows"
+                              Foreground="{DynamicResource PrimaryTextBrush}" />
                 </Grid>
             </Border>
 
