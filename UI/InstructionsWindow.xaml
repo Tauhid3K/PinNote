@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PinNote Instructions" Height="450" Width="400"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        WindowStartupLocation="CenterScreen" Topmost="True">
+        WindowStartupLocation="CenterScreen" Topmost="True"
+        ShowInTaskbar="False">
     
     <Border Background="White" CornerRadius="12" BorderThickness="1" BorderBrush="#DDD">
         <Border.Effect>

@@ -191,6 +191,10 @@ This file tracks the features implemented, changes made, and the rationale behin
 ### Changes
 - **Centered Note Titles**: Updated the title `TextBox` in `NoteWindow` to use `TextAlignment="Center"`.
     - *Rationale*: Provides better visual balance and matches the user's preference for centered headers.
+- **Cleaner Taskbar**: Set `ShowInTaskbar="False"` for the Instructions window.
+    - *Rationale*: Keeps the Windows taskbar focused on primary applications by hiding utility/instruction windows.
+- **Dashboard Persistence**: Implemented size and position memory for the Main Dashboard.
+    - *Rationale*: Professional software should remember user layout preferences. The dashboard now restores its exact last-used dimensions and location upon restart.
 
 ## [Dedicated Instruction Window] - May 24, 2026
 
@@ -226,7 +230,8 @@ This file tracks the features implemented, changes made, and the rationale behin
 
 ### Changes
 - **Dashboard Exit Prompt**: Updated the main dashboard's "X" (close) button to show a professional confirmation dialog instead of minimizing to the tray.
-    - *Rationale*: Users specifically requested a confirmation prompt to prevent accidental application shutdown, while ensuring they know their notes are safe and will be restored on next launch.
+    - Added a helpful tip to the prompt suggesting that users minimize the app if they want to keep it running in the system tray.
+    - *Rationale*: Users specifically requested a confirmation prompt to prevent accidental application shutdown, while ensuring they know how to keep it running in the background.
 
 ### Verification
 - `dotnet build` completed successfully.

@@ -104,6 +104,28 @@ namespace PinNote.Services
             public bool HasShownFirstRunUi { get; set; }
             public bool ShowUiOnStartup { get; set; } = true;
             public bool StartMinimized { get; set; } = false;
+
+            // Dashboard window state
+            public double? DashboardX { get; set; }
+            public double? DashboardY { get; set; }
+            public double DashboardWidth { get; set; } = 800;
+            public double DashboardHeight { get; set; } = 500;
+        }
+
+        public (double? X, double? Y, double Width, double Height) GetDashboardState()
+        {
+            AppState state = LoadState();
+            return (state.DashboardX, state.DashboardY, state.DashboardWidth, state.DashboardHeight);
+        }
+
+        public void SetDashboardState(double? x, double? y, double width, double height)
+        {
+            AppState state = LoadState();
+            state.DashboardX = x;
+            state.DashboardY = y;
+            state.DashboardWidth = width;
+            state.DashboardHeight = height;
+            SaveState(state);
         }
 
         public bool ShouldShowFirstRunUi()
