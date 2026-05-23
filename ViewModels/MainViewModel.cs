@@ -45,6 +45,7 @@ namespace PinNote.ViewModels
             ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
 
             ToggleShowUiOnStartupCommand = new RelayCommand(_ => ShowUiOnStartup = !ShowUiOnStartup);
+                SetThemeCommand = new RelayCommand(p => ThemeMode = (p as string) ?? "System");
 
             // Load theme preference
             _themeMode = _appStateService.GetThemeMode();
@@ -133,6 +134,7 @@ namespace PinNote.ViewModels
         }
 
         public ICommand ToggleShowUiOnStartupCommand { get; }
+        public ICommand SetThemeCommand { get; }
 
         public string ThemeMode
         {

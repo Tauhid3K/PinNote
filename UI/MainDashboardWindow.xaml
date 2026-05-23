@@ -100,12 +100,42 @@
                         <TextBlock Text=" - My Notes" FontSize="18" Foreground="{DynamicResource SecondaryTextBrush}" Margin="5,0,0,0" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <ComboBox Width="120" VerticalAlignment="Center" Margin="0,0,8,0" SelectedValuePath="Content" SelectedValue="{Binding ThemeMode, Mode=TwoWay}">
-                            <ComboBoxItem Content="System" />
-                            <ComboBoxItem Content="Light" />
-                            <ComboBoxItem Content="Dark" />
-                        </ComboBox>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Button Tag="System" Command="{Binding SetThemeCommand}" CommandParameter="System" ToolTip="System theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE774;">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ThemeMode}" Value="System">
+                                                <Setter Property="Background" Value="#11000000" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Tag="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" ToolTip="Light theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE706;">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ThemeMode}" Value="Light">
+                                                <Setter Property="Background" Value="#11000000" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Tag="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" ToolTip="Dark theme" Style="{StaticResource TitleBarButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE708;">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ThemeMode}" Value="Dark">
+                                                <Setter Property="Background" Value="#11000000" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
                         <Button Content="&#xE946;"
                                 FontFamily="Segoe MDL2 Assets"
                                 Style="{StaticResource TitleBarButtonStyle}"
@@ -131,7 +161,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Background="White" BorderThickness="0,0,0,1" BorderBrush="#EEE">
+            <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderThickness="0,0,0,1" BorderBrush="#EEE">
                 <Grid Margin="15,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -259,8 +289,14 @@
                                                    FontSize="11"
                                                    Foreground="{Binding TextColor}"
                                                    Opacity="0.65" />
+                                        <Border x:Name="DarkOverlay" Grid.RowSpan="3" Background="#22000000" Visibility="Collapsed" CornerRadius="8" IsHitTestVisible="False" />
                                     </Grid>
-                                </Border>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding DataContext.ThemeMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="Dark">
+                                            <Setter TargetName="DarkOverlay" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

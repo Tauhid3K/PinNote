@@ -56,6 +56,37 @@ Follow-ups (suggested):
 
 ---
 
+### Date: 2026-05-24
+Author: GitHub Copilot (assistant)
+Files changed:
+- UI/MainDashboardWindow.xaml
+- ViewModels/MainViewModel.cs
+
+Change summary:
+- Replaced the theme `ComboBox` with three compact icon buttons (System, Light, Dark) in the dashboard title bar. Buttons are bound to `MainViewModel.SetThemeCommand` and visually indicate the selected theme.
+
+Reason:
+- The user requested icons instead of an options dropdown for theme selection; icons provide faster access and a more compact UI.
+
+Notes / Testing:
+- The new buttons use `Segoe MDL2 Assets` glyphs and the existing `TitleBarButtonStyle`. Restart the app to see the change.
+
+### Date: 2026-05-24
+Author: GitHub Copilot (assistant)
+Files changed:
+- UI/MainDashboardWindow.xaml
+- UI/InstructionsWindow.xaml
+
+Change summary:
+- Improve dark mode visuals: added a semi-transparent overlay for note preview cards in the dashboard when `ThemeMode` is `Dark`, and updated the `InstructionsWindow` to use theme resources instead of hard-coded white backgrounds.
+
+Reason:
+- In Dark mode some UI areas (note previews and instruction dialog) remained bright and jarring. The overlay darkens preview cards for better contrast and the `InstructionsWindow` colors now adapt to the selected theme.
+
+Notes / Testing:
+- Restart the app and switch to Dark to observe preview card overlay and the instructions dialog adapting to theme brushes.
+
+
 ## Template for future updates
 When making a change, append an entry to this file using the format above. If you want me to update this file automatically after I make changes, I will do so on every change I perform in the repository when you ask or when I make edits as part of a task.
 
