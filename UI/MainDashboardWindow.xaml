@@ -101,6 +101,11 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="&#xE946;"
+                                FontFamily="Segoe MDL2 Assets"
+                                Style="{StaticResource TitleBarButtonStyle}"
+                                Command="{Binding HelpCommand}"
+                                ToolTip="Instructions" />
                         <Button Content="&#xE921;"
                                 FontFamily="Segoe MDL2 Assets"
                                 Style="{StaticResource TitleBarButtonStyle}"

@@ -47,7 +47,16 @@ namespace PinNote.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            MinimizeToTray();
+            var result = MessageBox.Show(
+                "Do you really want to close PinNote? All open notes will be hidden, but they will be restored when you next launch the app.",
+                "Exit PinNote",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Application.Current.Shutdown();
+            }
         }
 
         private void Maximize_Click(object sender, RoutedEventArgs e)

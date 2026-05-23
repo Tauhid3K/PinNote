@@ -192,6 +192,17 @@ This file tracks the features implemented, changes made, and the rationale behin
 - **Centered Note Titles**: Updated the title `TextBox` in `NoteWindow` to use `TextAlignment="Center"`.
     - *Rationale*: Provides better visual balance and matches the user's preference for centered headers.
 
+## [Dedicated Instruction Window] - May 24, 2026
+
+### Changes
+- **Professional Instruction Window**: Replaced the "Welcome" sticky note with a dedicated `InstructionsWindow`.
+    - *Rationale*: Fulfills the user request for a cleaner, non-note based instruction display. A dedicated window is more professional and prevents the user's notes collection from being cluttered with onboarding text.
+- **Unified Help Logic**: Updated the Dashboard's Info ("i") icon and the first-run onboarding to launch this new window instead of creating a note.
+- **Improved Content Layout**: Designed the new window with clear sections for "The Essentials," "Shortcuts," and "Dashboard" usage.
+
+### Verification
+- `dotnet build` completed successfully.
+
 ## [Professional UI Refinement] - May 24, 2026
 
 ### Changes
@@ -201,6 +212,24 @@ This file tracks the features implemented, changes made, and the rationale behin
     - Highlighted **"Delete note"** in red to indicate a destructive action.
     - Removed the redundant "New note" option (already available in the top toolbar).
 - **Improved Visual Hierarchy**: Used separators and iconography to group related settings, making the menu faster to navigate.
+
+## [Professional Onboarding] - May 24, 2026
+
+### Changes
+- **Welcome Note Onboarding**: Implemented a professional first-run experience that creates a pre-formatted "Welcome to PinNote" note.
+    - *Rationale*: Provides immediate value to professional users by explaining key features (shortcuts, pinning, resizing) in a clean, visual format right after installation.
+- **On-Demand Instructions**: Added a professional **"i" (Info)** icon to the Dashboard header.
+    - *Rationale*: Allows users to quickly restore the "Welcome" note at any time if they need to review the instructions or keyboard shortcuts.
+- **Visual Polish**: Refined the onboarding content with better XAML formatting, improved spacing, and consolidated shortcut lists. Fixed layout jumps by standardizing toolbar row heights.
+
+## [Exit Confirmation] - May 24, 2026
+
+### Changes
+- **Dashboard Exit Prompt**: Updated the main dashboard's "X" (close) button to show a professional confirmation dialog instead of minimizing to the tray.
+    - *Rationale*: Users specifically requested a confirmation prompt to prevent accidental application shutdown, while ensuring they know their notes are safe and will be restored on next launch.
+
+### Verification
+- `dotnet build` completed successfully.
 
 ### Verification
 - `dotnet build` completed successfully.

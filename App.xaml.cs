@@ -65,10 +65,10 @@ namespace PinNote
                     _mainViewModel?.ShowAllNotes();
                 }
 
-                // If this is the first run, also create a new note.
+                // If this is the first run, also create the professional welcome note.
                 if (_appStateService.ShouldShowFirstRunUi())
                 {
-                    _mainViewModel?.NewNoteCommand.Execute(null);
+                    _mainViewModel?.CreateWelcomeNote();
                 }
             }
             catch (Exception ex)

@@ -184,7 +184,7 @@
                 <RowDefinition x:Name="OptionsRow" Height="28" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
-                <RowDefinition x:Name="FormattingRow" Height="40" />
+                <RowDefinition x:Name="FormattingRow" Height="34" />
             </Grid.RowDefinitions>
 
             <Border x:Name="OptionsBar"

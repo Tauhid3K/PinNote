@@ -40,7 +40,7 @@ namespace PinNote.ViewModels
             BringNotesOnTopCommand = new RelayCommand(_ => BringNotesOnTop());
             ToggleStartupCommand = new RelayCommand(_ => ToggleStartup());
             SettingsCommand = new RelayCommand(_ => ShowAllNotes());
-            HelpCommand = new RelayCommand(_ => ShowAllNotes());
+            HelpCommand = new RelayCommand(_ => ShowInstructions());
             ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
 
             ToggleShowUiOnStartupCommand = new RelayCommand(_ => ShowUiOnStartup = !ShowUiOnStartup);
@@ -135,6 +135,20 @@ namespace PinNote.ViewModels
             IsStartupEnabled = !IsStartupEnabled;
         }
 
+        private InstructionsWindow? _instructionsWindow;
+
+        public void ShowInstructions()
+        {
+            if (_instructionsWindow != null && _instructionsWindow.IsLoaded)
+            {
+                _instructionsWindow.Activate();
+                return;
+            }
+
+            _instructionsWindow = new InstructionsWindow();
+            _instructionsWindow.Show();
+        }
+
         private void LoadNotes()
         {
             var savedNotes = _storageService.LoadNotes();
@@ -152,28 +166,11 @@ namespace PinNote.ViewModels
             }
         }
 
-        private void CreateWelcomeNote()
+        public void CreateWelcomeNote()
         {
-            var welcomeNote = new NoteModel
-            {
-                Title = "Welcome to PinNote",
-                Content = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
-  <Paragraph FontWeight=""Bold"" FontSize=""18"">Getting Started with PinNote</Paragraph>
-  <Paragraph>Thank you for choosing PinNote. Here are a few professional tips to get you started:</Paragraph>
-  <List MarkerStyle=""Disc"">
-    <ListItem><Paragraph><FontWeight>Resize &amp; Move:</FontWeight> Grab any edge or corner to resize. Drag the title bar to move.</Paragraph></ListItem>
-    <ListItem><Paragraph><FontWeight>Always on Top:</Paragraph></ListItem>
-    <ListItem><Paragraph><FontWeight>Professional Shortcuts:</FontWeight></Paragraph></ListItem>
-  </List>
-  <Paragraph Margin=""20,0,0,0"">• <FontWeight>Ctrl+B</FontWeight> - Bold | <FontWeight>Ctrl+I</FontWeight> - Italic</Paragraph>
-  <Paragraph Margin=""20,0,0,0"">• <FontWeight>Ctrl+U</FontWeight> - Underline</Paragraph>
-  <Paragraph Margin=""0,10,0,0"">Right-click the note for transparency and text size options. Use the Dashboard to search and manage all your notes.</Paragraph>
-</FlowDocument>",
-                Width = 350,
-                Height = 350
-            };
-            AddNoteViewModel(welcomeNote, true);
-            SaveNotes();
+            // This method is now kept for internal compatibility if needed, 
+            // but the primary onboarding is now handled by ShowInstructions().
+            ShowInstructions();
         }
 
         private void CreateNewNote(bool openWindow = true)
