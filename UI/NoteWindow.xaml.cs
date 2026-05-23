@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
+using Forms = System.Windows.Forms;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -468,5 +469,69 @@ namespace PinNote.UI
             range.Save(stream, DataFormats.Xaml);
             vm.Content = Encoding.UTF8.GetString(stream.ToArray());
         }
+
+        private void MoreColors_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not NoteViewModel vm)
+            {
+                return;
+            }
+
+            try
+            {
+                using var dlg = new Forms.ColorDialog();
+                dlg.AllowFullOpen = true;
+                dlg.FullOpen = true;
+                dlg.SolidColorOnly = false;
+
+                // Initialize dialog with current body color if available
+                if (TryParseMediaColor(vm.BodyColor, out var init))
+                {
+                    dlg.Color = System.Drawing.Color.FromArgb(init.A, init.R, init.G, init.B);
+                }
+
+                var res = dlg.ShowDialog();
+                if (res == Forms.DialogResult.OK)
+                {
+                    var dc = dlg.Color;
+                    var media = System.Windows.Media.Color.FromArgb(dc.A, dc.R, dc.G, dc.B);
+                    string hex = $"#{media.A:X2}{media.R:X2}{media.G:X2}{media.B:X2}";
+
+                    // Apply to the note (set both title and body color to the selected color)
+                    vm.TitleBarColor = hex;
+                    vm.BodyColor = hex;
+
+                    // Do not add the picked color to the main palette when chosen from the dialog.
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"MoreColors_Click error: {ex}");
+            }
+        }
+
+        private static bool TryParseMediaColor(string? input, out System.Windows.Media.Color color)
+        {
+            color = System.Windows.Media.Colors.Transparent;
+            if (string.IsNullOrWhiteSpace(input)) return false;
+
+            try
+            {
+                var conv = System.Windows.Media.ColorConverter.ConvertFromString(input!);
+                if (conv is System.Windows.Media.Color c)
+                {
+                    color = c; return true;
+                }
+                if (conv is System.Windows.Media.SolidColorBrush b)
+                {
+                    color = b.Color; return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        // Pick color from screen feature removed.
     }
 }

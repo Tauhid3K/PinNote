@@ -80,10 +80,19 @@
     </Window.Resources>
 
     <Border CornerRadius="2"
-            Background="{Binding BodyColor}"
             BorderBrush="#55000000"
             BorderThickness="1"
             MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background" Value="{Binding BodyColor}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsCrystalClear}" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <Border.Effect>
             <DropShadowEffect BlurRadius="14" Color="Black" Opacity="0.16" ShadowDepth="3" />
         </Border.Effect>
@@ -178,6 +187,14 @@
                         <MenuItem Header="Large" Command="{Binding SetFontSizeCommand}" CommandParameter="24|24" />
                         <MenuItem Header="Extra Large" Command="{Binding SetFontSizeCommand}" CommandParameter="28|28" />
                     </MenuItem>
+                    <MenuItem Header="Crystal clear" IsCheckable="True" IsChecked="{Binding IsCrystalClear, Mode=TwoWay}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE8F4;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
+                        <MenuItem.ToolTip>
+                            Shows only white text on a transparent note background.
+                        </MenuItem.ToolTip>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" Foreground="#CC0000">
                         <MenuItem.Icon>
@@ -237,10 +254,19 @@
             </Border>
 
             <Border Grid.Row="1"
-                    Background="{Binding BodyColor}"
                     BorderBrush="#33000000"
                     BorderThickness="0,0,0,1"
                     PreviewMouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="{Binding BodyColor}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCrystalClear}" Value="True">
+                                <Setter Property="Background" Value="Transparent" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Background="Transparent"
                          BorderThickness="0"
@@ -259,7 +285,6 @@
 
             <RichTextBox x:Name="EditorBox"
                          Grid.Row="2"
-                         Background="{Binding BodyColor}"
                          Foreground="{Binding TextBrush}"
                          BorderThickness="0"
                          Padding="10,8,10,10"
@@ -268,6 +293,16 @@
                          CaretBrush="{Binding TextBrush}"
                          VerticalScrollBarVisibility="Auto"
                          AcceptsTab="True">
+                <RichTextBox.Style>
+                    <Style TargetType="RichTextBox">
+                        <Setter Property="Background" Value="{Binding BodyColor}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCrystalClear}" Value="True">
+                                <Setter Property="Background" Value="Transparent" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </RichTextBox.Style>
                 <RichTextBox.Resources>
                     <Style TargetType="Paragraph">
                         <Setter Property="Margin" Value="0,0,0,8" />

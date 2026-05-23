@@ -17,5 +17,6 @@ namespace PinNote.Models
         public bool IsPinned { get; set; } = false;
         public double TitleFontSize { get; set; } = 18;
         public double BodyFontSize { get; set; } = 20;
+        public bool IsCrystalClear { get; set; } = false;
     }
 }

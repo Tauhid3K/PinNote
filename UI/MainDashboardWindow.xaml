@@ -102,17 +102,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,8,0" VerticalAlignment="Center">
-                            <Button Tag="System" Command="{Binding SetThemeCommand}" CommandParameter="System" ToolTip="System theme" FontFamily="Segoe MDL2 Assets" Content="&#xE774;">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ThemeMode}" Value="System">
-                                                <Setter Property="Background" Value="#11000000" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
+                            <!-- System theme button removed from main window; kept in tray menu -->
                             <Button Tag="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" ToolTip="Light theme" FontFamily="Segoe MDL2 Assets" Content="&#xE706;">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">

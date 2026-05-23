@@ -156,6 +156,21 @@ namespace PinNote.ViewModels
             }
         }
 
+        public bool IsCrystalClear
+        {
+            get => _model.IsCrystalClear;
+            set
+            {
+                if (_model.IsCrystalClear != value)
+                {
+                    _model.IsCrystalClear = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(TextBrush));
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
         public double TitleFontSize
         {
             get => _model.TitleFontSize;
@@ -262,12 +277,30 @@ namespace PinNote.ViewModels
             get
             {
                 var alpha = (byte)(Math.Clamp(Opacity - 0.05, 0.35, 1.0) * 255);
-                var brushColor = TextColor == "White"
-                    ? System.Windows.Media.Color.FromArgb(alpha, 255, 255, 255)
-                    : System.Windows.Media.Color.FromArgb(alpha, 0, 0, 0);
-                var brush = new SolidColorBrush(brushColor);
-                if (brush.CanFreeze) brush.Freeze();
-                return brush;
+
+                System.Windows.Media.Color resultColor;
+                if (IsCrystalClear)
+                {
+                    // When crystal-clear mode is enabled, use the note's selected BodyColor as the text color
+                    if (TryParseColor(BodyColor, out var parsed))
+                    {
+                        resultColor = System.Windows.Media.Color.FromArgb(alpha, parsed.R, parsed.G, parsed.B);
+                    }
+                    else
+                    {
+                        resultColor = System.Windows.Media.Color.FromArgb(alpha, 255, 255, 255);
+                    }
+                }
+                else
+                {
+                    resultColor = TextColor == "White"
+                        ? System.Windows.Media.Color.FromArgb(alpha, 255, 255, 255)
+                        : System.Windows.Media.Color.FromArgb(alpha, 0, 0, 0);
+                }
+
+                var resultBrush = new SolidColorBrush(resultColor);
+                if (resultBrush.CanFreeze) resultBrush.Freeze();
+                return resultBrush;
             }
         }
 
