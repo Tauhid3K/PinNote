@@ -20,7 +20,7 @@
     <Window.Resources>
         <Style x:Key="TitleBarButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#333" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="32" />
@@ -42,7 +42,7 @@
         </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#0078D4" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackground}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="Padding" Value="15,8" />
             <Setter Property="BorderThickness" Value="0" />
@@ -61,10 +61,10 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#106EBE" />
+                    <Setter Property="Background" Value="{DynamicResource PrimaryButtonHover}" />
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#005A9E" />
+                    <Setter Property="Background" Value="{DynamicResource PrimaryButtonPressed}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -74,7 +74,7 @@
         <local:CollectionEmptyToVisibilityConverter x:Key="CollectionEmptyToVisibilityConverter" />
     </Window.Resources>
 
-    <Border Background="White" CornerRadius="8" BorderThickness="0">
+    <Border Background="{DynamicResource WindowBackgroundBrush}" CornerRadius="8" BorderThickness="0">
         <Border.Effect>
             <DropShadowEffect BlurRadius="15" Color="Black" Opacity="0.15" ShadowDepth="0" />
         </Border.Effect>
@@ -86,7 +86,7 @@
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0"
-                    Background="#F9F9F9"
+                Background="{DynamicResource TitleBarBackgroundBrush}"
                     CornerRadius="8,8,0,0"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid Margin="15,10">
@@ -96,11 +96,16 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="PinNote" FontSize="18" FontWeight="Bold" Foreground="#333" />
-                        <TextBlock Text=" - My Notes" FontSize="18" Foreground="#666" Margin="5,0,0,0" />
+                        <TextBlock Text="PinNote" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                        <TextBlock Text=" - My Notes" FontSize="18" Foreground="{DynamicResource SecondaryTextBrush}" Margin="5,0,0,0" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <ComboBox Width="120" VerticalAlignment="Center" Margin="0,0,8,0" SelectedValuePath="Content" SelectedValue="{Binding ThemeMode, Mode=TwoWay}">
+                            <ComboBoxItem Content="System" />
+                            <ComboBoxItem Content="Light" />
+                            <ComboBoxItem Content="Dark" />
+                        </ComboBox>
                         <Button Content="&#xE946;"
                                 FontFamily="Segoe MDL2 Assets"
                                 Style="{StaticResource TitleBarButtonStyle}"
@@ -149,12 +154,12 @@
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Search notes" />
 
-                            <TextBlock Text="Search notes"
-                                       VerticalAlignment="Center"
-                                       Margin="12,0"
-                                       Foreground="#888"
-                                       IsHitTestVisible="False"
-                                       Visibility="{Binding SearchText, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}" />
+                        <TextBlock Text="Search notes"
+                                   VerticalAlignment="Center"
+                                   Margin="12,0"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   IsHitTestVisible="False"
+                                   Visibility="{Binding SearchText, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}" />
                         </Grid>
                     </Border>
 
@@ -268,12 +273,12 @@
                     <TextBlock Text="No notes found"
                                FontSize="22"
                                FontWeight="SemiBold"
-                               Foreground="#333"
+                           Foreground="{DynamicResource PrimaryTextBrush}"
                                TextAlignment="Center" />
                     <TextBlock Text="Create a new note or adjust your search."
                                Margin="0,8,0,18"
                                FontSize="13"
-                               Foreground="#666"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
                                TextAlignment="Center"
                                TextWrapping="Wrap" />
                     <Button Content="+ New Note"

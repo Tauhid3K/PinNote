@@ -105,6 +105,9 @@ namespace PinNote.Services
             public bool ShowUiOnStartup { get; set; } = true;
             public bool StartMinimized { get; set; } = false;
 
+            // Theme: "System" = follow OS, "Light" or "Dark"
+            public string ThemeMode { get; set; } = "System";
+
             // Dashboard window state
             public double? DashboardX { get; set; }
             public double? DashboardY { get; set; }
@@ -165,6 +168,24 @@ namespace PinNote.Services
         {
             AppState state = LoadState();
             state.StartMinimized = value;
+            SaveState(state);
+        }
+
+        public string GetThemeMode()
+        {
+            AppState state = LoadState();
+            return state.ThemeMode ?? "System";
+        }
+
+        public void SetThemeMode(string mode)
+        {
+            if (string.IsNullOrWhiteSpace(mode))
+            {
+                mode = "System";
+            }
+
+            AppState state = LoadState();
+            state.ThemeMode = mode;
             SaveState(state);
         }
     }

@@ -25,6 +25,14 @@ namespace PinNote
 
             try
             {
+                // Apply theme from persisted settings before showing UI
+                try
+                {
+                    var themeMode = _appStateService.GetThemeMode();
+                    ApplyTheme(themeMode);
+                }
+                catch { }
+
                 _mainViewModel = (PinNote.ViewModels.MainViewModel)FindResource("MainVM");
 
                 InitializeTrayIcon();
@@ -109,9 +117,92 @@ namespace PinNote
             menu.Items.Add("Show all notes", null, (_, _) => RunOnUiThread(ShowDashboard));
             menu.Items.Add("Hide all notes", null, (_, _) => RunOnUiThread(() => _mainViewModel?.HideAllCommand.Execute(null)));
             menu.Items.Add("Bring notes on top", null, (_, _) => RunOnUiThread(() => _mainViewModel?.BringNotesOnTopCommand.Execute(null)));
+            // Theme submenu
+            var themeMenu = new Forms.ToolStripMenuItem("Theme");
+            var currentTheme = _appStateService.GetThemeMode();
+            var systemItem = new Forms.ToolStripMenuItem("System") { Checked = currentTheme == "System" };
+            var lightItem = new Forms.ToolStripMenuItem("Light") { Checked = currentTheme == "Light" };
+            var darkItem = new Forms.ToolStripMenuItem("Dark") { Checked = currentTheme == "Dark" };
+
+            systemItem.Click += (_, _) => RunOnUiThread(() => SetTheme("System"));
+            lightItem.Click += (_, _) => RunOnUiThread(() => SetTheme("Light"));
+            darkItem.Click += (_, _) => RunOnUiThread(() => SetTheme("Dark"));
+
+            themeMenu.DropDownItems.Add(systemItem);
+            themeMenu.DropDownItems.Add(lightItem);
+            themeMenu.DropDownItems.Add(darkItem);
+            menu.Items.Add(themeMenu);
             menu.Items.Add(new Forms.ToolStripSeparator());
             menu.Items.Add("Exit", null, (_, _) => RunOnUiThread(Shutdown));
             return menu;
+        }
+
+        public void SetTheme(string mode)
+        {
+            try
+            {
+                _appStateService.SetThemeMode(mode);
+                ApplyTheme(mode);
+            }
+            catch { }
+            // Recreate the tray menu to update checks
+            try
+            {
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.ContextMenuStrip = CreateTrayMenu();
+                }
+            }
+            catch { }
+        }
+
+        private void ApplyTheme(string mode)
+        {
+            // mode: "System", "Light", "Dark"
+            string resolved = mode ?? "System";
+            if (resolved.Equals("System", StringComparison.OrdinalIgnoreCase))
+            {
+                resolved = IsSystemInDarkMode() ? "Dark" : "Light";
+            }
+
+            try
+            {
+                // Remove any existing theme dictionaries
+                var merged = Resources.MergedDictionaries;
+                for (int i = merged.Count - 1; i >= 0; i--)
+                {
+                    var src = merged[i].Source?.OriginalString ?? string.Empty;
+                    if (src.Contains("Themes/Light.xaml") || src.Contains("Themes/Dark.xaml"))
+                    {
+                        merged.RemoveAt(i);
+                    }
+                }
+
+                var uri = new Uri($"Themes/{resolved}.xaml", UriKind.Relative);
+                var dict = new ResourceDictionary { Source = uri };
+                Resources.MergedDictionaries.Add(dict);
+            }
+            catch { }
+        }
+
+        private static bool IsSystemInDarkMode()
+        {
+            try
+            {
+                // Read AppsUseLightTheme from registry: 0 = dark, 1 = light
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
+                if (key == null) return false;
+                var val = key.GetValue("AppsUseLightTheme");
+                if (val is int i)
+                {
+                    return i == 0 ? true : false;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void RunOnUiThread(Action action)

@@ -23,6 +23,7 @@ namespace PinNote.ViewModels
         private string _searchText = string.Empty;
         private bool _isStartupEnabled;
         private bool _startMinimized;
+        private string _themeMode;
 
         public MainViewModel()
         {
@@ -44,6 +45,9 @@ namespace PinNote.ViewModels
             ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
 
             ToggleShowUiOnStartupCommand = new RelayCommand(_ => ShowUiOnStartup = !ShowUiOnStartup);
+
+            // Load theme preference
+            _themeMode = _appStateService.GetThemeMode();
 
             LoadNotes();
         }
@@ -129,6 +133,27 @@ namespace PinNote.ViewModels
         }
 
         public ICommand ToggleShowUiOnStartupCommand { get; }
+
+        public string ThemeMode
+        {
+            get => _themeMode ?? "System";
+            set
+            {
+                if (value == _themeMode) return;
+                _themeMode = value ?? "System";
+                _appStateService.SetThemeMode(_themeMode);
+                // Apply immediately via App
+                try
+                {
+                    if (Application.Current is App app)
+                    {
+                        app.SetTheme(_themeMode);
+                    }
+                }
+                catch { }
+                OnPropertyChanged();
+            }
+        }
 
         private void ToggleStartup()
         {
@@ -275,8 +300,7 @@ namespace PinNote.ViewModels
 
         private void HideAllNotes()
         {
-            _dashboardWindow?.Hide();
-
+            // Keep the main dashboard visible; only hide individual note windows.
             foreach (var window in _openWindows.Values)
             {
                 window.Hide();

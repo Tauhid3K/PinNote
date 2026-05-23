@@ -29,8 +29,9 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{Binding TextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="MinWidth" Value="24" />
-            <Setter Property="Height" Value="26" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="FontSize" Value="14" />
             <Setter Property="Padding" Value="4,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
