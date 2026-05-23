@@ -78,7 +78,7 @@ namespace PinNote.UI
                 new() { Name = "Light Purple", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFE6D5FF")), CommandParam = "#FFE6D5FF|#FFE6D5FF" },
                 new() { Name = "Mint", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFE2F7D1")), CommandParam = "#FFE2F7D1|#FFE2F7D1" },
                 new() { Name = "Light Green", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCCF0DD")), CommandParam = "#FFCCF0DD|#FFCCF0DD" },
-                new() { Name = "Sky Blue", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFD1EAF7")), CommandParam = "#FFD1EAF7|#FFD1EAF7" },
+                // note: Sky Header color above already provides this shade; removed duplicate entry
                 new() { Name = "Light Blue", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB3E5FF")), CommandParam = "#FFB3E5FF|#FFB3E5FF" },
 
                 // Row 3: Vibrant colors
@@ -89,9 +89,9 @@ namespace PinNote.UI
                 new() { Name = "Bright Green", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF00CC00")), CommandParam = "#FF00CC00|#FF00CC00" },
                 new() { Name = "Bright Blue", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF0066FF")), CommandParam = "#FF0066FF|#FF0066FF" },
 
-                // Row 4: Neutral & Dark
-                new() { Name = "Light Gray", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF0F0F0")), CommandParam = "#FFF0F0F0|#FFF0F0F0" },
-                new() { Name = "Ash", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEFEFEF")), CommandParam = "#FFEFEFEF|#FFEFEFEF" },
+                // Row 4: Neutral & Dark (adjusted to improve distinction)
+                new() { Name = "Light Gray", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF7F7F7")), CommandParam = "#FFF7F7F7|#FFF7F7F7" },
+                new() { Name = "Ash", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFE6E6E6")), CommandParam = "#FFE6E6E6|#FFE6E6E6" },
                 new() { Name = "Dark Gray", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF666666")), CommandParam = "#FF666666|#FF666666" },
                 new() { Name = "Charcoal", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF444444")), CommandParam = "#FF444444|#FF444444" },
                 new() { Name = "Midnight", Color = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF333333")), CommandParam = "#FF333333|#FF333333" }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 using Newtonsoft.Json;
 
 namespace PinNote.Services
@@ -40,8 +41,9 @@ namespace PinNote.Services
                 string json = File.ReadAllText(_filePath);
                 return JsonConvert.DeserializeObject<AppState>(json) ?? new AppState();
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"AppStateService.LoadState error: {ex}");
                 return new AppState();
             }
         }
@@ -53,8 +55,9 @@ namespace PinNote.Services
                 string json = JsonConvert.SerializeObject(state, Formatting.Indented);
                 WriteAtomically(_filePath, json);
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"AppStateService.SaveState error: {ex}");
                 // Ignore persistence errors and keep app startup resilient.
             }
         }
@@ -62,8 +65,21 @@ namespace PinNote.Services
         private static void WriteAtomically(string path, string content)
         {
             string tempPath = $"{path}.tmp";
-            File.WriteAllText(tempPath, content);
-            File.Move(tempPath, path, true);
+            try
+            {
+                File.WriteAllText(tempPath, content);
+                File.Move(tempPath, path, true);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                }
+                catch { }
+
+                throw new IOException($"Atomic write failed for '{path}': {ex.Message}", ex);
+            }
         }
 
         private static string GetStorageFolderPath()

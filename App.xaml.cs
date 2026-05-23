@@ -31,7 +31,10 @@ namespace PinNote
                     var themeMode = _appStateService.GetThemeMode();
                     ApplyTheme(themeMode);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"App.ApplyTheme startup error: {ex}");
+                }
 
                 _mainViewModel = (PinNote.ViewModels.MainViewModel)FindResource("MainVM");
 
@@ -51,7 +54,10 @@ namespace PinNote
                         return; // stop startup of elevated instance
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"App elevated-check error: {ex}");
+                }
 
                 // Show dashboard on startup according to settings.
                 try
@@ -68,8 +74,9 @@ namespace PinNote
                         EnsureTrayVisible();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"App startup UI decision error: {ex}");
                     _mainViewModel?.ShowAllNotes();
                 }
 
@@ -144,7 +151,10 @@ namespace PinNote
                 _appStateService.SetThemeMode(mode);
                 ApplyTheme(mode);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"App.SetTheme error: {ex}");
+            }
             // Recreate the tray menu to update checks
             try
             {
@@ -153,7 +163,10 @@ namespace PinNote
                     _notifyIcon.ContextMenuStrip = CreateTrayMenu();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"App.ApplyTheme error: {ex}");
+            }
         }
 
         private void ApplyTheme(string mode)

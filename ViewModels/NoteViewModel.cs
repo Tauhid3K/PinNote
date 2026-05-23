@@ -242,16 +242,18 @@ namespace PinNote.ViewModels
             {
                 try
                 {
-                    // Basic brightness check to decide text color (Black or White)
-                    var hex = BodyColor.Replace("#", "");
-                    if (hex.Length == 8) hex = hex.Substring(2); // Remove Alpha
-                    int r = Convert.ToInt32(hex.Substring(0, 2), 16);
-                    int g = Convert.ToInt32(hex.Substring(2, 2), 16);
-                    int b = Convert.ToInt32(hex.Substring(4, 2), 16);
-                    double brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                    return brightness > 0.5 ? "Black" : "White";
+                    if (TryParseColor(BodyColor, out var c))
+                    {
+                        double brightness = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
+                        return brightness > 0.5 ? "Black" : "White";
+                    }
+
+                    return "Black";
                 }
-                catch { return "Black"; }
+                catch
+                {
+                    return "Black";
+                }
             }
         }
 
@@ -260,9 +262,12 @@ namespace PinNote.ViewModels
             get
             {
                 var alpha = (byte)(Math.Clamp(Opacity - 0.05, 0.35, 1.0) * 255);
-                return TextColor == "White"
-                    ? new SolidColorBrush(Color.FromArgb(alpha, 255, 255, 255))
-                    : new SolidColorBrush(Color.FromArgb(alpha, 0, 0, 0));
+                var brushColor = TextColor == "White"
+                    ? System.Windows.Media.Color.FromArgb(alpha, 255, 255, 255)
+                    : System.Windows.Media.Color.FromArgb(alpha, 0, 0, 0);
+                var brush = new SolidColorBrush(brushColor);
+                if (brush.CanFreeze) brush.Freeze();
+                return brush;
             }
         }
 
@@ -313,25 +318,45 @@ namespace PinNote.ViewModels
         {
             try
             {
-                var hex = color.Replace("#", "");
-                if (hex.Length == 8)
-                {
-                    hex = hex.Substring(2);
-                }
+                if (!TryParseColor(color, out var c)) return color;
 
-                int r = Convert.ToInt32(hex.Substring(0, 2), 16);
-                int g = Convert.ToInt32(hex.Substring(2, 2), 16);
-                int b = Convert.ToInt32(hex.Substring(4, 2), 16);
-
-                r = Math.Clamp((int)(r * factor), 0, 255);
-                g = Math.Clamp((int)(g * factor), 0, 255);
-                b = Math.Clamp((int)(b * factor), 0, 255);
+                int r = Math.Clamp((int)(c.R * factor), 0, 255);
+                int g = Math.Clamp((int)(c.G * factor), 0, 255);
+                int b = Math.Clamp((int)(c.B * factor), 0, 255);
 
                 return $"#{r:X2}{g:X2}{b:X2}";
             }
             catch
             {
                 return color;
+            }
+        }
+
+        private static bool TryParseColor(string? input, out System.Windows.Media.Color color)
+        {
+            color = System.Windows.Media.Colors.Transparent;
+            if (string.IsNullOrWhiteSpace(input)) return false;
+
+            try
+            {
+                var conv = System.Windows.Media.ColorConverter.ConvertFromString(input!);
+                if (conv is System.Windows.Media.Color c)
+                {
+                    color = c;
+                    return true;
+                }
+
+                if (conv is System.Windows.Media.SolidColorBrush b)
+                {
+                    color = b.Color;
+                    return true;
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
             }
         }
 

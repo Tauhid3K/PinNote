@@ -150,6 +150,12 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <Separator />
+                        <MenuItem Header="More colors..." Click="MoreColors_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
                     <MenuItem Header="Transparency">
                         <MenuItem.Icon>

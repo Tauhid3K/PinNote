@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using PinNote.Models;
 
@@ -28,8 +29,9 @@ namespace PinNote.Services
                 string json = File.ReadAllText(_filePath);
                 return JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"StorageService.LoadNotes error: {ex}");
                 return new List<NoteModel>();
             }
         }
@@ -43,6 +45,7 @@ namespace PinNote.Services
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"StorageService.SaveNotes error: {ex}");
                 Console.WriteLine($"Error saving notes: {ex.Message}");
             }
         }
@@ -50,8 +53,21 @@ namespace PinNote.Services
         private static void WriteAtomically(string path, string content)
         {
             string tempPath = $"{path}.tmp";
-            File.WriteAllText(tempPath, content);
-            File.Move(tempPath, path, true);
+            try
+            {
+                File.WriteAllText(tempPath, content);
+                File.Move(tempPath, path, true);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                }
+                catch { }
+
+                throw new IOException($"Atomic write failed for '{path}': {ex.Message}", ex);
+            }
         }
 
         private static string GetStorageFolderPath()

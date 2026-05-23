@@ -38,7 +38,7 @@ namespace PinNote.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error setting startup: {ex.Message}");
+                Debug.WriteLine($"StartupService.SetStartup error: {ex}");
             }
         }
 
@@ -49,8 +49,9 @@ namespace PinNote.Services
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunRegistryPath, false);
                 return key?.GetValue(AppName) != null;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"StartupService.IsStartupEnabled error: {ex}");
                 return false;
             }
         }
