@@ -6,36 +6,23 @@ Format for entries:
 - Date: YYYY-MM-DD
 - Author: (assistant or user)
 - Files changed: (list of relative paths)
-- Change summary: (short description)
-- Reason: (why it was needed)
-- Notes: (any follow-ups, testing, or manual steps)
 
 ---
-
 ## Entries
 
-### Date: 2026-05-24
 Author: GitHub Copilot (assistant)
 Files changed:
-- ViewModels/MainViewModel.cs
 - Services/AppStateService.cs
-- App.xaml.cs
 - UI/MainDashboardWindow.xaml
 - UI/NoteWindow.xaml
 - Themes/Light.xaml (added)
 - Themes/Dark.xaml (added)
-- STEPS.md (migrated to COPILOT.md)
-
-Change summary:
 - Modified hide behavior so "Hide all notes" hides only individual note windows and keeps the main dashboard visible.
 - Added application theme support (System / Light / Dark), persisted via `AppStateService` and applied at startup.
-- Added a Theme submenu to the tray icon to choose System/Light/Dark and persist selection.
 - Added in-dashboard Theme selector (ComboBox) bound to `MainViewModel.ThemeMode`.
 - Created `Themes/Light.xaml` and `Themes/Dark.xaml` resource dictionaries with base brushes.
-- Updated `MainDashboardWindow.xaml` to use dynamic theme brushes for background, title, text, search, and primary button colors.
 - Increased note option bar icon/button sizes via `NoteWindow.xaml` style changes.
 - Exposed `App.SetTheme` as public so the app can apply theme changes from `MainViewModel`.
-
 Reason:
 - User requested that "hide all notes" should not hide the main dashboard window; the previous behavior hid both the dashboard and note windows. The change keeps the dashboard visible while hiding notes, matching the user's expectation.
 - User requested a dark mode / theme option with a System setting. This was implemented to allow users to choose Light, Dark, or follow the OS preference (read from Windows registry AppsUseLightTheme).

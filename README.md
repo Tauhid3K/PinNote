@@ -13,6 +13,9 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 - **System Tray Integration:** Runs silently in the tray with a subtle "notify only" minimize experience.
 - **Customizable Appearance:** Adjust note colors, font sizes (including Extra Small), and opacity.
 - **Auto-Startup:** Option to launch PinNote automatically when Windows starts.
+ - **Theme Support:** Light and Dark themes in the dashboard; a System theme option is available from the tray menu to follow Windows preferences.
+ - **Crystal Clear Mode:** A per-note mode that makes the note background transparent and shows note text in the selected color for a minimal overlay look.
+ - **Simplified Color Workflow:** The `More colors...` dialog now opens the standard color picker. After picking a color you'll get a simple choice: `Apply`, `Apply + Add to palette`, or `Cancel`.
 
 ## 🛠️ Tech Stack
 
@@ -51,6 +54,13 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
    ```bash
    dotnet run
    ```
+
+### Quick Usage Notes
+- To change a note color: Right-click a note → Color → More colors... → pick a color → choose `Apply` or `Apply + Add to palette`.
+- To enable Crystal Clear: Right-click a note → check `Crystal clear`. The note background becomes transparent and the text will use the selected note color.
+- Theme controls: Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
+- Hide notes: Use the dashboard action to hide all notes — the dashboard remains visible.
+- Tray behavior: Minimize the app to send it to the system tray; use the tray icon to restore the dashboard.
 
 ## 📝 License
 This project is licensed under the MIT License - see the LICENSE file for details.

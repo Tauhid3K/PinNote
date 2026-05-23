@@ -247,7 +247,7 @@
                                             <TextBlock Text="{Binding Title}"
                                                        FontSize="13"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{Binding TextColor}"
+                                                       Foreground="{Binding TextBrush}"
                                                        TextTrimming="CharacterEllipsis" />
                                         </Border>
 
@@ -271,14 +271,14 @@
                                                    TextWrapping="Wrap"
                                                    FontSize="12"
                                                    LineHeight="18"
-                                                   Foreground="{Binding TextColor}"
+                                                   Foreground="{Binding TextBrush}"
                                                    TextTrimming="CharacterEllipsis" />
 
                                         <TextBlock Grid.Row="2"
                                                    Text="Click to open"
                                                    Margin="10,0,10,10"
                                                    FontSize="11"
-                                                   Foreground="{Binding TextColor}"
+                                                   Foreground="{Binding TextBrush}"
                                                    Opacity="0.65" />
                                         <Border x:Name="DarkOverlay" Grid.RowSpan="3" Background="#22000000" Visibility="Collapsed" CornerRadius="8" IsHitTestVisible="False" />
                                     </Grid>

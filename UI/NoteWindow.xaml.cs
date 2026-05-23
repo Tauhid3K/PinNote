@@ -497,11 +497,41 @@ namespace PinNote.UI
                     var media = System.Windows.Media.Color.FromArgb(dc.A, dc.R, dc.G, dc.B);
                     string hex = $"#{media.A:X2}{media.R:X2}{media.G:X2}{media.B:X2}";
 
-                    // Apply to the note (set both title and body color to the selected color)
-                    vm.TitleBarColor = hex;
-                    vm.BodyColor = hex;
+                    // Ask the user what to do: apply or add to palette
+                    var choiceWin = new ColorChoiceWindow { Owner = this };
+                    var choiceRes = choiceWin.ShowDialog();
+                    if (choiceRes == true)
+                    {
+                        if (choiceWin.SelectedChoice == ColorChoiceWindow.Choice.Apply || choiceWin.SelectedChoice == ColorChoiceWindow.Choice.ApplyAndAdd)
+                        {
+                            vm.TitleBarColor = hex;
+                            vm.BodyColor = hex;
+                        }
 
-                    // Do not add the picked color to the main palette when chosen from the dialog.
+                        if (choiceWin.SelectedChoice == ColorChoiceWindow.Choice.ApplyAndAdd)
+                        {
+                            if (ColorPalette.ItemsSource is IList<ColorItem> list)
+                            {
+                                bool exists = false;
+                                foreach (var it in list)
+                                {
+                                    if (it.CommandParam == hex + "|" + hex)
+                                    {
+                                        exists = true; break;
+                                    }
+                                }
+
+                                if (!exists)
+                                {
+                                    var brush = new System.Windows.Media.SolidColorBrush(media);
+                                    if (brush.CanFreeze) brush.Freeze();
+                                    list.Insert(0, new ColorItem { Name = "Custom", Color = brush, CommandParam = hex + "|" + hex });
+                                    ColorPalette.ItemsSource = null;
+                                    ColorPalette.ItemsSource = list; // refresh
+                                }
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
