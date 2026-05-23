@@ -1,0 +1,12 @@
+<Window x:Class="PinNote.UI.TrayFallbackWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="" Height="72" Width="260"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" ResizeMode="NoResize">
+    <Border Background="#FF2B2B2B" CornerRadius="8" Padding="10" Opacity="0.95">
+        <Grid>
+            <TextBlock Name="MessageText" Text="PinNote minimized to tray" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </Grid>
+    </Border>
+</Window>

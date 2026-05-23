@@ -1,0 +1,323 @@
+<Window x:Class="PinNote.UI.NoteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PinNote.UI"
+        mc:Ignorable="d"
+        Title="{Binding Title}"
+        Height="{Binding Height, Mode=TwoWay}"
+        Width="{Binding Width, Mode=TwoWay}"
+        Left="{Binding X, Mode=TwoWay}"
+        Top="{Binding Y, Mode=TwoWay}"
+        MinWidth="100"
+        MinHeight="100"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Opacity="{Binding Opacity, Mode=TwoWay}"
+        Topmost="{Binding IsPinned}"
+        ShowInTaskbar="False"
+        MouseMove="Window_MouseMove"
+        GotKeyboardFocus="Window_GotKeyboardFocus">
+
+    <Window.Resources>
+        <local:BooleanToPinTextConverter x:Key="BooleanToPinTextConverter" />
+
+        <Style x:Key="NoteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{Binding TextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MinWidth" Value="24" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#220078D4" />
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#330078D4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource NoteButtonStyle}">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="Margin" Value="1,0" />
+        </Style>
+
+        <Style x:Key="ToolbarIconButtonStyle" TargetType="Button" BasedOn="{StaticResource ToolbarButtonStyle}">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        </Style>
+
+        <Style x:Key="ResizeThumbStyle" TargetType="Thumb">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="2"
+            Background="{Binding BodyColor}"
+            BorderBrush="#55000000"
+            BorderThickness="1"
+            MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="14" Color="Black" Opacity="0.16" ShadowDepth="3" />
+        </Border.Effect>
+
+        <Grid>
+            <Grid.ContextMenu>
+                <ContextMenu x:Name="NoteMenu"
+                             DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="New note" Command="{Binding NewNoteCommand}" />
+                    <Separator />
+                    <MenuItem Header="Color">
+                        <ItemsControl x:Name="ColorPalette">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.Width>168</ItemsControl.Width>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Margin" Value="3" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Width="22"
+                                            Height="22"
+                                            Padding="0"
+                                            BorderThickness="1"
+                                            BorderBrush="#80000000"
+                                            Background="{Binding Color}"
+                                            ToolTip="{Binding Name}"
+                                            Command="{Binding DataContext.ChangeColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            CommandParameter="{Binding CommandParam}">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="3" />
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="BorderBrush" Value="#FF000000" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </MenuItem>
+                    <MenuItem Header="Transparency">
+                        <MenuItem Header="100%" Command="{Binding SetOpacityCommand}" CommandParameter="1.0" />
+                        <MenuItem Header="90%" Command="{Binding SetOpacityCommand}" CommandParameter="0.9" />
+                        <MenuItem Header="80%" Command="{Binding SetOpacityCommand}" CommandParameter="0.8" />
+                        <MenuItem Header="70%" Command="{Binding SetOpacityCommand}" CommandParameter="0.7" />
+                        <MenuItem Header="60%" Command="{Binding SetOpacityCommand}" CommandParameter="0.6" />
+                        <MenuItem Header="50%" Command="{Binding SetOpacityCommand}" CommandParameter="0.5" />
+                    </MenuItem>
+                    <MenuItem Header="Text Size">
+                        <MenuItem Header="Extra Small" Command="{Binding SetFontSizeCommand}" CommandParameter="12|12" />
+                        <MenuItem Header="Small" Command="{Binding SetFontSizeCommand}" CommandParameter="16|16" />
+                        <MenuItem Header="Normal" Command="{Binding SetFontSizeCommand}" CommandParameter="20|20" />
+                        <MenuItem Header="Large" Command="{Binding SetFontSizeCommand}" CommandParameter="24|24" />
+                        <MenuItem Header="Extra Large" Command="{Binding SetFontSizeCommand}" CommandParameter="28|28" />
+                    </MenuItem>
+                    <MenuItem Header="Stick to desktop"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsPinned, Mode=TwoWay}" />
+                    <Separator />
+                    <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" />
+                </ContextMenu>
+            </Grid.ContextMenu>
+
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="OptionsRow" Height="28" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition x:Name="FormattingRow" Height="40" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="OptionsBar"
+                    Grid.Row="0"
+                    Background="{Binding ActiveTitleBarColor}"
+                    BorderBrush="#33000000"
+                    BorderThickness="0,0,0,1"
+                    PreviewMouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Focusable="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Grab area -->
+                        <Border Grid.Column="0" Background="Transparent" />
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <Button Content="+"
+                                    Style="{StaticResource NoteButtonStyle}"
+                                    Command="{Binding NewNoteCommand}"
+                                    ToolTip="New note" />
+                            <Button Content="{Binding IsPinned, Converter={StaticResource BooleanToPinTextConverter}}"
+                                    Style="{StaticResource NoteButtonStyle}"
+                                    FontSize="11"
+                                    Command="{Binding TogglePinCommand}"
+                                    ToolTip="Pin note on top" />
+                            <Button x:Name="SettingsButton"
+                                    Content="&#xE712;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    Style="{StaticResource NoteButtonStyle}"
+                                    Click="Settings_Click"
+                                    ToolTip="Options" />
+                            <Button Content="&#xE8BB;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    Style="{StaticResource NoteButtonStyle}"
+                                    Click="CloseNote_Click"
+                                    ToolTip="Close note" />
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Background="{Binding BodyColor}"
+                    BorderBrush="#33000000"
+                    BorderThickness="0,0,0,1"
+                    PreviewMouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="10,3,10,4"
+                         MinHeight="26"
+                         VerticalContentAlignment="Center"
+                         FontSize="{Binding TitleFontSize}"
+                         FontFamily="Segoe UI"
+                         FontWeight="Bold"
+                         Foreground="{Binding TextBrush}"
+                         CaretBrush="{Binding TextBrush}"
+                         ToolTip="Edit note title" />
+            </Border>
+
+            <RichTextBox x:Name="EditorBox"
+                         Grid.Row="2"
+                         Background="{Binding BodyColor}"
+                         Foreground="{Binding TextBrush}"
+                         BorderThickness="0"
+                         Padding="10,8,10,10"
+                         FontSize="{Binding BodyFontSize}"
+                         FontFamily="Segoe UI"
+                         CaretBrush="{Binding TextBrush}"
+                         VerticalScrollBarVisibility="Auto"
+                         AcceptsTab="True">
+                <RichTextBox.Resources>
+                    <Style TargetType="Paragraph">
+                        <Setter Property="Margin" Value="0,0,0,8" />
+                        <Setter Property="LineHeight" Value="24" />
+                    </Style>
+                    <Style TargetType="List">
+                        <Setter Property="Margin" Value="0,0,0,10" />
+                    </Style>
+                </RichTextBox.Resources>
+            </RichTextBox>
+
+            <Border x:Name="FormattingBar"
+                    Grid.Row="3"
+                    Background="{Binding ActiveTitleBarColor}"
+                    BorderBrush="#33000000"
+                    BorderThickness="0,1,0,1"
+                    Padding="4,5">
+                <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                    <Grid MinWidth="180">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Content="B" Style="{StaticResource ToolbarButtonStyle}" FontWeight="Bold" ToolTip="Bold (Ctrl+B)" Click="BoldButton_Click" />
+                        <Button Grid.Column="1" Content="I" Style="{StaticResource ToolbarButtonStyle}" FontStyle="Italic" ToolTip="Italic (Ctrl+I)" Click="ItalicButton_Click" />
+                        <Button Grid.Column="2" Content="U" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Underline (Ctrl+U)" Click="UnderlineButton_Click">
+                                <Button.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="U" TextDecorations="Underline" />
+                                    </DataTemplate>
+                                </Button.ContentTemplate>
+                        </Button>
+                        <Rectangle Grid.Column="3" Width="1" Height="20" Fill="#33000000" HorizontalAlignment="Center" />
+                        <Button Grid.Column="4" Content="&#xE8FD;" Style="{StaticResource ToolbarIconButtonStyle}" ToolTip="Bulleted list" Click="BulletsButton_Click" />
+                        <Button Grid.Column="5"
+                                Content="&#xE91B;"
+                                Style="{StaticResource ToolbarIconButtonStyle}"
+                                ToolTip="Add image"
+                                Click="ImageButton_Click" />
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Resize Handles Layer -->
+            <!-- Edges -->
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" Width="6" Cursor="SizeWE" Tag="Left" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" Width="6" Cursor="SizeWE" Tag="Right" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" VerticalAlignment="Top" Height="6" Cursor="SizeNS" Tag="Top" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" VerticalAlignment="Bottom" Height="6" Cursor="SizeNS" Tag="Bottom" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            
+            <!-- Corners -->
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNWSE" Tag="TopLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNESW" Tag="TopRight" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="10" Height="10" Cursor="SizeNESW" Tag="BottomLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="20" Height="20" Cursor="SizeNWSE" Tag="BottomRight" DragDelta="ResizeThumb_DragDelta">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid Width="20" Height="20" Background="Transparent">
+                            <Path Data="M 12 18 L 18 18 L 18 12 M 7 18 L 18 18 L 18 7"
+                                  Stroke="#44000000"
+                                  StrokeThickness="1.2"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Bottom"
+                                  Margin="0,0,4,4" />
+                        </Grid>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
+        </Grid>
+    </Border>
+</Window>
