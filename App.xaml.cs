@@ -194,7 +194,7 @@ namespace PinNote
 
         public void ShowDashboard()
         {
-            _mainViewModel?.ShowAllNotes();
+            _mainViewModel?.ShowDashboard();
             HideFallbackWindow();
         }
 

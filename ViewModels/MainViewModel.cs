@@ -147,7 +147,8 @@ namespace PinNote.ViewModels
 
             foreach (var noteModel in savedNotes)
             {
-                AddNoteViewModel(noteModel, openWindow: false);
+                // Open all notes on startup as requested
+                AddNoteViewModel(noteModel, openWindow: true);
             }
         }
 
@@ -218,7 +219,7 @@ namespace PinNote.ViewModels
             _openWindows.Remove(noteId);
         }
 
-        public void ShowAllNotes()
+        public void ShowDashboard()
         {
             if (_dashboardWindow == null)
             {
@@ -233,6 +234,11 @@ namespace PinNote.ViewModels
             }
 
             _dashboardWindow.Activate();
+        }
+
+        public void ShowAllNotes()
+        {
+            ShowDashboard();
 
             foreach (var window in _openWindows.Values)
             {

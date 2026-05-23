@@ -157,6 +157,18 @@ This file tracks the features implemented, changes made, and the rationale behin
     - *Rationale*: Prevents UI buttons from squashing or overlapping when the window is very narrow. The bars now clip gracefully instead of breaking the layout.
 - **Improved Alignment**: Reduced padding and minimum button widths for better space efficiency in small notes.
 
+## [Persistence and Dashboard Improvements] - May 24, 2026
+
+### Changes
+- **Persistent Note Restoration**: Updated `LoadNotes` to automatically open all saved note windows in their last saved positions upon application startup.
+    - *Rationale*: Users expect their sticky notes to be immediately available and positioned correctly when they restart the app or their computer.
+- **Dedicated Dashboard View**: Split the `ShowAllNotes` logic so that the "Show all notes" tray menu option and tray icon click now open **only** the dashboard window.
+    - *Rationale*: Provides a cleaner way to manage notes without forcing all individual note windows to the front if the user only wants to see the summary dashboard.
+- **Enhanced Startup Logic**: Ensured that all note windows are restored even if the main dashboard is set to start minimized or hidden.
+
+### Verification
+- `dotnet build` completed successfully.
+
 ## [Window Dragging Fix] - May 24, 2026
 
 ### Changes
