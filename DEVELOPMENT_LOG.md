@@ -174,6 +174,28 @@ This file tracks the features implemented, changes made, and the rationale behin
 - **Enforced Body Transparency**: Updated `SyncEditorColors` to explicitly apply the `TextBrush` (which contains the transparency alpha) to the entire `RichTextBox` document range.
     - *Rationale*: Previously, internal formatting in the note body could prevent text from inheriting transparency changes. Applying it to the full `TextRange` ensures the body text matches the title text's transparency.
 
+## [UI Visual Refinements] - May 24, 2026
+
+### Changes
+- **Centered Note Titles**: Updated the title `TextBox` in `NoteWindow` to use `TextAlignment="Center"`.
+    - *Rationale*: Provides better visual balance and matches the user's preference for centered headers.
+
+## [Professional UI Refinement] - May 24, 2026
+
+### Changes
+- **Streamlined Context Menu**: Redesigned the note's right-click menu to be more professional and focused.
+    - Added **Icons** to all primary actions (Pin, Color, Transparency, Text Size, Delete).
+    - Renamed "Stick to desktop" to the more standard **"Always on top"**.
+    - Highlighted **"Delete note"** in red to indicate a destructive action.
+    - Removed the redundant "New note" option (already available in the top toolbar).
+- **Improved Visual Hierarchy**: Used separators and iconography to group related settings, making the menu faster to navigate.
+
+### Verification
+- `dotnet build` completed successfully.
+
+### Verification
+- `dotnet build` completed successfully.
+
 ### Verification
 - `dotnet build` completed successfully.
 

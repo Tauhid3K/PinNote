@@ -91,9 +91,18 @@
             <Grid.ContextMenu>
                 <ContextMenu x:Name="NoteMenu"
                              DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                    <MenuItem Header="New note" Command="{Binding NewNoteCommand}" />
+                    <MenuItem Header="Always on top"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsPinned, Mode=TwoWay}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE718;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Color">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
                         <ItemsControl x:Name="ColorPalette">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -142,6 +151,9 @@
                         </ItemsControl>
                     </MenuItem>
                     <MenuItem Header="Transparency">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE706;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
                         <MenuItem Header="100%" Command="{Binding SetOpacityCommand}" CommandParameter="1.0" />
                         <MenuItem Header="90%" Command="{Binding SetOpacityCommand}" CommandParameter="0.9" />
                         <MenuItem Header="80%" Command="{Binding SetOpacityCommand}" CommandParameter="0.8" />
@@ -150,17 +162,21 @@
                         <MenuItem Header="50%" Command="{Binding SetOpacityCommand}" CommandParameter="0.5" />
                     </MenuItem>
                     <MenuItem Header="Text Size">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE8D2;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
                         <MenuItem Header="Extra Small" Command="{Binding SetFontSizeCommand}" CommandParameter="12|12" />
                         <MenuItem Header="Small" Command="{Binding SetFontSizeCommand}" CommandParameter="16|16" />
                         <MenuItem Header="Normal" Command="{Binding SetFontSizeCommand}" CommandParameter="20|20" />
                         <MenuItem Header="Large" Command="{Binding SetFontSizeCommand}" CommandParameter="24|24" />
                         <MenuItem Header="Extra Large" Command="{Binding SetFontSizeCommand}" CommandParameter="28|28" />
                     </MenuItem>
-                    <MenuItem Header="Stick to desktop"
-                              IsCheckable="True"
-                              IsChecked="{Binding IsPinned, Mode=TwoWay}" />
                     <Separator />
-                    <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" />
+                    <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" Foreground="#CC0000">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" Foreground="#CC0000" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </Grid.ContextMenu>
 
@@ -223,6 +239,8 @@
                          BorderThickness="0"
                          Padding="10,3,10,4"
                          MinHeight="26"
+                         HorizontalContentAlignment="Center"
+                         TextAlignment="Center"
                          VerticalContentAlignment="Center"
                          FontSize="{Binding TitleFontSize}"
                          FontFamily="Segoe UI"

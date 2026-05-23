@@ -1,0 +1,2 @@
+C:\Users\Tauhid\OneDrive - cse.pstu.ac.bd\Desktop\Personal Projects\PinNote\PinNote\PinNote.csproj : warning NU1603: H.NotifyIcon.Wpf 2.0.17 depends on H.NotifyIcon (>= 2.0.17) but H.NotifyIcon 2.0.17 was not found. H.NotifyIcon 2.0.24 was resolved instead.
+PinNote tray app is ready.
