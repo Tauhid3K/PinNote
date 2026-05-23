@@ -33,54 +33,25 @@ Notes / Testing:
 - I attempted to run the app to verify behavior. The running `PinNote.exe` instance locked the build output, so I stopped any running instance and rebuilt.
 - To run locally, use:
 
-```powershell
-dotnet run --project "PinNote.csproj" -f net8.0-windows
-```
-
-Follow-ups (suggested):
-- Apply theme brushes to `NoteWindow` chrome (title/toolbar) so note chrome follows Light/Dark themes as well — currently notes preserve per-note coloring and only dashboard is themed.
-- Optionally add a small settings panel describing the "System" option and its behavior.
-
 ---
 
-### Date: 2026-05-24
-Author: GitHub Copilot (assistant)
-Files changed:
-
-Change summary:
-
-Reason:
-
-Notes / Testing:
-
----
-
-### Date: 2026-05-24
-Author: GitHub Copilot (assistant)
 Files changed:
 - ViewModels/NoteViewModel.cs
 
 Change summary:
 - Updated crystal-clear behavior: when `IsCrystalClear` is enabled, changing a note's color now updates the text color to the selected color (previously it always forced white). The background remains transparent in crystal-clear mode.
 
-Reason:
-- The user requested that when crystal-clear mode is on, picking a color should change the text color accordingly.
 
-Notes / Testing:
 - Build verified. Pick a color from the `More colors...` dialog or the palette while `Crystal clear` is enabled — the note text will change to that color immediately.
 
 ### Date: 2026-05-24
 Author: GitHub Copilot (assistant)
-Files changed:
 - UI/MainDashboardWindow.xaml
 - UI/InstructionsWindow.xaml
-
 Change summary:
 - Improve dark mode visuals: added a semi-transparent overlay for note preview cards in the dashboard when `ThemeMode` is `Dark`, and updated the `InstructionsWindow` to use theme resources instead of hard-coded white backgrounds.
-
 Reason:
 - In Dark mode some UI areas (note previews and instruction dialog) remained bright and jarring. The overlay darkens preview cards for better contrast and the `InstructionsWindow` colors now adapt to the selected theme.
-
 Notes / Testing:
 - Restart the app and switch to Dark to observe preview card overlay and the instructions dialog adapting to theme brushes.
 

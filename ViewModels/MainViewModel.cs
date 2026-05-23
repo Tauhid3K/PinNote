@@ -210,7 +210,23 @@ namespace PinNote.ViewModels
         private void AddNoteViewModel(NoteModel model, bool openWindow = true)
         {
             var viewModel = new NoteViewModel(model, this);
-            viewModel.DeleteRequested += (s, e) => DeleteNote(viewModel);
+            viewModel.DeleteRequested += (s, e) =>
+            {
+                try
+                {
+                    var title = string.IsNullOrWhiteSpace(viewModel.Title) ? "this note" : viewModel.Title;
+                    var res = MessageBox.Show($"Are you sure you want to delete '{title}'?", "Delete Note", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        DeleteNote(viewModel);
+                    }
+                }
+                catch
+                {
+                    // Fallback: delete without confirmation if UI fails
+                    DeleteNote(viewModel);
+                }
+            };
             viewModel.SaveRequested += (s, e) => SaveNotes();
             viewModel.PropertyChanged += NoteViewModel_PropertyChanged;
 

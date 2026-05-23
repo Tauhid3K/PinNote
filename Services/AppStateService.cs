@@ -124,6 +124,9 @@ namespace PinNote.Services
             // Theme: "System" = follow OS, "Light" or "Dark"
             public string ThemeMode { get; set; } = "System";
 
+            // Custom colors stored as integer ARGB values (matching System.Drawing color format used by ColorDialog.CustomColors)
+            public int[] CustomColors { get; set; } = Array.Empty<int>();
+
             // Dashboard window state
             public double? DashboardX { get; set; }
             public double? DashboardY { get; set; }
@@ -191,6 +194,19 @@ namespace PinNote.Services
         {
             AppState state = LoadState();
             return state.ThemeMode ?? "System";
+        }
+
+        public int[] GetCustomColors()
+        {
+            AppState state = LoadState();
+            return state.CustomColors ?? Array.Empty<int>();
+        }
+
+        public void SetCustomColors(int[] colors)
+        {
+            AppState state = LoadState();
+            state.CustomColors = colors ?? Array.Empty<int>();
+            SaveState(state);
         }
 
         public void SetThemeMode(string mode)

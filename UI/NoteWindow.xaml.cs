@@ -484,6 +484,18 @@ namespace PinNote.UI
                 dlg.FullOpen = true;
                 dlg.SolidColorOnly = false;
 
+                // Initialize dialog custom colors from app state if present
+                try
+                {
+                    var appState = new PinNote.Services.AppStateService();
+                    var saved = appState.GetCustomColors();
+                    if (saved != null && saved.Length > 0)
+                    {
+                        dlg.CustomColors = saved;
+                    }
+                }
+                catch { }
+
                 // Initialize dialog with current body color if available
                 if (TryParseMediaColor(vm.BodyColor, out var init))
                 {
@@ -497,41 +509,33 @@ namespace PinNote.UI
                     var media = System.Windows.Media.Color.FromArgb(dc.A, dc.R, dc.G, dc.B);
                     string hex = $"#{media.A:X2}{media.R:X2}{media.G:X2}{media.B:X2}";
 
-                    // Ask the user what to do: apply or add to palette
-                    var choiceWin = new ColorChoiceWindow { Owner = this };
-                    var choiceRes = choiceWin.ShowDialog();
-                    if (choiceRes == true)
+                    // Apply selected color immediately
+                    vm.TitleBarColor = hex;
+                    vm.BodyColor = hex;
+
+                    // Persist any custom colors the user added in the dialog
+                    try
                     {
-                        if (choiceWin.SelectedChoice == ColorChoiceWindow.Choice.Apply || choiceWin.SelectedChoice == ColorChoiceWindow.Choice.ApplyAndAdd)
-                        {
-                            vm.TitleBarColor = hex;
-                            vm.BodyColor = hex;
-                        }
+                        var appState = new PinNote.Services.AppStateService();
+                        var saved = appState.GetCustomColors() ?? Array.Empty<int>();
+                        var current = dlg.CustomColors ?? Array.Empty<int>();
 
-                        if (choiceWin.SelectedChoice == ColorChoiceWindow.Choice.ApplyAndAdd)
+                        // If current custom colors differ from saved, update storage
+                        bool different = saved.Length != current.Length;
+                        if (!different)
                         {
-                            if (ColorPalette.ItemsSource is IList<ColorItem> list)
+                            for (int i = 0; i < saved.Length; i++)
                             {
-                                bool exists = false;
-                                foreach (var it in list)
-                                {
-                                    if (it.CommandParam == hex + "|" + hex)
-                                    {
-                                        exists = true; break;
-                                    }
-                                }
-
-                                if (!exists)
-                                {
-                                    var brush = new System.Windows.Media.SolidColorBrush(media);
-                                    if (brush.CanFreeze) brush.Freeze();
-                                    list.Insert(0, new ColorItem { Name = "Custom", Color = brush, CommandParam = hex + "|" + hex });
-                                    ColorPalette.ItemsSource = null;
-                                    ColorPalette.ItemsSource = list; // refresh
-                                }
+                                if (saved[i] != current[i]) { different = true; break; }
                             }
                         }
+
+                        if (different)
+                        {
+                            appState.SetCustomColors(current);
+                        }
                     }
+                    catch { }
                 }
             }
             catch (Exception ex)
