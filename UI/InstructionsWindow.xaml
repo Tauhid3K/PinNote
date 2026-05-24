@@ -4,14 +4,14 @@
     Title="PinNote Instructions" Height="780" Width="700"
     WindowStyle="None" AllowsTransparency="True" Background="Transparent"
     WindowStartupLocation="CenterScreen" Topmost="True"
-    ShowInTaskbar="False"
+    ShowInTaskbar="False" Foreground="{DynamicResource PrimaryTextBrush}"
     PreviewKeyDown="Window_PreviewKeyDown">
 
     <Window.Resources>
         <Style x:Key="SectionCard" TargetType="Border">
             <Setter Property="CornerRadius" Value="16" />
-            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-            <Setter Property="BorderBrush" Value="#D8DEE9" />
+            <Setter Property="Background" Value="{DynamicResource SectionCardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SectionCardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="16" />
             <Setter Property="Margin" Value="0,0,0,14" />
@@ -21,7 +21,7 @@
             <Setter Property="Width" Value="46" />
             <Setter Property="Height" Value="46" />
             <Setter Property="CornerRadius" Value="23" />
-            <Setter Property="Background" Value="#EAF2FF" />
+            <Setter Property="Background" Value="{DynamicResource IconCircleDefaultBackgroundBrush}" />
             <Setter Property="Margin" Value="0,0,12,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
@@ -38,19 +38,20 @@
         <Style TargetType="Expander">
             <Setter Property="Margin" Value="0,0,0,10" />
             <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
         <Style x:Key="ActionChip" TargetType="Border">
             <Setter Property="CornerRadius" Value="999" />
             <Setter Property="Padding" Value="12,7" />
             <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Background" Value="#EEF4FF" />
-            <Setter Property="BorderBrush" Value="#C8D8FF" />
+            <Setter Property="Background" Value="{DynamicResource ActionChipBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ActionChipBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
     </Window.Resources>
 
-    <Border Background="{DynamicResource WindowBackgroundBrush}" CornerRadius="18" BorderThickness="1" BorderBrush="#DDE3EA">
+    <Border Background="{DynamicResource WindowBackgroundBrush}" CornerRadius="18" BorderThickness="1" BorderBrush="{DynamicResource SectionCardBorderBrush}">
         <Border.Effect>
             <DropShadowEffect BlurRadius="18" Color="Black" Opacity="0.18" ShadowDepth="0" />
         </Border.Effect>
@@ -70,7 +71,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Border Width="40" Height="40" CornerRadius="20" Background="#1F6FEB" VerticalAlignment="Center">
+                    <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource PrimaryButtonBackground}" VerticalAlignment="Center">
                         <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
 
@@ -88,7 +89,7 @@
 
             <ScrollViewer Grid.Row="1" Padding="18,16" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <Border Style="{StaticResource SectionCard}" Background="#F5F9FF" BorderBrush="#CFE0FF">
+                    <Border Style="{StaticResource SectionCard}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -100,25 +101,25 @@
                             </Border>
 
                             <StackPanel Grid.Column="1" Margin="14,0,0,0">
-                                <TextBlock Text="Quick start" FontSize="16" FontWeight="Bold" />
+                                <TextBlock Text="Quick start" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
                                 <TextBlock Text="PinNote is designed to stay out of your way. Start with a note, pin what matters, and keep the dashboard in the tray when you are done." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0" />
 
                                 <WrapPanel Margin="0,12,0,0">
                                     <Border Style="{StaticResource ActionChip}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" Foreground="#1F6FEB" Margin="0,0,8,0" />
+                                            <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource IconOnColorBrush}" Margin="0,0,8,0" />
                                             <TextBlock Text="New note" FontWeight="SemiBold" />
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource ActionChip}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" Foreground="#1F6FEB" Margin="0,0,8,0" />
+                                            <TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource IconOnColorBrush}" Margin="0,0,8,0" />
                                             <TextBlock Text="Pin note" FontWeight="SemiBold" />
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource ActionChip}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="#1F6FEB" Margin="0,0,8,0" />
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource IconOnColorBrush}" Margin="0,0,8,0" />
                                             <TextBlock Text="Tray menu" FontWeight="SemiBold" />
                                         </StackPanel>
                                     </Border>
@@ -128,8 +129,8 @@
                     </Border>
 
                     <Border Style="{StaticResource SectionCard}">
-                        <StackPanel>
-                            <TextBlock Text="Do these four things first" FontSize="15" FontWeight="Bold" Margin="0,0,0,12" />
+                            <StackPanel>
+                            <TextBlock Text="Do these four things first" FontSize="15" FontWeight="Bold" Margin="0,0,0,12" Foreground="{DynamicResource PrimaryTextBrush}" />
 
                             <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
@@ -203,28 +204,28 @@
 
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
-                            <TextBlock Text="Customize with confidence" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" />
+                            <TextBlock Text="Customize with confidence" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryTextBrush}" />
 
                             <Expander Header="Colors and appearance" IsExpanded="True">
                                 <StackPanel Margin="8,10,0,0">
-                                    <TextBlock Text="1. Right-click a note and choose Color." TextWrapping="Wrap" Margin="0,0,0,6" />
-                                    <TextBlock Text="2. Select More colors... to open the standard Windows color picker." TextWrapping="Wrap" Margin="0,0,0,6" />
-                                    <TextBlock Text="3. Pick a color, press OK, and the note updates immediately." TextWrapping="Wrap" Margin="0,0,0,6" />
-                                    <TextBlock Text="4. Any custom swatches you add in that dialog will be available next time." TextWrapping="Wrap" />
+                                    <TextBlock Text="1. Right-click a note and choose Color." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="2. Select More colors... to open the standard Windows color picker." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="3. Pick a color, press OK, and the note updates immediately." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="4. Any custom swatches you add in that dialog will be available next time." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
                                 </StackPanel>
                             </Expander>
 
                             <Expander Header="Crystal Clear mode">
                                 <StackPanel Margin="8,10,0,0">
-                                    <TextBlock Text="Turn on Crystal clear from the note menu to make the background transparent." TextWrapping="Wrap" Margin="0,0,0,6" />
-                                    <TextBlock Text="Use it when you want a minimal overlay note. The text stays readable by using your selected note color." TextWrapping="Wrap" />
+                                    <TextBlock Text="Turn on Crystal clear from the note menu to make the background transparent." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Use it when you want a minimal overlay note. The text stays readable by using your selected note color." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
                                 </StackPanel>
                             </Expander>
 
                             <Expander Header="Themes">
                                 <StackPanel Margin="8,10,0,0">
-                                    <TextBlock Text="Use the Light and Dark buttons in the dashboard title bar to switch themes." TextWrapping="Wrap" Margin="0,0,0,6" />
-                                    <TextBlock Text="Use System from the tray menu if you want PinNote to follow the Windows theme automatically." TextWrapping="Wrap" />
+                                    <TextBlock Text="Use the Light and Dark buttons in the dashboard title bar to switch themes." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Use System from the tray menu if you want PinNote to follow the Windows theme automatically." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
                                 </StackPanel>
                             </Expander>
                         </StackPanel>
@@ -232,7 +233,7 @@
 
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
-                            <TextBlock Text="Useful shortcuts" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" />
+                            <TextBlock Text="Useful shortcuts" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryTextBrush}" />
                             <TextBlock Text="Use these while editing note text." Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,10" />
 
                             <Grid Margin="0,0,0,8">
@@ -290,7 +291,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" Foreground="#1F6FEB" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource IconOnColorBrush}" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" />
                         <TextBlock Text="Tip: Use the tray icon when you want PinNote to stay running without the dashboard open." 
                                    TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" />
                     </StackPanel>
@@ -311,7 +312,7 @@
                                 </Setter>
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#106EBE" />
+                                        <Setter Property="Background" Value="{DynamicResource PrimaryButtonHover}" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
