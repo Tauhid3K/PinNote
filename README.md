@@ -39,7 +39,8 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 ## ⚙️ Installation & Usage
 
 ### Prerequisites
-- [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) or SDK installed on your machine.
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) is only needed if you want to build from source.
+- Installed PinNote users do not need .NET 8. The installer publishes a self-contained app that includes the runtime.
 
 ### Running the App
 1. Clone the repository:
@@ -54,6 +55,18 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
    ```bash
    dotnet run
    ```
+
+### Creating a Windows Installer
+To build a standard Windows setup file with shortcuts, uninstall support, a launch-after-install option, and an embedded runtime:
+
+1. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) if it is not already installed.
+2. Run the installer build script:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1
+   ```
+3. The installer EXE will be created under `artifacts\installer`.
+
+The generated installer is self-contained, so the target PC does not need .NET 8 installed.
 
 ### Quick Usage Notes
 - To change a note color: Right-click a note → Color → More colors... → pick a color → choose `Apply` or `Apply + Add to palette`.

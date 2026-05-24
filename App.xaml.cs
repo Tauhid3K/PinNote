@@ -41,6 +41,9 @@ namespace PinNote
                 InitializeTrayIcon();
                 Debug.WriteLine("PinNote tray app is ready.");
 
+                bool showPostInstallInstructions = Array.Exists(e.Args, arg =>
+                    string.Equals(arg, "--show-instructions", StringComparison.OrdinalIgnoreCase));
+
                 // If the process is running elevated, the tray icon may not appear in the normal user's notification area.
                 try
                 {
@@ -63,19 +66,18 @@ namespace PinNote
                 try
                 {
                     bool showUi = _appStateService.GetShowUiOnStartup(); // "Start with Windows"
-                    bool startMin = _appStateService.GetStartMinimized();
 
-                    if (showUi)
+                    if (showPostInstallInstructions)
+                    {
+                        EnsureTrayVisible();
+                    }
+                    else if (showUi)
                     {
                         // When the user has enabled "Start with Windows", show notes but keep the
                         // main dashboard minimized so the app starts quietly with notes visible.
                         _mainViewModel?.ShowAllNotes(minimizeDashboard: true);
                         // Ensure the tray icon is present so the user can access the app.
                         EnsureTrayVisible();
-                    }
-                    else if (showUi && !startMin)
-                    {
-                        _mainViewModel?.ShowAllNotes();
                     }
                     else
                     {
@@ -89,10 +91,10 @@ namespace PinNote
                     _mainViewModel?.ShowAllNotes();
                 }
 
-                // If this is the first run, also create the professional welcome note.
-                if (_appStateService.ShouldShowFirstRunUi())
+                // If this launch came from the installer, show the instructions window.
+                if (showPostInstallInstructions)
                 {
-                    _mainViewModel?.CreateWelcomeNote();
+                    _mainViewModel?.ShowInstructions();
                 }
             }
             catch (Exception ex)
