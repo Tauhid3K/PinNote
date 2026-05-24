@@ -17,4 +17,5 @@
   <SolidColorBrush x:Key="ActionChipBorderBrush" Color="#3C3C3C" />
   <SolidColorBrush x:Key="IconOnColorBrush" Color="#FFFFFFFF" />
   <SolidColorBrush x:Key="IconCircleDefaultBackgroundBrush" Color="#2E2E2E" />
+  <SolidColorBrush x:Key="SearchBoxBorderBrush" Color="#3A3A3A" />
 </ResourceDictionary>

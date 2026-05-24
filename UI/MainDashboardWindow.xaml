@@ -163,7 +163,7 @@
                             Style="{StaticResource PrimaryButtonStyle}"
                             Command="{Binding NewNoteCommand}" />
 
-                    <Border Grid.Column="1" Background="#F3F3F3" CornerRadius="4" Margin="20,0" Height="36">
+                    <Border Grid.Column="1" Background="{DynamicResource SearchBackgroundBrush}" CornerRadius="4" Margin="20,0" Height="36" BorderBrush="{DynamicResource SearchBoxBorderBrush}" BorderThickness="1">
                         <Grid>
                             <TextBox x:Name="SearchBox"
                                      Background="Transparent"
@@ -171,7 +171,11 @@
                                      VerticalAlignment="Center"
                                      Margin="8,0"
                                      Padding="0"
-                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{DynamicResource PrimaryTextBrush}"
+                                         CaretBrush="{DynamicResource PrimaryTextBrush}"
+                                         SelectionBrush="{DynamicResource PrimaryButtonBackground}"
+                                         SelectionOpacity="0.35"
                                      ToolTip="Search notes" />
 
                         <TextBlock Text="Search notes"
@@ -207,7 +211,7 @@
                                         Margin="8"
                                         Background="{Binding BodyColor}"
                                         CornerRadius="8"
-                                        BorderBrush="#16000000"
+                                        BorderBrush="{DynamicResource NoteCardBorderBrush}"
                                         BorderThickness="1"
                                         Cursor="Hand"
                                         MouseLeftButtonDown="NoteCard_MouseLeftButtonDown"
