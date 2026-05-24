@@ -67,4 +67,9 @@ jobs:
 
             ### Installation
             Download and run `PinNote-Setup-${{ steps.version.outputs.VERSION }}.exe` to install PinNote.
-          files: artifacts/installer/PinNote-Setup-${{ steps.version.outputs.VERSION }}.exe
+
+            ### Portable build
+            Download `PinNote.exe` if you want the standalone app executable.
+          files: |
+            artifacts/publish/win-x64/PinNote.exe
+            artifacts/installer/PinNote-Setup-${{ steps.version.outputs.VERSION }}.exe
