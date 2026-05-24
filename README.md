@@ -72,7 +72,8 @@ The generated installer is self-contained, so the target PC does not need .NET 8
 - To change a note color: Right-click a note → Color → More colors... → pick a color → choose `Apply` or `Apply + Add to palette`.
 - To enable Crystal Clear: Right-click a note → check `Crystal clear`. The note background becomes transparent and the text will use the selected note color.
 - Theme controls: Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
-- Hide notes: Use the dashboard action to hide all notes — the dashboard remains visible.
+- Show all notes: Use the tray menu or dashboard action to restore every saved note window, including notes that are saved but not currently visible.
+- Hide notes: Use the dashboard action to hide all open note windows — the dashboard remains visible.
 - Tray behavior: Minimize the app to send it to the system tray; use the tray icon to restore the dashboard.
 
 ## 📝 License

@@ -2,52 +2,50 @@
 
 This file tracks the features implemented, changes made, and the rationale behind them.
 
+### Date: 2026-05-25
+Author: GitHub Copilot (assistant)
+Files changed:
+- ViewModels/MainViewModel.cs
+- App.xaml.cs
+- README.md
+- DEVELOPMENT_LOG.md
+- CODEX.md
+- GEMINI.md
+- COPILOT.md
+
+Change summary:
+- Updated the "Show all notes" action so it restores every saved note window, including notes that are saved but not currently visible.
+- Updated the project markdown files to describe the restored-note behavior and keep the logs aligned with the current implementation.
+
+Reason:
+- The user clarified that "Show all notes" should surface the remaining saved notes, not just the dashboard summary or already open windows.
+
+Notes / Testing:
+- `dotnet build` succeeded after the behavioral change. A file-lock warning only appeared when PinNote was still running during validation.
+
 ## [Initial Development Phase] - May 2026
 
 ### Features Implemented
-- **WPF Application Setup**: Initialized the project as a .NET 8.0 Windows application using WPF and the MVVM pattern.
-- **Note Management**: Implemented the ability to create, edit, and delete sticky notes.
-- **Persistence (JSON)**: Added `StorageService` to save and load notes from a local `notes.json` file.
     - *Rationale*: Ensures user notes are not lost when the application is closed.
-- **Always-on-Top (Pinning)**: Implemented a pinning feature to keep specific notes above all other windows.
     - *Rationale*: Crucial for a sticky note app where some information needs to be constantly visible.
-- **System Tray Integration**: Used `H.NotifyIcon` to allow the app to run in the background and minimize to the tray.
     - *Rationale*: Keeps the desktop clutter-free while maintaining quick access to note-taking.
-- **Main Dashboard**: Created a central window to list all notes with a search/filter capability.
     - *Rationale*: Provides an overview and easy management of multiple notes.
-- **Auto-Startup**: Implemented `StartupService` to manage Windows Registry keys for launching on boot.
     - *Rationale*: Convenience for users who want their notes available immediately upon starting their computer.
-- **Customization**: Added properties for font size, opacity, and color for individual notes.
 
 ### Project Metadata & Documentation
 - **README.md**: Created a comprehensive overview of the project, features, and setup instructions.
     - *Rationale*: Essential for repository clarity and onboarding.
-- **.gitignore**: Added a standard .NET and Python ignore file.
-    - *Rationale*: Prevents tracking of build artifacts (`bin/`, `obj/`) and local environments (`.venv/`).
-- **LICENSE**: Added the MIT License.
-    - *Rationale*: Defines the legal terms for software usage and distribution.
-- **DEVELOPMENT_LOG.md & GEMINI.md**: Initialized tracking for changes and project instructions.
-
-## [Window Resizing Fix] - May 24, 2026
 
 ### Changes
-- **Comprehensive Resize Handles**: Added missing resize thumbs for Bottom, Top-Left, Top-Right, Bottom-Left, and Bottom-Right.
-- **Persistent Accessibility**: Moved resize handles to a dedicated layer so they remain functional even when the Options/Formatting bars are hidden.
 - **Improved Hit Areas**: Increased the width/height of edge and corner handles for easier interaction.
 - **Visual Feedback**: Redesigned the bottom-right resize grip to be more consistent with modern Windows aesthetics.
-
 ### Rationale
 - The previous implementation had disappearing handles and missing edges, making it difficult for users to resize notes reliably. Providing handles on all sides and corners ensures a standard and predictable desktop experience.
-
 ---
 
-## Instructions for Updates
 - Every time a new feature is added, a bug is fixed, or an architectural change is made, this file **must** be updated.
-- Include the **What** (the change) and the **Why** (the rationale).
 
----
 
-## [System Tray Reliability Fix] - May 2026
 
 ### Bug Fixed
 - **Minimize to Tray**: Replaced the XAML-owned `H.NotifyIcon` tray implementation with a code-owned `System.Windows.Forms.NotifyIcon`.

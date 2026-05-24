@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = "Release",
     [string]$RuntimeIdentifier = "win-x64",
-    [string]$Version = "1.0.0"
+    [string]$Version = "1.0.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,7 +40,7 @@ try {
         -p:DebugSymbols=false `
         -o $publishDir
 
-    & $iscc "/DMyPublishDir=$publishDir" "/DMyAppVersion=$Version" "/O$installerDir" "/FPinNote-Setup" $installerScript
+    & $iscc "/DMyPublishDir=$publishDir" "/DMyAppVersion=$Version" "/O$installerDir" "/FPinNote-Setup-$Version" $installerScript
 }
 finally {
     Pop-Location

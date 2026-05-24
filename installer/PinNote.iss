@@ -1,5 +1,5 @@
 #define MyAppName "PinNote"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.2"
 #define MyAppPublisher "PinNote"
 #define MyAppExeName "PinNote.exe"
 #define MyAppId "PinNote"
@@ -17,7 +17,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=..\artifacts\installer
-OutputBaseFilename=PinNote-Setup
+OutputBaseFilename=PinNote-Setup-1.0.2
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

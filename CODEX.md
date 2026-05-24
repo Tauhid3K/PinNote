@@ -7,6 +7,20 @@ Future edits should add a new entry here so the project keeps a clear history of
 
 The project also has `GEMINI.md` for Gemini-facing instructions and `DEVELOPMENT_LOG.md` for the general development log.
 
+## 2026-05-25 - Show All Notes Restore Fix
+
+1. Changed the tray/menu `Show all notes` action so it restores every saved note window, including notes that are saved but not currently visible.
+   Why: The user wanted the remaining saved notes to appear when `Show all notes` is clicked.
+
+2. Updated the action flow to use the saved note collection as the source of truth and reopen missing windows.
+   Why: Notes that are stored but not visible still need to be brought back into view.
+
+3. Updated `README.md` and the repo logs to match the new behavior.
+   Why: The docs need to describe the current restore behavior accurately.
+
+4. Rebuilt and verified the project.
+   Result: Build succeeded; a file-lock warning only occurred when PinNote was still running.
+
 ## 2026-05-23 - UI/UX Polish Pass
 
 1. Reviewed the project structure and source files.

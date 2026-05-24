@@ -132,7 +132,7 @@ namespace PinNote
         {
             var menu = new Forms.ContextMenuStrip();
             menu.Items.Add("New note", null, (_, _) => RunOnUiThread(() => _mainViewModel?.NewNoteCommand.Execute(null)));
-            menu.Items.Add("Show all notes", null, (_, _) => RunOnUiThread(ShowDashboard));
+            menu.Items.Add("Show all notes", null, (_, _) => RunOnUiThread(() => _mainViewModel?.ShowAllNotes()));
             menu.Items.Add("Hide all notes", null, (_, _) => RunOnUiThread(() => _mainViewModel?.HideAllCommand.Execute(null)));
             menu.Items.Add("Bring notes on top", null, (_, _) => RunOnUiThread(() => _mainViewModel?.BringNotesOnTopCommand.Execute(null)));
             // Theme submenu

@@ -306,24 +306,20 @@ namespace PinNote.ViewModels
         }
 
         /// <summary>
-        /// Show all note windows and the dashboard. Optionally minimize the dashboard window
-        /// (useful for auto-start behavior where notes should appear but the main dashboard
-        /// remains minimized).
+        /// Show every saved note window. Any note that is already open is brought forward;
+        /// any saved note that is not currently open is created and shown.
         /// </summary>
         /// <param name="minimizeDashboard">If true, minimize the dashboard after showing notes.</param>
         public void ShowAllNotes(bool minimizeDashboard)
         {
-            ShowDashboard();
-
-            foreach (var window in _openWindows.Values)
+            if (_dashboardWindow != null)
             {
-                window.Show();
-                window.Activate();
+                _dashboardWindow.Hide();
+            }
 
-                if (window.WindowState == WindowState.Minimized)
-                {
-                    window.WindowState = WindowState.Normal;
-                }
+            foreach (var note in _notes)
+            {
+                OpenNote(note);
             }
 
             try

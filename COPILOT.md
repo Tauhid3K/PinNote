@@ -10,6 +10,17 @@ Format for entries:
 ---
 ## Entries
 
+## 2026-05-25 - Show All Notes Restore Fix
+
+### Changes
+- **Restored Saved Notes**: Changed the tray/menu `Show all notes` action so it reopens every saved note window, including notes that were saved but not currently visible.
+	- *Rationale*: The user asked for the remaining saved notes to appear when `Show all notes` is clicked.
+- **Documentation Sync**: Updated the quick usage notes in `README.md` and appended matching change-log entries.
+	- *Rationale*: Keep the repo instructions and behavior notes aligned with the app.
+
+### Verification
+- `dotnet build` completed successfully after the change.
+
 Author: GitHub Copilot (assistant)
 Files changed:
 - Services/AppStateService.cs
