@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish application
+        shell: pwsh
+        run: |
+          dotnet publish PinNote.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:PublishTrimmed=false `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -o artifacts/publish/win-x64
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $publishDir = Resolve-Path "artifacts\publish\win-x64"
+          $installerDir = "artifacts\installer"
+          New-Item -ItemType Directory -Force -Path $installerDir | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DMyPublishDir=$publishDir" `
+            "/DMyAppVersion=$version" `
+            "/O$installerDir" `
+            "/FPinNote-Setup-$version" `
+            installer\PinNote.iss
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: PinNote v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## PinNote v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            Download and run `PinNote-Setup-${{ steps.version.outputs.VERSION }}.exe` to install PinNote.
+          files: artifacts/installer/PinNote-Setup-${{ steps.version.outputs.VERSION }}.exe
