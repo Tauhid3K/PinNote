@@ -128,3 +128,27 @@ Reason:
 
 Notes / Testing:
 - Build verified. Theme selection still works via the remaining Light/Dark buttons in the dashboard; System selection remains available from the tray menu.
+
+---
+
+## 2026-05-25 - Installer update and workspace clean
+
+### Changes
+- **Installer & Build Script**: Updated `installer/PinNote.iss` to derive the installer filename from `MyAppVersion` and set the build script default version in `scripts/build-installer.ps1` to `1.0.2`.
+- **Workspace Cleanup Script**: Added `scripts/clean-workspace.ps1` to remove local build artifacts (`bin/`, `obj/`, `artifacts/`) and transient runtime logs (`run.err.txt`, `run.out.txt`). The script supports a `-SkipArtifacts` switch to preserve `artifacts/` when desired.
+
+### Verification
+- Ran the cleanup script locally and confirmed `dotnet build -c Release` succeeds.
+
+Author: GitHub Copilot (assistant)
+Files changed:
+- installer/PinNote.iss
+- scripts/build-installer.ps1
+- scripts/clean-workspace.ps1 (added)
+
+Reason:
+- Keep installer filenames consistent with project versioning and remove transient build files to reduce repository noise.
+
+Notes / Testing:
+- If CI preserves `artifacts/` for packaging, run `scripts/clean-workspace.ps1 -SkipArtifacts` locally before committing.
+
