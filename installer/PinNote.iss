@@ -2,18 +2,19 @@
 #define MyAppVersion "1.0.2"
 #define MyAppPublisher "PinNote"
 #define MyAppExeName "PinNote.exe"
-#define MyAppId "PinNote"
+#define MyAppId "0d9a6e5c-3b2f-4a7e-8c1d-9f2b3a4c5d6e"
 
 #ifndef MyPublishDir
   #define MyPublishDir "..\artifacts\publish\win-x64"
 #endif
 
 [Setup]
-AppId={#MyAppId}
+AppId={{{#MyAppId}}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+LicenseFile=..\LICENSE
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=..\artifacts\installer

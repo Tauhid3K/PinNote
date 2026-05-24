@@ -69,7 +69,9 @@ namespace PinNote
 
                     if (showPostInstallInstructions)
                     {
+                        // If launched from installer, ensure tray and show the main dashboard
                         EnsureTrayVisible();
+                        RunOnUiThread(() => _mainViewModel?.ShowDashboard());
                     }
                     else if (showUi)
                     {
