@@ -207,6 +207,44 @@ namespace PinNote.ViewModels
             SaveNotes();
         }
 
+        public void DuplicateNote(NoteViewModel source)
+        {
+            if (source == null)
+            {
+                return;
+            }
+
+            var duplicate = new NoteModel
+            {
+                Title = BuildDuplicateTitle(source.Title),
+                Content = source.Content,
+                X = source.X + 24,
+                Y = source.Y + 24,
+                Width = source.Width,
+                Height = source.Height,
+                Opacity = source.Opacity,
+                TitleBarColor = source.TitleBarColor,
+                BodyColor = source.BodyColor,
+                IsPinned = source.IsPinned,
+                TitleFontSize = source.TitleFontSize,
+                BodyFontSize = source.BodyFontSize,
+                IsCrystalClear = source.IsCrystalClear
+            };
+
+            AddNoteViewModel(duplicate, openWindow: true);
+            SaveNotes();
+        }
+
+        private static string BuildDuplicateTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return "Copy of Note";
+            }
+
+            return $"Copy of {title}";
+        }
+
         private void AddNoteViewModel(NoteModel model, bool openWindow = true)
         {
             var viewModel = new NoteViewModel(model, this);

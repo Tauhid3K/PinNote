@@ -15,6 +15,7 @@ namespace PinNote.ViewModels
             _model = model;
             _mainViewModel = mainViewModel;
             DeleteCommand = new RelayCommand(_ => OnDeleteRequested());
+            DuplicateCommand = new RelayCommand(_ => _mainViewModel.DuplicateNote(this));
             TogglePinCommand = new RelayCommand(_ => IsPinned = !IsPinned);
             NewNoteCommand = _mainViewModel.NewNoteCommand;
             ChangeColorCommand = new RelayCommand(colorParam => 
@@ -348,6 +349,7 @@ namespace PinNote.ViewModels
         }
 
         public ICommand DeleteCommand { get; }
+        public ICommand DuplicateCommand { get; }
         public ICommand TogglePinCommand { get; }
         public ICommand ChangeColorCommand { get; }
         public ICommand SetOpacityCommand { get; }

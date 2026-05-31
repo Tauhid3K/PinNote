@@ -2,6 +2,26 @@
 
 This file tracks the features implemented, changes made, and the rationale behind them.
 
+### Date: 2026-06-01
+Author: GitHub Copilot (assistant)
+Files changed:
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- UI/MainDashboardWindow.xaml
+- README.md
+- installer/PinNote.iss
+- scripts/build-installer.ps1
+
+Change summary:
+- Added a duplicate-note action to dashboard cards so users can quickly copy an existing note with the same content and styling.
+- Updated the README and installer versioning to reflect the new release.
+
+Reason:
+- The user asked for a duplicate/copy button in the main dashboard and requested corresponding README and installer updates.
+
+Notes / Testing:
+- `dotnet build PinNote.csproj /p:UseAppHost=false` succeeded.
+
 ### Date: 2026-05-25
 Author: GitHub Copilot (assistant)
 Files changed:

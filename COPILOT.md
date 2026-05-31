@@ -10,6 +10,30 @@ Format for entries:
 ---
 ## Entries
 
+## 2026-06-01 - Duplicate Note Action, Crystal Mode Fix, and Docs Sync
+
+### Changes
+- **Dashboard Duplicate Action**: Added a duplicate button to each note card in the main dashboard so users can copy an existing note into a new one with the same content, color, size, opacity, pin state, and crystal setting.
+	- *Rationale*: Gives users a fast way to reuse a note without rebuilding it manually.
+- **Crystal Mode Dashboard Preview Fix**: Split the preview text styling from the editor text styling so crystal-clear mode stays readable in the dashboard note cards.
+	- *Rationale*: Crystal mode should affect the open note window, but dashboard previews still need clear contrast.
+- **README / Installer Update**: Updated `README.md` and bumped the installer version in `installer/PinNote.iss` and `scripts/build-installer.ps1` to `1.0.3`.
+	- *Rationale*: Keep the user-facing docs and installer metadata aligned with the current release.
+
+### Verification
+- `dotnet build PinNote.csproj /p:UseAppHost=false` completed successfully.
+
+Author: GitHub Copilot (assistant)
+Files changed:
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- UI/MainDashboardWindow.xaml
+- README.md
+- installer/PinNote.iss
+- scripts/build-installer.ps1
+- DEVELOPMENT_LOG.md
+- COPILOT.md
+
 ## 2026-05-25 - Show All Notes Restore Fix
 
 ### Changes

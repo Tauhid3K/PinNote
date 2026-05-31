@@ -15,6 +15,7 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 - **Auto-Startup:** Option to launch PinNote automatically when Windows starts.
  - **Theme Support:** Light and Dark themes in the dashboard; a System theme option is available from the tray menu to follow Windows preferences.
  - **Crystal Clear Mode:** A per-note mode that makes the note background transparent and shows note text in the selected color for a minimal overlay look.
+ - **Quick Duplicate Action:** Copy any note from the dashboard with a single button to create a new note with the same content, colors, size, opacity, and pin state.
  - **Simplified Color Workflow:** The `More colors...` dialog opens the standard system color picker. After picking a color the choice is applied immediately when you press OK. Custom swatches you add inside the color dialog are persisted between runs and will reappear the next time you open the color picker. (The app no longer auto-inserts dialog-picked colors into the in-app palette.)
 
 ## 🛠️ Tech Stack
@@ -71,6 +72,7 @@ The generated installer is self-contained, so the target PC does not need .NET 8
 ### Quick Usage Notes
 - To change a note color: Right-click a note → Color → More colors... → pick a color → choose `Apply` or `Apply + Add to palette`.
 - To enable Crystal Clear: Right-click a note → check `Crystal clear`. The note background becomes transparent and the text will use the selected note color.
+- To duplicate a note: On the dashboard card, click the duplicate button to create a copy of the note with the same content and styling.
 - Theme controls: Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
 - Show all notes: Use the tray menu or dashboard action to restore every saved note window, including notes that are saved but not currently visible.
 - Hide notes: Use the dashboard action to hide all open note windows — the dashboard remains visible.
