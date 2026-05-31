@@ -71,6 +71,20 @@ namespace PinNote.ViewModels
             }
         }
 
+        public System.Windows.Media.Brush PreviewTextBrush
+        {
+            get
+            {
+                var resultColor = TextColor == "White"
+                    ? System.Windows.Media.Colors.White
+                    : System.Windows.Media.Colors.Black;
+
+                var resultBrush = new SolidColorBrush(resultColor);
+                if (resultBrush.CanFreeze) resultBrush.Freeze();
+                return resultBrush;
+            }
+        }
+
         public string Content
         {
             get => _model.Content;
@@ -151,6 +165,7 @@ namespace PinNote.ViewModels
                     _model.Opacity = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TextBrush));
+                    OnPropertyChanged(nameof(PreviewTextBrush));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -166,6 +181,7 @@ namespace PinNote.ViewModels
                     _model.IsCrystalClear = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TextBrush));
+                    OnPropertyChanged(nameof(PreviewTextBrush));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -227,6 +243,7 @@ namespace PinNote.ViewModels
                     _model.TitleBarColor = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TextBrush));
+                    OnPropertyChanged(nameof(PreviewTextBrush));
                     OnPropertyChanged(nameof(TextColor));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
@@ -244,6 +261,7 @@ namespace PinNote.ViewModels
                     _model.BodyColor = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TextBrush));
+                    OnPropertyChanged(nameof(PreviewTextBrush));
                     OnPropertyChanged(nameof(TextColor));
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
                     SaveRequested?.Invoke(this, EventArgs.Empty);

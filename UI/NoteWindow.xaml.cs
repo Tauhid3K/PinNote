@@ -28,8 +28,8 @@ namespace PinNote.UI
     public partial class NoteWindow : Window
     {
         private bool _isLoadingEditorContent;
+        private bool _isClosing;
         private readonly DispatcherTimer _saveTimer;
-        private readonly DispatcherTimer _chromeIdleTimer;
 
         public NoteWindow(NoteViewModel viewModel)
         {
@@ -40,11 +40,6 @@ namespace PinNote.UI
                 Interval = TimeSpan.FromMilliseconds(450)
             };
             _saveTimer.Tick += SaveTimer_Tick;
-            _chromeIdleTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(2)
-            };
-            _chromeIdleTimer.Tick += ChromeIdleTimer_Tick;
 
             if (viewModel is INotifyPropertyChanged inpc)
             {
@@ -56,7 +51,7 @@ namespace PinNote.UI
             SyncEditorStyles();
             EditorBox.TextChanged += EditorBox_TextChanged;
             Closing += NoteWindow_Closing;
-            ShowChromeTemporarily();
+            HideChrome();
         }
 
         private void LoadColorPalette()
@@ -281,25 +276,26 @@ namespace PinNote.UI
             }
         }
 
-        private void Window_MouseMove(object sender, MouseEventArgs e)
-        {
-            ShowChromeTemporarily();
-        }
-
-        private void Window_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-        {
-            ShowChromeTemporarily();
-        }
-
-        private void ShowChromeTemporarily()
+        private void Window_MouseEnter(object sender, MouseEventArgs e)
         {
             ShowChrome();
-            _chromeIdleTimer.Stop();
-            _chromeIdleTimer.Start();
+        }
+
+        private void Window_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (!_isClosing)
+            {
+                HideChrome();
+            }
         }
 
         private void ShowChrome()
         {
+            if (_isClosing)
+            {
+                return;
+            }
+
             OptionsBar.Visibility = Visibility.Visible;
             FormattingBar.Visibility = Visibility.Visible;
             OptionsRow.Height = new GridLength(28);
@@ -308,9 +304,8 @@ namespace PinNote.UI
 
         private void HideChrome()
         {
-            if (NoteMenu?.IsOpen == true)
+            if (_isClosing || NoteMenu?.IsOpen == true)
             {
-                ShowChromeTemporarily();
                 return;
             }
 
@@ -320,20 +315,18 @@ namespace PinNote.UI
             FormattingRow.Height = new GridLength(0);
         }
 
-        private void ChromeIdleTimer_Tick(object? sender, EventArgs e)
-        {
-            _chromeIdleTimer.Stop();
-            HideChrome();
-        }
-
         private void CloseNote_Click(object sender, RoutedEventArgs e)
         {
+            _isClosing = true;
+            HideChrome();
             SaveEditorContent();
             Close();
         }
 
         private void NoteWindow_Closing(object? sender, CancelEventArgs e)
         {
+            _isClosing = true;
+            HideChrome();
             SaveEditorContent();
         }
 
