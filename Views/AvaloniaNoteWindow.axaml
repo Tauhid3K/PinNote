@@ -1,0 +1,441 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:PinNote.ViewModels"
+        x:Class="PinNote.Views.AvaloniaNoteWindow"
+        x:DataType="vm:NoteViewModel"
+        Title="{Binding Title}"
+        Width="{Binding Width, Mode=TwoWay}"
+        Height="{Binding Height, Mode=TwoWay}"
+        MinWidth="160"
+        MinHeight="120"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent,AcrylicBlur,None"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Topmost="{Binding IsPinned}"
+        ShowInTaskbar="False">
+
+    <Window.Styles>
+        <!-- Ensure text boxes remain fully transparent during typing, focus, and hover -->
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CaretBrush" Value="{Binding EffectiveTextColor}" />
+        </Style>
+        <Style Selector="TextBox /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox:focus:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox:focus-within /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="Foreground" Value="{Binding EffectiveTextColor}" />
+        </Style>
+
+        <!-- Title bar button styles with clear hover and active feedback -->
+        <Style Selector="Button.title-btn">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.title-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#33888888" />
+        </Style>
+        <Style Selector="Button.close-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E5534B" />
+        </Style>
+        <Style Selector="Button.close-btn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </Window.Styles>
+
+    <Border CornerRadius="8"
+            BorderBrush="{Binding EffectiveBorderBrush}"
+            BorderThickness="1"
+            ClipToBounds="True"
+            Background="{Binding EffectiveBodyColor}">
+        <Grid RowDefinitions="34,*,Auto">
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Always on top"
+                              Command="{Binding TogglePinCommand}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📌" FontSize="12" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Crystal clear"
+                              ToggleType="CheckBox"
+                              IsChecked="{Binding IsCrystalClear, Mode=TwoWay}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🪟" FontSize="12" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Note Color">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🎨" FontSize="11" />
+                        </MenuItem.Icon>
+                        <MenuItem>
+                            <MenuItem.Header>
+                                <StackPanel Orientation="Vertical" Spacing="6" Margin="2">
+                                    <TextBlock Text="Color Swatches:" FontWeight="SemiBold" FontSize="11" />
+                                    <WrapPanel Width="156">
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFDFD86" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Classic Yellow" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFDFD86|#FFFDFD86" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFF99" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Yellow" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFFF99|#FFFFFF99" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFE4CC" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Soft Orange" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFE4CC|#FFFFE4CC" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFCDB2" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Peachy" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFCDB2|#FFFFCDB2" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFF9D9E6" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Pink" Command="{Binding ChangeColorCommand}" CommandParameter="#FFF9D9E6|#FFF9D9E6" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFF99CC" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Rose" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFF99CC|#FFFF99CC" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE2D9F3" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Lavender" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE2D9F3|#FFE2D9F3" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE6D5FF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Purple" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE6D5FF|#FFE6D5FF" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE2F7D1" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Mint Green" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE2F7D1|#FFE2F7D1" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFCCF0DD" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Green" Command="{Binding ChangeColorCommand}" CommandParameter="#FFCCF0DD|#FFCCF0DD" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFB3E5FF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Blue" Command="{Binding ChangeColorCommand}" CommandParameter="#FFB3E5FF|#FFB3E5FF" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFD1EAF7" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Sky Blue" Command="{Binding ChangeColorCommand}" CommandParameter="#FFD1EAF7|#FFFFFFFF" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFFFF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Pure White" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFFFFF|#FFFFFFFF" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FF333333" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Charcoal" Command="{Binding ChangeColorCommand}" CommandParameter="#FF333333|#FF222222" Cursor="Hand" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem Header="Custom Color...">
+                            <MenuItem.Icon>
+                                <TextBlock Text="🎨" FontSize="11" />
+                            </MenuItem.Icon>
+                            <MenuItem>
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Vertical" Spacing="6" Margin="4">
+                                        <TextBlock Text="Choose any note color:" FontWeight="SemiBold" FontSize="11" />
+                                        <ColorPicker Color="{Binding NoteColorObj, Mode=TwoWay}" IsAlphaEnabled="False" />
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="Note Transparency">
+                        <MenuItem Header="100% (Solid)" Command="{Binding SetOpacityCommand}" CommandParameter="1.0" />
+                        <MenuItem Header="90%" Command="{Binding SetOpacityCommand}" CommandParameter="0.90" />
+                        <MenuItem Header="80%" Command="{Binding SetOpacityCommand}" CommandParameter="0.80" />
+                        <MenuItem Header="70%" Command="{Binding SetOpacityCommand}" CommandParameter="0.70" />
+                        <MenuItem Header="60%" Command="{Binding SetOpacityCommand}" CommandParameter="0.60" />
+                        <MenuItem Header="50%" Command="{Binding SetOpacityCommand}" CommandParameter="0.50" />
+                        <MenuItem Header="40%" Command="{Binding SetOpacityCommand}" CommandParameter="0.40" />
+                        <MenuItem Header="30%" Command="{Binding SetOpacityCommand}" CommandParameter="0.30" />
+                        <MenuItem Header="20%" Command="{Binding SetOpacityCommand}" CommandParameter="0.20" />
+                    </MenuItem>
+                    <MenuItem Header="Text Color">
+                        <MenuItem Header="Automatic (Contrast / Match Glass)" Command="{Binding ChangeTextColorCommand}" CommandParameter="Auto" />
+                        <Separator />
+                        <MenuItem>
+                            <MenuItem.Header>
+                                <StackPanel Orientation="Vertical" Spacing="6" Margin="2">
+                                    <TextBlock Text="Color Swatches:" FontWeight="SemiBold" FontSize="11" />
+                                    <WrapPanel Width="156">
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#000000" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Black" Command="{Binding ChangeTextColorCommand}" CommandParameter="#000000" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFF" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="White" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FFFFFF" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#333333" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Charcoal" Command="{Binding ChangeTextColorCommand}" CommandParameter="#333333" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#003366" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Navy Blue" Command="{Binding ChangeTextColorCommand}" CommandParameter="#003366" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#1B5E20" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Forest Green" Command="{Binding ChangeTextColorCommand}" CommandParameter="#1B5E20" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#B71C1C" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Crimson Red" Command="{Binding ChangeTextColorCommand}" CommandParameter="#B71C1C" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FBC02D" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Golden Yellow" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FBC02D" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FF6F61" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Coral Pink" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FF6F61" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#6A1B9A" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Royal Purple" Command="{Binding ChangeTextColorCommand}" CommandParameter="#6A1B9A" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#00838F" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Cyan Teal" Command="{Binding ChangeTextColorCommand}" CommandParameter="#00838F" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#E65100" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Deep Orange" Command="{Binding ChangeTextColorCommand}" CommandParameter="#E65100" Cursor="Hand" />
+                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#4E342E" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Brown" Command="{Binding ChangeTextColorCommand}" CommandParameter="#4E342E" Cursor="Hand" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem Header="Custom Color...">
+                            <MenuItem.Icon>
+                                <TextBlock Text="🎨" FontSize="11" />
+                            </MenuItem.Icon>
+                            <MenuItem>
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Vertical" Spacing="6" Margin="4">
+                                        <TextBlock Text="Choose any text color:" FontWeight="SemiBold" FontSize="11" />
+                                        <ColorPicker Color="{Binding TextColorObj, Mode=TwoWay}" IsAlphaEnabled="False" />
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="Text Transparency">
+                        <MenuItem Header="100% (Solid)" Command="{Binding SetTextOpacityCommand}" CommandParameter="1.0" />
+                        <MenuItem Header="90%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.90" />
+                        <MenuItem Header="80%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.80" />
+                        <MenuItem Header="70%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.70" />
+                        <MenuItem Header="60%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.60" />
+                        <MenuItem Header="50%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.50" />
+                    </MenuItem>
+                    <MenuItem Header="Text Size">
+                        <MenuItem Header="Extra Small" Command="{Binding SetFontSizeCommand}" CommandParameter="12|12" />
+                        <MenuItem Header="Small" Command="{Binding SetFontSizeCommand}" CommandParameter="14|14" />
+                        <MenuItem Header="Normal" Command="{Binding SetFontSizeCommand}" CommandParameter="18|18" />
+                        <MenuItem Header="Large" Command="{Binding SetFontSizeCommand}" CommandParameter="22|22" />
+                        <MenuItem Header="Extra Large" Command="{Binding SetFontSizeCommand}" CommandParameter="28|28" />
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Duplicate note" Command="{Binding DuplicateCommand}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📄" FontSize="12" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" Foreground="#E5534B">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🗑️" FontSize="12" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Grid.ContextMenu>
+
+            <!-- Title Bar -->
+            <Border Grid.Row="0"
+                    Background="{Binding EffectiveTitleBarColor}"
+                    PointerPressed="TitleBar_PointerPressed">
+                <Grid ColumnDefinitions="*,Auto">
+                    <!-- Title Input -->
+                    <TextBox Grid.Column="0"
+                             Text="{Binding Title, Mode=TwoWay}"
+                             VerticalAlignment="Center"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Margin="8,0,4,0"
+                             FontSize="{Binding TitleFontSize}"
+                             FontWeight="SemiBold"
+                             Foreground="{Binding EffectiveTextColor}"
+                             Watermark="Note title" />
+
+                    <!-- Title Bar Actions -->
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Spacing="2"
+                                Margin="0,0,4,0">
+
+                        <!-- Color Menu Button -->
+                        <Button Name="ColorsButton"
+                                Classes="title-btn"
+                                ToolTip.Tip="Options &amp; Colors">
+                            <TextBlock Text="🎨" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Button.Flyout>
+                                <MenuFlyout Placement="Bottom">
+                                    <MenuItem Header="Always on top"
+                                              Command="{Binding TogglePinCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📌" FontSize="11" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Crystal clear"
+                                              ToggleType="CheckBox"
+                                              IsChecked="{Binding IsCrystalClear, Mode=TwoWay}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🪟" FontSize="11" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Note Color">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🎨" FontSize="11" />
+                                        </MenuItem.Icon>
+                                        <MenuItem>
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Vertical" Spacing="6" Margin="2">
+                                                    <TextBlock Text="Color Swatches:" FontWeight="SemiBold" FontSize="11" />
+                                                    <WrapPanel Width="156">
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFDFD86" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Classic Yellow" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFDFD86|#FFFDFD86" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFF99" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Yellow" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFFF99|#FFFFFF99" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFE4CC" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Soft Orange" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFE4CC|#FFFFE4CC" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFCDB2" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Peachy" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFCDB2|#FFFFCDB2" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFF9D9E6" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Pink" Command="{Binding ChangeColorCommand}" CommandParameter="#FFF9D9E6|#FFF9D9E6" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFF99CC" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Rose" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFF99CC|#FFFF99CC" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE2D9F3" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Lavender" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE2D9F3|#FFE2D9F3" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE6D5FF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Purple" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE6D5FF|#FFE6D5FF" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFE2F7D1" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Mint Green" Command="{Binding ChangeColorCommand}" CommandParameter="#FFE2F7D1|#FFE2F7D1" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFCCF0DD" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Green" Command="{Binding ChangeColorCommand}" CommandParameter="#FFCCF0DD|#FFCCF0DD" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFB3E5FF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Light Blue" Command="{Binding ChangeColorCommand}" CommandParameter="#FFB3E5FF|#FFB3E5FF" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFD1EAF7" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Sky Blue" Command="{Binding ChangeColorCommand}" CommandParameter="#FFD1EAF7|#FFFFFFFF" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFFFF" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Pure White" Command="{Binding ChangeColorCommand}" CommandParameter="#FFFFFFFF|#FFFFFFFF" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FF333333" BorderBrush="#88000000" BorderThickness="1" ToolTip.Tip="Charcoal" Command="{Binding ChangeColorCommand}" CommandParameter="#FF333333|#FF222222" Cursor="Hand" />
+                                                    </WrapPanel>
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="Custom Color...">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="🎨" FontSize="11" />
+                                            </MenuItem.Icon>
+                                            <MenuItem>
+                                                <MenuItem.Header>
+                                                    <StackPanel Orientation="Vertical" Spacing="6" Margin="4">
+                                                        <TextBlock Text="Choose any note color:" FontWeight="SemiBold" FontSize="11" />
+                                                        <ColorPicker Color="{Binding NoteColorObj, Mode=TwoWay}" IsAlphaEnabled="False" />
+                                                    </StackPanel>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="Note Transparency">
+                                        <MenuItem Header="100% (Solid)" Command="{Binding SetOpacityCommand}" CommandParameter="1.0" />
+                                        <MenuItem Header="90%" Command="{Binding SetOpacityCommand}" CommandParameter="0.90" />
+                                        <MenuItem Header="80%" Command="{Binding SetOpacityCommand}" CommandParameter="0.80" />
+                                        <MenuItem Header="70%" Command="{Binding SetOpacityCommand}" CommandParameter="0.70" />
+                                        <MenuItem Header="60%" Command="{Binding SetOpacityCommand}" CommandParameter="0.60" />
+                                        <MenuItem Header="50%" Command="{Binding SetOpacityCommand}" CommandParameter="0.50" />
+                                        <MenuItem Header="40%" Command="{Binding SetOpacityCommand}" CommandParameter="0.40" />
+                                        <MenuItem Header="30%" Command="{Binding SetOpacityCommand}" CommandParameter="0.30" />
+                                        <MenuItem Header="20%" Command="{Binding SetOpacityCommand}" CommandParameter="0.20" />
+                                    </MenuItem>
+                                    <MenuItem Header="Text Color">
+                                        <MenuItem Header="Automatic (Contrast / Match Glass)" Command="{Binding ChangeTextColorCommand}" CommandParameter="Auto" />
+                                        <Separator />
+                                        <MenuItem>
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Vertical" Spacing="6" Margin="2">
+                                                    <TextBlock Text="Color Swatches:" FontWeight="SemiBold" FontSize="11" />
+                                                    <WrapPanel Width="156">
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#000000" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Black" Command="{Binding ChangeTextColorCommand}" CommandParameter="#000000" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FFFFFF" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="White" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FFFFFF" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#333333" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Charcoal" Command="{Binding ChangeTextColorCommand}" CommandParameter="#333333" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#003366" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Navy Blue" Command="{Binding ChangeTextColorCommand}" CommandParameter="#003366" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#1B5E20" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Forest Green" Command="{Binding ChangeTextColorCommand}" CommandParameter="#1B5E20" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#B71C1C" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Crimson Red" Command="{Binding ChangeTextColorCommand}" CommandParameter="#B71C1C" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FBC02D" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Golden Yellow" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FBC02D" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#FF6F61" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Coral Pink" Command="{Binding ChangeTextColorCommand}" CommandParameter="#FF6F61" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#6A1B9A" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Royal Purple" Command="{Binding ChangeTextColorCommand}" CommandParameter="#6A1B9A" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#00838F" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Cyan Teal" Command="{Binding ChangeTextColorCommand}" CommandParameter="#00838F" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#E65100" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Deep Orange" Command="{Binding ChangeTextColorCommand}" CommandParameter="#E65100" Cursor="Hand" />
+                                                        <Button Width="22" Height="22" Margin="2" CornerRadius="3" Background="#4E342E" BorderBrush="#88888888" BorderThickness="1" ToolTip.Tip="Brown" Command="{Binding ChangeTextColorCommand}" CommandParameter="#4E342E" Cursor="Hand" />
+                                                    </WrapPanel>
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="Custom Color...">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="🎨" FontSize="11" />
+                                            </MenuItem.Icon>
+                                            <MenuItem>
+                                                <MenuItem.Header>
+                                                    <StackPanel Orientation="Vertical" Spacing="6" Margin="4">
+                                                        <TextBlock Text="Choose any text color:" FontWeight="SemiBold" FontSize="11" />
+                                                        <ColorPicker Color="{Binding TextColorObj, Mode=TwoWay}" IsAlphaEnabled="False" />
+                                                    </StackPanel>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="Text Transparency">
+                                        <MenuItem Header="100% (Solid)" Command="{Binding SetTextOpacityCommand}" CommandParameter="1.0" />
+                                        <MenuItem Header="90%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.90" />
+                                        <MenuItem Header="80%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.80" />
+                                        <MenuItem Header="70%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.70" />
+                                        <MenuItem Header="60%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.60" />
+                                        <MenuItem Header="50%" Command="{Binding SetTextOpacityCommand}" CommandParameter="0.50" />
+                                    </MenuItem>
+                                    <MenuItem Header="Text Size">
+                                        <MenuItem Header="Extra Small" Command="{Binding SetFontSizeCommand}" CommandParameter="12|12" />
+                                        <MenuItem Header="Small" Command="{Binding SetFontSizeCommand}" CommandParameter="14|14" />
+                                        <MenuItem Header="Normal" Command="{Binding SetFontSizeCommand}" CommandParameter="18|18" />
+                                        <MenuItem Header="Large" Command="{Binding SetFontSizeCommand}" CommandParameter="22|22" />
+                                        <MenuItem Header="Extra Large" Command="{Binding SetFontSizeCommand}" CommandParameter="28|28" />
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Duplicate note"
+                                              Command="{Binding DuplicateCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📄" FontSize="11" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Delete Note"
+                                              Command="{Binding DeleteCommand}"
+                                              Foreground="#E5534B">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🗑️" FontSize="11" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <!-- Pin Button -->
+                        <Button Classes="title-btn"
+                                Command="{Binding TogglePinCommand}"
+                                ToolTip.Tip="Pin on top">
+                            <TextBlock Text="📌" FontSize="12"
+                                       Opacity="{Binding PinOpacity}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Button>
+
+                        <!-- Close Button -->
+                        <Button Classes="title-btn close-btn"
+                                Click="Close_Click"
+                                ToolTip.Tip="Close (keeps note)">
+                            <TextBlock Text="✕" FontSize="13" FontWeight="Bold"
+                                       Foreground="{Binding HeaderIconColor}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Note Content Editor -->
+            <TextBox Name="ContentEditor"
+                     Grid.Row="1"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Margin="8,4,8,4"
+                     FontSize="{Binding BodyFontSize}"
+                     Foreground="{Binding EffectiveTextColor}"
+                     Watermark="Take a note..." />
+
+            <!-- Bottom Resize Grip -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="4,0,2,2">
+                <Border Grid.Column="1"
+                        Width="14" Height="14"
+                        Cursor="BottomRightCorner"
+                        PointerPressed="ResizeGrip_PointerPressed">
+                    <TextBlock Text="⋱"
+                               FontSize="12"
+                               Foreground="{Binding EffectiveTextColor}"
+                               Opacity="0.4"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom" />
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

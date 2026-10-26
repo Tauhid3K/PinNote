@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=PinNote
+Comment=PinNote Sticky Notes
+Exec=PinNote
+Icon=org.pinnote.PinNote
+Terminal=false
+Categories=Utility;Office;
+StartupNotify=false

@@ -7,6 +7,7 @@
   <SolidColorBrush x:Key="PrimaryTextBrush" Color="#EEEEEE" />
   <SolidColorBrush x:Key="SecondaryTextBrush" Color="#BBBBBB" />
   <SolidColorBrush x:Key="SearchBackgroundBrush" Color="#2E2E2E" />
+  <SolidColorBrush x:Key="NoteCardBorderBrush" Color="#3C3C3C" />
   <SolidColorBrush x:Key="PrimaryButtonBackground" Color="#0A84FF" />
   <SolidColorBrush x:Key="PrimaryButtonHover" Color="#0A6FE0" />
   <SolidColorBrush x:Key="PrimaryButtonPressed" Color="#065FB0" />

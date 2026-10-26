@@ -7,6 +7,7 @@ namespace PinNote.Services
 {
     public class AppStateService
     {
+        private static readonly object _stateLock = new();
         private readonly string _filePath;
 
         public AppStateService()
@@ -31,34 +32,40 @@ namespace PinNote.Services
 
         private AppState LoadState()
         {
-            if (!File.Exists(_filePath))
+            lock (_stateLock)
             {
-                return new AppState();
-            }
+                if (!File.Exists(_filePath))
+                {
+                    return new AppState();
+                }
 
-            try
-            {
-                string json = File.ReadAllText(_filePath);
-                return JsonConvert.DeserializeObject<AppState>(json) ?? new AppState();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"AppStateService.LoadState error: {ex}");
-                return new AppState();
+                try
+                {
+                    string json = File.ReadAllText(_filePath);
+                    return JsonConvert.DeserializeObject<AppState>(json) ?? new AppState();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"AppStateService.LoadState error: {ex}");
+                    return new AppState();
+                }
             }
         }
 
         private void SaveState(AppState state)
         {
-            try
+            lock (_stateLock)
             {
-                string json = JsonConvert.SerializeObject(state, Formatting.Indented);
-                WriteAtomically(_filePath, json);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"AppStateService.SaveState error: {ex}");
-                // Ignore persistence errors and keep app startup resilient.
+                try
+                {
+                    string json = JsonConvert.SerializeObject(state, Formatting.Indented);
+                    WriteAtomically(_filePath, json);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"AppStateService.SaveState error: {ex}");
+                    // Ignore persistence errors and keep app startup resilient.
+                }
             }
         }
 
@@ -68,7 +75,20 @@ namespace PinNote.Services
             try
             {
                 File.WriteAllText(tempPath, content);
-                File.Move(tempPath, path, true);
+
+                int retries = 3;
+                while (true)
+                {
+                    try
+                    {
+                        File.Move(tempPath, path, true);
+                        break;
+                    }
+                    catch (IOException) when (--retries > 0)
+                    {
+                        System.Threading.Thread.Sleep(30);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -120,6 +140,8 @@ namespace PinNote.Services
             public bool HasShownFirstRunUi { get; set; }
             public bool ShowUiOnStartup { get; set; } = true;
             public bool StartMinimized { get; set; } = false;
+            public bool ShowTrayIcon { get; set; } = true;
+            public bool ShowInTaskbar { get; set; } = false;
 
             // Theme: "System" = follow OS, "Light" or "Dark"
             public string ThemeMode { get; set; } = "System";
@@ -187,6 +209,32 @@ namespace PinNote.Services
         {
             AppState state = LoadState();
             state.StartMinimized = value;
+            SaveState(state);
+        }
+
+        public bool GetShowTrayIcon()
+        {
+            AppState state = LoadState();
+            return state.ShowTrayIcon;
+        }
+
+        public void SetShowTrayIcon(bool value)
+        {
+            AppState state = LoadState();
+            state.ShowTrayIcon = value;
+            SaveState(state);
+        }
+
+        public bool GetShowInTaskbar()
+        {
+            AppState state = LoadState();
+            return state.ShowInTaskbar;
+        }
+
+        public void SetShowInTaskbar(bool value)
+        {
+            AppState state = LoadState();
+            state.ShowInTaskbar = value;
             SaveState(state);
         }
 

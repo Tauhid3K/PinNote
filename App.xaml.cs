@@ -16,6 +16,8 @@ namespace PinNote
         private Bitmap? _trayIconBitmap;
         private readonly AppStateService _appStateService = new();
 
+        public bool IsShuttingDown { get; private set; }
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
@@ -25,6 +27,31 @@ namespace PinNote
 
             try
             {
+                bool showPostInstallInstructions = Array.Exists(e.Args, arg =>
+                    string.Equals(arg, "--show-instructions", StringComparison.OrdinalIgnoreCase));
+                bool skipElevateCheck = Array.Exists(e.Args, arg =>
+                    string.Equals(arg, "--no-elevate-check", StringComparison.OrdinalIgnoreCase));
+
+                // If running elevated, restart unelevated so tray icon appears in normal notification area
+                if (!skipElevateCheck)
+                {
+                    try
+                    {
+                        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                        var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                        bool isElevated = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                        if (isElevated)
+                        {
+                            RestartUnelevated(e.Args);
+                            return; // stop startup of elevated instance
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"App elevated-check error: {ex}");
+                    }
+                }
+
                 // Apply theme from persisted settings before showing UI
                 try
                 {
@@ -37,30 +64,10 @@ namespace PinNote
                 }
 
                 _mainViewModel = (PinNote.ViewModels.MainViewModel)FindResource("MainVM");
+                _mainViewModel.WindowManager = new WpfWindowManager(_mainViewModel);
 
                 InitializeTrayIcon();
                 Debug.WriteLine("PinNote tray app is ready.");
-
-                bool showPostInstallInstructions = Array.Exists(e.Args, arg =>
-                    string.Equals(arg, "--show-instructions", StringComparison.OrdinalIgnoreCase));
-
-                // If the process is running elevated, the tray icon may not appear in the normal user's notification area.
-                try
-                {
-                    using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                    bool isElevated = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-                    if (isElevated)
-                    {
-                        // Restart unelevated so the tray icon appears in the normal user's notification area.
-                        RestartUnelevated();
-                        return; // stop startup of elevated instance
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"App elevated-check error: {ex}");
-                }
 
                 // Show dashboard/notes on startup according to settings.
                 try
@@ -246,6 +253,7 @@ namespace PinNote
         {
             try
             {
+                _trayIconBitmap?.Dispose();
                 _trayIconBitmap = new Bitmap(16, 16);
                 using (Graphics g = Graphics.FromImage(_trayIconBitmap))
                 {
@@ -257,11 +265,12 @@ namespace PinNote
                     using var lineBrush = new SolidBrush(Color.FromArgb(70, 70, 70));
                     using var pinBrush = new SolidBrush(Color.FromArgb(60, 120, 220));
                     using var pinDarkBrush = new SolidBrush(Color.FromArgb(35, 80, 160));
+                    using var topBandBrush = new SolidBrush(Color.FromArgb(220, 244, 190, 62));
 
                     g.FillRectangle(shadowBrush, 3, 4, 10, 11);
                     g.FillRectangle(paperBrush, 2, 3, 11, 11);
                     g.DrawRectangle(edgePen, 2, 3, 10, 10);
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(220, 244, 190, 62)), 2, 3, 10, 3);
+                    g.FillRectangle(topBandBrush, 2, 3, 10, 3);
                     g.FillEllipse(pinBrush, 10, 1, 4, 4);
                     g.FillRectangle(pinDarkBrush, 11, 3, 1, 6);
                     g.FillRectangle(lineBrush, 4, 7, 7, 1);
@@ -317,12 +326,20 @@ namespace PinNote
 
         protected override void OnExit(ExitEventArgs e)
         {
+            IsShuttingDown = true;
             if (_notifyIcon != null)
             {
                 _notifyIcon.Visible = false;
+                try
+                {
+                    _notifyIcon.Icon?.Dispose();
+                }
+                catch { }
                 _notifyIcon.Dispose();
+                _notifyIcon = null;
             }
             _trayIconBitmap?.Dispose();
+            _trayIconBitmap = null;
             base.OnExit(e);
         }
 
@@ -362,7 +379,7 @@ namespace PinNote
             catch { }
         }
 
-        private void RestartUnelevated()
+        private void RestartUnelevated(string[]? args = null)
         {
             try
             {
@@ -375,10 +392,11 @@ namespace PinNote
 
                 if (!string.IsNullOrEmpty(exePath))
                 {
+                    var extraArgs = args != null && args.Length > 0 ? " " + string.Join(" ", args) : "";
                     var startInfo = new ProcessStartInfo
                     {
                         FileName = "explorer.exe",
-                        Arguments = '"' + exePath + '"',
+                        Arguments = '"' + exePath + '"' + extraArgs + " --no-elevate-check",
                         UseShellExecute = true
                     };
 

@@ -2,6 +2,177 @@
 
 This file tracks the features implemented, changes made, and the rationale behind them.
 
+### Date: 2026-10-26 (Single-Path Save & Concurrency Elimination)
+Author: Antigravity (assistant)
+Files changed:
+- Models/NoteModel.cs
+- Services/StorageService.cs
+- ViewModels/MainViewModel.cs
+
+Change summary:
+- Deadlock Elimination & Single-Path Execution:
+  1. Removed `_saveLock` completely from `MainViewModel.cs`. Previously, the debounce timer thread held `_saveLock` while synchronously dispatching to the UI thread, which risked a lock-inversion deadlock if the UI thread attempted to save concurrently.
+  2. Dispatched the entire save routine (`PerformSave`) directly onto the UI thread via `IWindowManager.RunOnUiThread`.
+- Mutation-Safe Snapshot & Serialization:
+  1. Added a `Clone()` method to `NoteModel.cs` to deep-copy note properties.
+  2. Moved both model cloning/snapshotting and JSON serialization (`JsonConvert.SerializeObject`) onto the UI thread in `PerformSave()`. Because the UI thread executes sequentially, user edits or collection changes can never overlap with snapshotting or serialization.
+  3. Added `SaveNotesJson(string json, int noteCount)` to `StorageService.cs`, enabling persistence directly from the immutable serialized JSON string without touching or referencing mutable UI models on disk write.
+
+### Date: 2026-10-26 (Transparency, Deletion Confirmation, Rich Text & Platform Refinements)
+Author: Antigravity (assistant)
+Files changed:
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- Views/AvaloniaNoteWindow.axaml
+- Views/AvaloniaNoteWindow.axaml.cs
+- Views/AvaloniaDashboardWindow.axaml
+- Views/AvaloniaDashboardWindow.axaml.cs
+- Views/AvaloniaWindowManager.cs
+- Views/ConfirmDeleteDialog.axaml
+- Views/ConfirmDeleteDialog.axaml.cs
+- Services/IWindowManager.cs
+- UI/WpfWindowManager.cs
+- App.axaml.cs
+- Services/AvaloniaTrayService.cs
+- PinNote.csproj
+- scripts/install-linux.sh
+
+Change summary:
+- Crystal Clear Transparency Control:
+  1. Updated `EffectiveBodyColor` and `EffectiveTitleBarColor` in `NoteViewModel.cs` so that when `IsCrystalClear` is active, note transparency (`Opacity`) directly adjusts the frosted glass background alpha level.
+  2. Updated `EffectiveTextColor` to apply `TextOpacity`, allowing granular transparency control for both note body and text in Crystal Clear mode.
+  3. Added high-contrast fallback for `HeaderIconColor` and close `✕` button so icons never blend into transparent notes or dark backgrounds.
+- Visual Color Swatch Grid & Custom Color Picker:
+  1. Added clickable color swatch button grids for both Note Color and Text Color across note context menus and flyouts.
+  2. Preserved the "Custom Color..." `ColorPicker` allowing arbitrary RGB/Hex selection from swatches and palette.
+- Modal Deletion Confirmation Dialog:
+  1. Created `ConfirmDeleteDialog.axaml` and `ConfirmDeleteDialog.axaml.cs`.
+  2. Added `ConfirmDeleteAsync(string noteTitle)` and `RunOnUiThread(Action action)` to `IWindowManager`, `AvaloniaWindowManager`, and `WpfWindowManager`.
+  3. Routed note deletion through asynchronous confirmation in `MainViewModel.cs`.
+- Cross-Platform Rich Text Preservation:
+  1. Updated `LoadContent()` in `AvaloniaNoteWindow.axaml.cs` to preserve paragraph structures and `<LineBreak/>` as newlines instead of squashing into spaces.
+  2. Kept `_originalRawContent` intact if note content was unedited.
+  3. Re-wrapped edited plain text into standard FlowDocument XML tags on save for full Windows WPF compatibility.
+- Dashboard Card Click Propagation Fix:
+  1. In `AvaloniaDashboardWindow.axaml.cs`, inspected event source in `NoteCard_PointerPressed` to ensure clicks on Duplicate or Delete buttons do not inadvertently trigger opening the note window.
+  2. Restored 📌 pushpin brand emoji in the dashboard navigation header.
+  3. Bound note card preview to `PlainTextPreview` and `CardTextColor` for crisp readability.
+- Linux Startup Preferences:
+  1. Updated `App.axaml.cs` to obey saved settings `GetShowUiOnStartup()` and `GetStartMinimized()`.
+- Thread-Safe Save Debounce:
+  1. Marshalled `_notes` snapshot creation in `SaveNotesImmediately` to the UI thread via `IWindowManager.RunOnUiThread` to prevent background thread collection modification race conditions.
+- Top-Bar Tray Icon Support:
+  1. Packaged and installed GNOME AppIndicator extension (`appindicatorsupport@rgcjonas.gmail.com`) to `~/.local/share/gnome-shell/extensions` and enabled in `gsettings`.
+  2. Enhanced `AvaloniaTrayService.cs` with fallback to `AssetLoader.Open("avares://PinNote/Assets/icon.png")`.
+  3. Updated `scripts/install-linux.sh` to install icons to `~/.local/share/pixmaps/pinnote.png` and standard hicolor paths with `Icon=pinnote`.
+
+### Date: 2026-10-26 (Follow-up Fixes - Screenshot 08-49-28)
+Author: Antigravity (assistant)
+Files changed:
+- Views/AvaloniaDashboardWindow.axaml
+- Views/AvaloniaNoteWindow.axaml
+- ViewModels/NoteViewModel.cs
+- Program.cs
+- scripts/install-linux.sh
+
+Change summary:
+- Dashboard Card Contrast & Visibility Fix:
+  1. Updated note card title, preview body, and footer in `AvaloniaDashboardWindow.axaml` to bind to `TextColor` (dynamic high-contrast black/white) instead of `EffectiveTextColor`. White custom text chosen for glass notes now displays as crisp black text on bright yellow cards, eliminating the invisible text bug.
+- Restored Signature PinNote Brand Icon in Dashboard:
+  1. Replaced the generic red pushpin emoji (`📌`) in the dashboard navigation bar with the official PinNote logo image (`Assets/icon.png`).
+- Fixed Title Bar Controls Contrast & Icon Opacity:
+  1. Updated `HeaderIconColor` in `NoteViewModel` to respect `CustomTextColor` when set, ensuring that when the title is white, the close button `✕` is also crisp white (not black).
+  2. Increased unpinned `PinOpacity` from 0.45 to 0.70 to avoid dark muddy smudges against dark backgrounds.
+- Enhanced Linux Wayland / X11 Window Transparency & Composition:
+  1. Configured `ExtendClientAreaToDecorationsHint="True"`, `ExtendClientAreaChromeHints="NoChrome"`, and `ExtendClientAreaTitleBarHeightHint="-1"` in `AvaloniaNoteWindow.axaml` to ensure the compositor allocates an extended 32-bit ARGB surface without dark fallback boxes.
+  2. Configured `X11PlatformOptions` rendering modes (Glx, Egl, Software) in `Program.cs`.
+- Process Hygiene:
+  1. Added automatic termination of stale background `PinNote` instances in `scripts/install-linux.sh` to ensure updates take effect immediately.
+
+### Date: 2026-10-26
+Author: Antigravity (assistant)
+Files changed:
+- Views/AvaloniaNoteWindow.axaml
+- Views/AvaloniaNoteWindow.axaml.cs
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- Services/StorageService.cs
+- Services/IWindowManager.cs
+- Views/AvaloniaWindowManager.cs
+- UI/WpfWindowManager.cs
+- PinNote.csproj
+- scripts/install-linux.sh
+
+Change summary:
+- Fixed Crystal Clear mode:
+  1. Renamed menu item to strictly "Crystal clear" (removed parentheses).
+  2. Fixed double-toggle bug caused by simultaneous `Command` invocation and `IsChecked` two-way binding on `ToggleType="CheckBox"`.
+  3. Added `TransparencyBackgroundFallback="Transparent"` to `AvaloniaNoteWindow.axaml` ensuring Linux compositors properly render client alpha without fallback solid backgrounds.
+- Fixed Title Bar Icons visibility:
+  1. Pin icon now binds `Opacity="{Binding PinOpacity}"` (1.0 when pinned, 0.45 when unpinned; never 0.0).
+  2. Close button uses solid `Foreground="{Binding HeaderIconColor}"` and added interactive hover styles (`.close-btn:pointerover` / `.title-btn:pointerover`) so title controls remain clearly visible regardless of note background color or transparency level.
+- Fixed App Drawer Icon in Linux:
+  1. Updated `scripts/install-linux.sh` to install the signature PinNote icon into all standard hicolor dimensions (`16x16`, `32x32`, `48x48`, `64x64`, `128x128`, `256x256`).
+  2. Configured `pinnote.desktop` with an absolute icon path to bypass stale desktop theme caches and immediately refresh the GNOME/KDE app drawer.
+- Debounced Window Geometry & Autosave:
+  1. Added `_geometryTimer` in `AvaloniaNoteWindow.axaml.cs` so moving or resizing windows does not serialize and rewrite `notes.json` on every pixel change.
+  2. Added `UpdateBounds` in `NoteViewModel` to batch position and size changes into a single notification.
+  3. Added cross-platform debounced `QueueSave()` with `System.Timers.Timer` in `MainViewModel`, while saving immediately on note creation, deletion, duplication, or app shutdown.
+- Storage Failure Visibility:
+  1. Added `SaveFailed` and `LoadFailed` events in `StorageService`.
+  2. Trigger desktop notification alerts via `NotificationService` and error dialogs via `IWindowManager.ShowErrorMessage` if saving or loading notes fails.
+- Project Architecture Cleanup:
+  1. Cleaned up `PinNote.csproj` conditional compiles into clean directory-based groupings (`UI\**`, `Themes\**` vs `Views\**`, `Services\Avalonia*`).
+
+Reason:
+- User reported issues with Crystal Clear mode, missing title bar icons on transparent notes, missing app drawer icon update, excessive disk writes on note move/resize, silent storage errors, and platform split maintainability.
+
+
+### Date: 2026-10-25
+Author: Antigravity (assistant)
+Files changed:
+- Services/IWindowManager.cs (added)
+- UI/WpfWindowManager.cs (added)
+- ViewModels/RelayCommand.cs
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- App.xaml.cs
+- Program.cs (added)
+- App.axaml (added)
+- App.axaml.cs (added)
+- Views/AvaloniaNoteWindow.axaml (added)
+- Views/AvaloniaNoteWindow.axaml.cs (added)
+- Views/AvaloniaDashboardWindow.axaml (added)
+- Views/AvaloniaDashboardWindow.axaml.cs (added)
+- Views/AvaloniaInstructionsWindow.axaml (added)
+- Views/AvaloniaInstructionsWindow.axaml.cs (added)
+- Views/AvaloniaWindowManager.cs (added)
+- PinNote.csproj
+- scripts/build-linux.sh
+- Services/StartupService.cs
+- scripts/install-linux.sh (added)
+- scripts/uninstall-linux.sh (added)
+- scripts/build-flatpak.sh (added)
+
+Change summary:
+- Completed cross-platform UI architecture supporting both Windows (WPF/net8.0-windows) and Linux (Avalonia/net8.0):
+  1. Decoupled ViewModels from platform-specific UI through new `IWindowManager` interface.
+  2. Implemented `WpfWindowManager` for Windows WPF build to preserve 100% of existing Windows behavior and installer pipeline.
+  3. Made `RelayCommand` cross-platform, conditionally supporting `CommandManager.RequerySuggested` under Windows and standard events on Linux.
+  4. Decoupled `NoteViewModel` from `System.Windows.Media`, using pure hex color parsing for cross-platform support while preserving WPF text brushes.
+  5. Implemented complete Avalonia UI suite for Linux: `Program.cs` entry point, `AvaloniaApp` with FluentTheme, `AvaloniaNoteWindow` with dragging and debounced autosave, `AvaloniaDashboardWindow` with card grid and search, `AvaloniaInstructionsWindow`, and `AvaloniaWindowManager`.
+  6. Configured `PinNote.csproj` with smart multi-targeting: defaults to `net8.0` on Linux/macOS and multi-targets `net8.0` and `net8.0-windows` on Windows with clean file exclusions.
+  7. Updated `scripts/build-linux.sh` to package self-contained executable, desktop launcher, and assets into `PinNote-1.0.3-linux-x64.tar.gz`.
+  8. Created Linux installation and uninstallation scripts (`scripts/install-linux.sh`, `scripts/uninstall-linux.sh`) and Flatpak build script (`scripts/build-flatpak.sh`).
+  9. Added support for GNOME/Linux top bar system tray icon with crisp pin iconography (`Assets/icon.png`), and added persistent user settings to toggle top-bar system tray icon visibility and bottom-bar taskbar/dock presence.
+  10. Fixed typing background issue in Avalonia note editor by overriding `TextBox` `:focus` and `:pointerover` template styles to remain transparent.
+  11. Restored full Crystal Clear (Glass) theme mode with `TransparencyLevelHint="Transparent,AcrylicBlur"` and transparent backgrounds for frameless glass aesthetic.
+  12. Restored comprehensive transparency levels (100% down to 20%), font sizes, color palettes, and right-click ContextMenu matching Windows PinNote.
+
+Reason:
+- User requested complete cross-platform functionality so the application works seamlessly on both Windows and Linux, and can be installed via tarball or Flatpak.
+
+
 ### Date: 2026-06-01
 Author: GitHub Copilot (assistant)
 Files changed:

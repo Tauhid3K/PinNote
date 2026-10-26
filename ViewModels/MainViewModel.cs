@@ -4,11 +4,10 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
+using Newtonsoft.Json;
 using PinNote.Models;
 using PinNote.Services;
-using PinNote.UI;
 
 namespace PinNote.ViewModels
 {
@@ -18,20 +17,47 @@ namespace PinNote.ViewModels
         private bool _showUiOnStartup;
         private readonly StorageService _storageService;
         private readonly ObservableCollection<NoteViewModel> _notes;
-        private readonly Dictionary<Guid, NoteWindow> _openWindows;
-        private MainDashboardWindow? _dashboardWindow;
         private string _searchText = string.Empty;
         private bool _isStartupEnabled;
         private bool _startMinimized;
+        private bool _showTrayIcon;
+        private bool _showInTaskbar;
         private string _themeMode;
+        private IWindowManager? _windowManager;
+        private ITrayService? _trayService;
+        private readonly System.Timers.Timer _saveDebounceTimer;
 
-        public MainViewModel()
+        public IWindowManager? WindowManager
         {
+            get => _windowManager;
+            set => _windowManager = value;
+        }
+
+        public ITrayService? TrayService
+        {
+            get => _trayService;
+            set
+            {
+                _trayService = value;
+                _trayService?.SetVisible(_showTrayIcon);
+            }
+        }
+
+        public MainViewModel(IWindowManager? windowManager = null)
+        {
+            _windowManager = windowManager;
             _showUiOnStartup = _appStateService.GetShowUiOnStartup();
+            _showTrayIcon = _appStateService.GetShowTrayIcon();
+            _showInTaskbar = _appStateService.GetShowInTaskbar();
             _storageService = new StorageService();
+            _storageService.SaveFailed += (_, msg) => _windowManager?.ShowErrorMessage("Storage Error", $"Failed to save notes: {msg}");
+            _storageService.LoadFailed += (_, msg) => _windowManager?.ShowErrorMessage("Storage Error", $"Failed to load notes: {msg}");
+
+            _saveDebounceTimer = new System.Timers.Timer(300) { AutoReset = false };
+            _saveDebounceTimer.Elapsed += (_, _) => SaveNotesImmediately();
+
             _notes = new ObservableCollection<NoteViewModel>();
             _notes.CollectionChanged += Notes_CollectionChanged;
-            _openWindows = new Dictionary<Guid, NoteWindow>();
             _isStartupEnabled = StartupService.IsStartupEnabled();
             _startMinimized = _appStateService.GetStartMinimized();
 
@@ -42,10 +68,16 @@ namespace PinNote.ViewModels
             ToggleStartupCommand = new RelayCommand(_ => ToggleStartup());
             SettingsCommand = new RelayCommand(_ => ShowAllNotes());
             HelpCommand = new RelayCommand(_ => ShowInstructions());
-            ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
+            ExitCommand = new RelayCommand(_ =>
+            {
+                SaveNotesImmediately();
+                _windowManager?.Shutdown();
+            });
 
             ToggleShowUiOnStartupCommand = new RelayCommand(_ => ShowUiOnStartup = !ShowUiOnStartup);
-                SetThemeCommand = new RelayCommand(p => ThemeMode = (p as string) ?? "System");
+            ToggleShowTrayIconCommand = new RelayCommand(_ => ShowTrayIcon = !ShowTrayIcon);
+            ToggleShowInTaskbarCommand = new RelayCommand(_ => ShowInTaskbar = !ShowInTaskbar);
+            SetThemeCommand = new RelayCommand(p => ThemeMode = (p as string) ?? "System");
 
             // Load theme preference
             _themeMode = _appStateService.GetThemeMode();
@@ -65,10 +97,9 @@ namespace PinNote.ViewModels
                 }
 
                 var filter = SearchText.Trim();
-                // Use a snapshot list to ensure WPF receives a stable collection and guard against null Title/Content.
                 return _notes.Where(note =>
                     (note.Title ?? string.Empty).Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                    (note.Content ?? string.Empty).Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+                    note.GetPlainText().Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
 
@@ -133,7 +164,35 @@ namespace PinNote.ViewModels
             }
         }
 
+        public bool ShowTrayIcon
+        {
+            get => _showTrayIcon;
+            set
+            {
+                if (SetProperty(ref _showTrayIcon, value))
+                {
+                    _appStateService.SetShowTrayIcon(value);
+                    _trayService?.SetVisible(value);
+                }
+            }
+        }
+
+        public bool ShowInTaskbar
+        {
+            get => _showInTaskbar;
+            set
+            {
+                if (SetProperty(ref _showInTaskbar, value))
+                {
+                    _appStateService.SetShowInTaskbar(value);
+                    _windowManager?.SetShowInTaskbar(value);
+                }
+            }
+        }
+
         public ICommand ToggleShowUiOnStartupCommand { get; }
+        public ICommand ToggleShowTrayIconCommand { get; }
+        public ICommand ToggleShowInTaskbarCommand { get; }
         public ICommand SetThemeCommand { get; }
 
         public string ThemeMode
@@ -144,15 +203,7 @@ namespace PinNote.ViewModels
                 if (value == _themeMode) return;
                 _themeMode = value ?? "System";
                 _appStateService.SetThemeMode(_themeMode);
-                // Apply immediately via App
-                try
-                {
-                    if (Application.Current is App app)
-                    {
-                        app.SetTheme(_themeMode);
-                    }
-                }
-                catch { }
+                _windowManager?.ApplyTheme(_themeMode);
                 OnPropertyChanged();
             }
         }
@@ -162,25 +213,14 @@ namespace PinNote.ViewModels
             IsStartupEnabled = !IsStartupEnabled;
         }
 
-        private InstructionsWindow? _instructionsWindow;
-
         public void ShowInstructions()
         {
-            if (_instructionsWindow != null && _instructionsWindow.IsLoaded)
-            {
-                _instructionsWindow.Activate();
-                return;
-            }
-
-            _instructionsWindow = new InstructionsWindow();
-            _instructionsWindow.Show();
+            _windowManager?.ShowInstructions();
         }
 
         private void LoadNotes()
         {
             var savedNotes = _storageService.LoadNotes();
-
-            // If there are no saved notes, start with an empty dashboard (do not auto-create a note).
             if (!savedNotes.Any())
             {
                 return;
@@ -188,15 +228,12 @@ namespace PinNote.ViewModels
 
             foreach (var noteModel in savedNotes)
             {
-                // Open all notes on startup as requested
                 AddNoteViewModel(noteModel, openWindow: true);
             }
         }
 
         public void CreateWelcomeNote()
         {
-            // This method is now kept for internal compatibility if needed, 
-            // but the primary onboarding is now handled by ShowInstructions().
             ShowInstructions();
         }
 
@@ -204,7 +241,7 @@ namespace PinNote.ViewModels
         {
             var newNote = new NoteModel();
             AddNoteViewModel(newNote, openWindow);
-            SaveNotes();
+            SaveNotesImmediately();
         }
 
         public void DuplicateNote(NoteViewModel source)
@@ -228,11 +265,13 @@ namespace PinNote.ViewModels
                 IsPinned = source.IsPinned,
                 TitleFontSize = source.TitleFontSize,
                 BodyFontSize = source.BodyFontSize,
-                IsCrystalClear = source.IsCrystalClear
+                IsCrystalClear = source.IsCrystalClear,
+                CustomTextColor = source.CustomTextColor,
+                TextOpacity = source.TextOpacity
             };
 
             AddNoteViewModel(duplicate, openWindow: true);
-            SaveNotes();
+            SaveNotesImmediately();
         }
 
         private static string BuildDuplicateTitle(string title)
@@ -248,24 +287,27 @@ namespace PinNote.ViewModels
         private void AddNoteViewModel(NoteModel model, bool openWindow = true)
         {
             var viewModel = new NoteViewModel(model, this);
-            viewModel.DeleteRequested += (s, e) =>
+            viewModel.DeleteRequested += async (s, e) =>
             {
                 try
                 {
-                    var title = string.IsNullOrWhiteSpace(viewModel.Title) ? "this note" : viewModel.Title;
-                    var res = MessageBox.Show($"Are you sure you want to delete '{title}'?", "Delete Note", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (res == MessageBoxResult.Yes)
+                    bool confirmed = true;
+                    if (_windowManager != null)
+                    {
+                        confirmed = await _windowManager.ConfirmDeleteAsync(viewModel.Title);
+                    }
+
+                    if (confirmed)
                     {
                         DeleteNote(viewModel);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Fallback: delete without confirmation if UI fails
-                    DeleteNote(viewModel);
+                    System.Diagnostics.Debug.WriteLine($"Delete error: {ex}");
                 }
             };
-            viewModel.SaveRequested += (s, e) => SaveNotes();
+            viewModel.SaveRequested += (s, e) => QueueSave();
             viewModel.PropertyChanged += NoteViewModel_PropertyChanged;
 
             _notes.Add(viewModel);
@@ -278,64 +320,30 @@ namespace PinNote.ViewModels
 
         public void OpenNote(NoteViewModel viewModel)
         {
-            if (_openWindows.TryGetValue(viewModel.Id, out var existingWindow))
-            {
-                if (!existingWindow.IsVisible)
-                {
-                    existingWindow.Show();
-                }
-
-                if (existingWindow.WindowState == WindowState.Minimized)
-                {
-                    existingWindow.WindowState = WindowState.Normal;
-                }
-
-                existingWindow.Activate();
-                existingWindow.Topmost = true;
-                existingWindow.Topmost = viewModel.IsPinned;
-                return;
-            }
-
-            var window = new NoteWindow(viewModel);
-            window.Closed += (_, _) => OnNoteWindowClosed(viewModel.Id);
-            _openWindows[viewModel.Id] = window;
-            window.Show();
-            window.Activate();
+            _windowManager?.OpenNote(viewModel);
         }
 
-        private void DeleteNote(NoteViewModel viewModel)
+        public void CloseNote(Guid noteId)
         {
-            if (_openWindows.TryGetValue(viewModel.Id, out var window))
-            {
-                window.Close();
-                _openWindows.Remove(viewModel.Id);
-            }
+            _windowManager?.CloseNote(noteId);
+        }
 
+        public void DeleteNote(NoteViewModel viewModel)
+        {
+            _windowManager?.CloseNote(viewModel.Id);
             _notes.Remove(viewModel);
-            SaveNotes();
+            SaveNotesImmediately();
             OnPropertyChanged(nameof(FilteredNotes));
-        }
-
-        private void OnNoteWindowClosed(Guid noteId)
-        {
-            _openWindows.Remove(noteId);
         }
 
         public void ShowDashboard()
         {
-            if (_dashboardWindow == null)
-            {
-                _dashboardWindow = new MainDashboardWindow(this);
-            }
+            _windowManager?.ShowDashboard();
+        }
 
-            _dashboardWindow.ShowInTaskbar = false;
-            _dashboardWindow.Show();
-            if (_dashboardWindow.WindowState == WindowState.Minimized)
-            {
-                _dashboardWindow.WindowState = WindowState.Normal;
-            }
-
-            _dashboardWindow.Activate();
+        public void HideDashboard()
+        {
+            _windowManager?.HideDashboard();
         }
 
         public void ShowAllNotes()
@@ -343,66 +351,53 @@ namespace PinNote.ViewModels
             ShowAllNotes(minimizeDashboard: false);
         }
 
-        /// <summary>
-        /// Show every saved note window. Any note that is already open is brought forward;
-        /// any saved note that is not currently open is created and shown.
-        /// </summary>
-        /// <param name="minimizeDashboard">If true, minimize the dashboard after showing notes.</param>
         public void ShowAllNotes(bool minimizeDashboard)
         {
-            if (_dashboardWindow != null)
-            {
-                _dashboardWindow.Hide();
-            }
+            _windowManager?.ShowAllNotes(minimizeDashboard);
+        }
 
-            foreach (var note in _notes)
-            {
-                OpenNote(note);
-            }
+        public void HideAllNotes()
+        {
+            _windowManager?.HideAllNotes();
+        }
 
-            try
+        public void BringNotesOnTop()
+        {
+            _windowManager?.BringNotesOnTop();
+        }
+
+        public void QueueSave()
+        {
+            _saveDebounceTimer.Stop();
+            _saveDebounceTimer.Start();
+        }
+
+        public void SaveNotesImmediately()
+        {
+            _saveDebounceTimer.Stop();
+
+            if (_windowManager != null)
             {
-                if (minimizeDashboard && _dashboardWindow != null)
-                {
-                    _dashboardWindow.WindowState = WindowState.Minimized;
-                }
+                _windowManager.RunOnUiThread(PerformSave);
             }
-            catch
+            else
             {
-                // non-fatal
+                PerformSave();
             }
         }
 
-        private void HideAllNotes()
+        private void PerformSave()
         {
-            // Keep the main dashboard visible; only hide individual note windows.
-            foreach (var window in _openWindows.Values)
-            {
-                window.Hide();
-            }
-        }
+            _saveDebounceTimer.Stop();
 
-        private void BringNotesOnTop()
-        {
-            foreach (var window in _openWindows.Values)
-            {
-                window.Show();
+            // 1. Snapshot and clone on the UI thread: isolated from UI modifications
+            var models = _notes.Select(n => n.GetModel().Clone()).ToList();
 
-                if (window.WindowState == WindowState.Minimized)
-                {
-                    window.WindowState = WindowState.Normal;
-                }
+            // 2. Serialize on the UI thread in the same execution path: immutable snapshot
+            string json = JsonConvert.SerializeObject(models, Formatting.Indented);
 
-                window.Topmost = true;
-                window.Topmost = window.DataContext is NoteViewModel vm && vm.IsPinned;
-                window.Activate();
-            }
-        }
-
-        private void SaveNotes()
-        {
-            var models = _notes.Select(n => n.GetModel()).ToList();
-            _storageService.SaveNotes(models);
+            // 3. Persist to storage safely using the immutable serialized JSON
+            _storageService.SaveNotesJson(json, models.Count);
         }
 
         private void Notes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

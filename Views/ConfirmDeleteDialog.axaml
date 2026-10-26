@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PinNote.Views.ConfirmDeleteDialog"
+        Title="Delete Note"
+        Width="380"
+        Height="190"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="Full">
+
+    <Grid RowDefinitions="*,Auto" Margin="20">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+            <TextBlock Text="🗑️" FontSize="32" VerticalAlignment="Center" />
+            <StackPanel Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="Delete this note?" FontWeight="Bold" FontSize="15" />
+                <TextBlock Name="PromptText"
+                           Text="Are you sure you want to delete this note? This action cannot be undone."
+                           TextWrapping="Wrap"
+                           MaxWidth="270"
+                           FontSize="12"
+                           Opacity="0.8" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10"
+                    Margin="0,16,0,0">
+            <Button Name="CancelBtn"
+                    Content="Cancel"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    Width="80"
+                    HorizontalContentAlignment="Center"
+                    CornerRadius="5" />
+            <Button Name="DeleteBtn"
+                    Content="Delete"
+                    Click="Delete_Click"
+                    IsDefault="True"
+                    Width="80"
+                    HorizontalContentAlignment="Center"
+                    Background="#E5534B"
+                    Foreground="White"
+                    FontWeight="SemiBold"
+                    CornerRadius="5" />
+        </StackPanel>
+    </Grid>
+</Window>

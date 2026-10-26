@@ -30,10 +30,12 @@ namespace PinNote.UI
         private bool _isLoadingEditorContent;
         private bool _isClosing;
         private readonly DispatcherTimer _saveTimer;
+        private readonly NoteViewModel _viewModel;
 
         public NoteWindow(NoteViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
             DataContext = viewModel;
             _saveTimer = new DispatcherTimer
             {
@@ -41,7 +43,7 @@ namespace PinNote.UI
             };
             _saveTimer.Tick += SaveTimer_Tick;
 
-            if (viewModel is INotifyPropertyChanged inpc)
+            if (_viewModel is INotifyPropertyChanged inpc)
             {
                 inpc.PropertyChanged += ViewModel_PropertyChanged;
             }
@@ -51,7 +53,29 @@ namespace PinNote.UI
             SyncEditorStyles();
             EditorBox.TextChanged += EditorBox_TextChanged;
             Closing += NoteWindow_Closing;
+            Closed += NoteWindow_Closed;
+            Loaded += NoteWindow_Loaded;
             HideChrome();
+        }
+
+        private void NoteWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            EnsureOnScreen();
+        }
+
+        private void EnsureOnScreen()
+        {
+            double minX = SystemParameters.VirtualScreenLeft;
+            double maxX = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 60;
+            double minY = SystemParameters.VirtualScreenTop;
+            double maxY = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 60;
+
+            if (Left < minX || Left > maxX || Top < minY || Top > maxY)
+            {
+                Left = Math.Max(minX, Math.Min(Left, maxX));
+                Top = Math.Max(minY, Math.Min(Top, maxY));
+                UpdatePosition();
+            }
         }
 
         private void LoadColorPalette()
@@ -328,6 +352,28 @@ namespace PinNote.UI
             _isClosing = true;
             HideChrome();
             SaveEditorContent();
+            Cleanup();
+        }
+
+        private void NoteWindow_Closed(object? sender, EventArgs e)
+        {
+            Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (_viewModel is INotifyPropertyChanged inpc)
+            {
+                inpc.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+
+            if (EditorBox != null)
+            {
+                EditorBox.TextChanged -= EditorBox_TextChanged;
+            }
+
+            _saveTimer.Stop();
+            _saveTimer.Tick -= SaveTimer_Tick;
         }
 
         private void BoldButton_Click(object sender, RoutedEventArgs e)
@@ -356,36 +402,45 @@ namespace PinNote.UI
 
         private void ImageButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
+            try
             {
-                Title = "Insert image",
-                Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
-            };
+                var dialog = new OpenFileDialog
+                {
+                    Title = "Insert image",
+                    Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
+                };
 
-            if (dialog.ShowDialog() != true)
-            {
-                return;
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
+
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(dialog.FileName);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                if (bitmap.CanFreeze) bitmap.Freeze();
+
+                var image = new Image
+                {
+                    Source = bitmap,
+                    MaxWidth = 240,
+                    Stretch = System.Windows.Media.Stretch.Uniform,
+                    Margin = new Thickness(0, 6, 0, 6)
+                };
+
+                var insertionPoint = EditorBox.CaretPosition;
+                _ = new InlineUIContainer(image, insertionPoint);
+
+                EditorBox.Focus();
+                SaveEditorContent();
             }
-
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(dialog.FileName);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-
-            var image = new Image
+            catch (Exception ex)
             {
-                Source = bitmap,
-                MaxWidth = 240,
-                Stretch = System.Windows.Media.Stretch.Uniform,
-                Margin = new Thickness(0, 6, 0, 6)
-            };
-
-            var insertionPoint = EditorBox.CaretPosition;
-            _ = new InlineUIContainer(image, insertionPoint);
-
-            EditorBox.Focus();
-            SaveEditorContent();
+                System.Diagnostics.Debug.WriteLine($"NoteWindow.ImageButton_Click error: {ex}");
+                MessageBox.Show("Could not insert the selected image.", "Insert Image", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void EditorBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -451,16 +506,23 @@ namespace PinNote.UI
 
         private void SaveEditorContent()
         {
-            if (_isLoadingEditorContent || DataContext is not NoteViewModel vm)
+            if (_isLoadingEditorContent || DataContext is not NoteViewModel vm || EditorBox?.Document == null)
             {
                 return;
             }
 
             _saveTimer.Stop();
-            var range = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
-            using var stream = new MemoryStream();
-            range.Save(stream, DataFormats.Xaml);
-            vm.Content = Encoding.UTF8.GetString(stream.ToArray());
+            try
+            {
+                var range = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
+                using var stream = new MemoryStream();
+                range.Save(stream, DataFormats.Xaml);
+                vm.Content = Encoding.UTF8.GetString(stream.ToArray());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"NoteWindow.SaveEditorContent error: {ex}");
+            }
         }
 
         private void MoreColors_Click(object sender, RoutedEventArgs e)

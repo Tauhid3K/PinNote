@@ -38,6 +38,7 @@ try {
         -p:PublishTrimmed=false `
         -p:DebugType=None `
         -p:DebugSymbols=false `
+        -p:Version=$Version `
         -o $publishDir
 
     & $iscc "/DMyPublishDir=$publishDir" "/DMyAppVersion=$Version" "/O$installerDir" "/FPinNote-Setup-$Version" $installerScript

@@ -25,7 +25,7 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
 - **Design Pattern:** MVVM (Model-View-ViewModel)
 - **Key Libraries:**
   - [Newtonsoft.Json](https://www.newtonsoft.com/json): For robust data serialization and local storage.
-  - [H.NotifyIcon.Wpf](https://github.com/HavenDV/H.NotifyIcon): For advanced system tray integration.
+  - [System.Windows.Forms.NotifyIcon](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon): For native Windows notification area (system tray) integration.
 
 ## 📂 Project Structure
 
@@ -57,6 +57,43 @@ PinNote is a lightweight, intuitive sticky note application designed for Windows
    dotnet run
    ```
 
+### Installing on Linux
+
+#### Option 1: Standard Installation (Tar / Local)
+Installs PinNote locally to `~/.local/share/pinnote`, adds `pinnote` to your PATH, and installs the desktop shortcut and application icon:
+
+```bash
+chmod +x ./scripts/install-linux.sh
+./scripts/install-linux.sh
+```
+
+To uninstall later:
+```bash
+./scripts/uninstall-linux.sh
+```
+
+#### Option 2: Flatpak Installation
+If you prefer sandboxed execution via Flatpak:
+
+```bash
+# Ensure flatpak-builder is installed (e.g. sudo pacman -S flatpak-builder)
+chmod +x ./scripts/build-flatpak.sh
+./scripts/build-flatpak.sh
+```
+Run the Flatpak app via:
+```bash
+flatpak run org.pinnote.PinNote
+```
+
+### Building Portable Tar Package
+To build a standalone `.tar.gz` bundle:
+```bash
+chmod +x ./scripts/build-linux.sh
+./scripts/build-linux.sh
+```
+The archive will be created at:
+`artifacts/package/PinNote-1.0.3-linux-x64.tar.gz`
+
 ### Creating a Windows Installer
 To build a standard Windows setup file with shortcuts, uninstall support, a launch-after-install option, and an embedded runtime:
 
@@ -70,13 +107,13 @@ To build a standard Windows setup file with shortcuts, uninstall support, a laun
 The generated installer is self-contained, so the target PC does not need .NET 8 installed.
 
 ### Quick Usage Notes
-- To change a note color: Right-click a note → Color → More colors... → pick a color → choose `Apply` or `Apply + Add to palette`.
+- To change a note color: Right-click a note → Color → select a palette swatch or click `More colors...` to pick a custom color with the system color dialog.
 - To enable Crystal Clear: Right-click a note → check `Crystal clear`. The note background becomes transparent and the text will use the selected note color.
 - To duplicate a note: On the dashboard card, click the duplicate button to create a copy of the note with the same content and styling.
 - Theme controls: Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
-- Show all notes: Use the tray menu or dashboard action to restore every saved note window, including notes that are saved but not currently visible.
-- Hide notes: Use the dashboard action to hide all open note windows — the dashboard remains visible.
-- Tray behavior: Minimize the app to send it to the system tray; use the tray icon to restore the dashboard.
+- Show all notes: Use the tray menu to restore every saved note window, including notes that are saved but not currently visible.
+- Hide notes: Use the tray menu action `Hide all notes` to hide open note windows while keeping PinNote active in the system tray.
+- Tray behavior: Minimize or close the dashboard to send it to the system tray; click the tray icon to restore the dashboard.
 
 ## 📝 License
 This project is licensed under the MIT License - see the LICENSE file for details.

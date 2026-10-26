@@ -42,4 +42,4 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--show-instructions"; Description: "Launch {#MyAppName} 1.0.3"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--show-instructions"; Description: "Launch {#MyAppName} {#MyAppVersion}"; Flags: nowait postinstall skipifsilent

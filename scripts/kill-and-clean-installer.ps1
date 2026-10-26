@@ -1,42 +1,21 @@
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$installerPath = Join-Path $repoRoot "artifacts\installer\PinNote-Setup.exe"
+$installerDir = Join-Path $repoRoot "artifacts\installer"
 
-if (-not (Test-Path $installerPath)) {
-    Write-Host "Installer not found at: $installerPath"
-    exit 0
-}
-
-Write-Host "Searching for processes that reference the installer..."
+Write-Host "Searching for processes that reference PinNote or installer build tools..."
 $found = @()
 
 Get-Process | ForEach-Object {
     try {
         $p = $_
-        foreach ($m in $p.Modules) {
-            if ($m.FileName -eq $installerPath -or $m.FileName -like '*PinNote-Setup*') {
-                $found += $p
-                break
-            }
+        if ($p.ProcessName -match '^PinNote$|^PinNote-Setup|^ISCC$') {
+            $found += $p
         }
     } catch {
-        # ignore access denied for some system processes
+        # ignore access denied for system processes
     }
 }
 
-if ($found.Count -eq 0) {
-    $byName = Get-Process -Name 'PinNote-Setup' -ErrorAction SilentlyContinue
-    if ($byName) { $found += $byName }
-}
-
-if ($found.Count -eq 0) {
-    Write-Host "No direct locking processes found; searching common candidates (ISCC, explorer, msiexec, setup, PinNote)..."
-    $candidates = Get-Process | Where-Object { $_.ProcessName -match 'ISCC|explorer|msiexec|setup|PinNote' }
-    foreach ($p in $candidates) { $found += $p }
-}
-
-if ($found.Count -eq 0) {
-    Write-Host "No candidate process found to kill. Proceeding to attempt removal anyway."
-} else {
+if ($found.Count -gt 0) {
     Write-Host "Found processes to stop:"
     $found | Select-Object Id, ProcessName | Format-Table -AutoSize
     foreach ($p in $found | Select-Object -Unique) {
@@ -47,9 +26,11 @@ if ($found.Count -eq 0) {
             Write-Warning "Failed to stop $($p.Id) $($p.ProcessName): $_"
         }
     }
+} else {
+    Write-Host "No active PinNote or ISCC processes found."
 }
 
-Write-Host "Attempting to remove artifacts folder..."
+Write-Host "Attempting to clean artifacts folder..."
 try {
     $artifacts = Join-Path $repoRoot 'artifacts'
     if (Test-Path $artifacts) {

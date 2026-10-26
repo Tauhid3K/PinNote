@@ -18,10 +18,19 @@ namespace PinNote.ViewModels
 
         public void Execute(object? parameter) => _execute(parameter);
 
+#if WINDOWS
         public event EventHandler? CanExecuteChanged
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            add => System.Windows.Input.CommandManager.RequerySuggested += value;
+            remove => System.Windows.Input.CommandManager.RequerySuggested -= value;
         }
+#else
+        public event EventHandler? CanExecuteChanged;
+
+        public void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
+#endif
     }
 }

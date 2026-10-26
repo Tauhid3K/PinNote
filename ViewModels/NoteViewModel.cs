@@ -1,6 +1,9 @@
 using System;
+using System.Globalization;
 using System.Windows.Input;
+#if WINDOWS
 using System.Windows.Media;
+#endif
 using PinNote.Models;
 
 namespace PinNote.ViewModels
@@ -48,15 +51,55 @@ namespace PinNote.ViewModels
                         double.TryParse(parts[0], out double titleFs) &&
                         double.TryParse(parts[1], out double bodyFs))
                     {
-                        TitleFontSize = titleFs;
-                        BodyFontSize = bodyFs;
+                        _updatingTitleFromBody = true;
+                        try
+                        {
+                            TitleFontSize = titleFs;
+                            BodyFontSize = bodyFs;
+                        }
+                        finally
+                        {
+                            _updatingTitleFromBody = false;
+                        }
                     }
+                }
+            });
+
+            ToggleCrystalClearCommand = new RelayCommand(_ => IsCrystalClear = !IsCrystalClear);
+
+            ChangeTextColorCommand = new RelayCommand(colorParam =>
+            {
+                if (colorParam is string color)
+                {
+                    if (color == "Auto")
+                    {
+                        CustomTextColor = null;
+                    }
+                    else
+                    {
+                        CustomTextColor = color;
+                    }
+                }
+            });
+
+            SetTextOpacityCommand = new RelayCommand(p =>
+            {
+                if (p is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var val))
+                {
+                    TextOpacity = val;
+                }
+                else if (p is double d)
+                {
+                    TextOpacity = d;
                 }
             });
         }
 
         public Guid Id => _model.Id;
         public ICommand NewNoteCommand { get; }
+        public ICommand ToggleCrystalClearCommand { get; }
+        public ICommand ChangeTextColorCommand { get; }
+        public ICommand SetTextOpacityCommand { get; }
 
         public string Title
         {
@@ -72,6 +115,7 @@ namespace PinNote.ViewModels
             }
         }
 
+#if WINDOWS
         public System.Windows.Media.Brush PreviewTextBrush
         {
             get
@@ -85,6 +129,7 @@ namespace PinNote.ViewModels
                 return resultBrush;
             }
         }
+#endif
 
         public string Content
         {
@@ -95,6 +140,7 @@ namespace PinNote.ViewModels
                 {
                     _model.Content = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(PlainTextPreview));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -158,15 +204,36 @@ namespace PinNote.ViewModels
 
         public double Opacity
         {
-            get => _model.Opacity;
+            get => _model.Opacity <= 0 ? 1.0 : _model.Opacity;
             set
             {
-                if (_model.Opacity != value)
+                if (Math.Abs(_model.Opacity - value) > 0.001)
                 {
-                    _model.Opacity = value;
+                    _model.Opacity = Math.Clamp(value, 0.1, 1.0);
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(TextBrush));
-                    OnPropertyChanged(nameof(PreviewTextBrush));
+                    OnPropertyChanged(nameof(EffectiveBodyColor));
+                    OnPropertyChanged(nameof(EffectiveTitleBarColor));
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public double TextOpacity
+        {
+            get => _model.TextOpacity <= 0 ? 1.0 : _model.TextOpacity;
+            set
+            {
+                if (Math.Abs(_model.TextOpacity - value) > 0.001)
+                {
+                    _model.TextOpacity = Math.Clamp(value, 0.1, 1.0);
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(EffectiveTextColor));
+                    OnPropertyChanged(nameof(HeaderIconColor));
+                    OnPropertyChanged("TextBrush");
+                    OnPropertyChanged("PreviewTextBrush");
+#if !WINDOWS
+                    OnPropertyChanged(nameof(TextColorObj));
+#endif
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -181,8 +248,16 @@ namespace PinNote.ViewModels
                 {
                     _model.IsCrystalClear = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(TextBrush));
-                    OnPropertyChanged(nameof(PreviewTextBrush));
+                    OnPropertyChanged(nameof(EffectiveBodyColor));
+                    OnPropertyChanged(nameof(EffectiveTitleBarColor));
+                    OnPropertyChanged(nameof(EffectiveBorderBrush));
+                    OnPropertyChanged(nameof(EffectiveTextColor));
+                    OnPropertyChanged(nameof(HeaderIconColor));
+                    OnPropertyChanged("TextBrush");
+                    OnPropertyChanged("PreviewTextBrush");
+#if !WINDOWS
+                    OnPropertyChanged(nameof(TextColorObj));
+#endif
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -243,9 +318,11 @@ namespace PinNote.ViewModels
                 {
                     _model.TitleBarColor = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(TextBrush));
-                    OnPropertyChanged(nameof(PreviewTextBrush));
+                    OnPropertyChanged(nameof(EffectiveTitleBarColor));
+                    OnPropertyChanged("TextBrush");
+                    OnPropertyChanged("PreviewTextBrush");
                     OnPropertyChanged(nameof(TextColor));
+                    OnPropertyChanged(nameof(CardTextColor));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
                 }
@@ -261,14 +338,168 @@ namespace PinNote.ViewModels
                 {
                     _model.BodyColor = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(TextBrush));
-                    OnPropertyChanged(nameof(PreviewTextBrush));
+                    OnPropertyChanged(nameof(EffectiveBodyColor));
+                    OnPropertyChanged(nameof(EffectiveTitleBarColor));
+                    OnPropertyChanged(nameof(EffectiveTextColor));
+                    OnPropertyChanged(nameof(HeaderIconColor));
+                    OnPropertyChanged("TextBrush");
+                    OnPropertyChanged("PreviewTextBrush");
                     OnPropertyChanged(nameof(TextColor));
+                    OnPropertyChanged(nameof(CardTextColor));
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
+                    OnPropertyChanged(nameof(HeaderIconColor));
+#if !WINDOWS
+                    OnPropertyChanged(nameof(NoteColorObj));
+                    OnPropertyChanged(nameof(TextColorObj));
+#endif
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
+
+        public string? CustomTextColor
+        {
+            get => _model.CustomTextColor;
+            set
+            {
+                if (_model.CustomTextColor != value)
+                {
+                    _model.CustomTextColor = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(EffectiveTextColor));
+                    OnPropertyChanged(nameof(HeaderIconColor));
+                    OnPropertyChanged("TextBrush");
+                    OnPropertyChanged("PreviewTextBrush");
+#if !WINDOWS
+                    OnPropertyChanged(nameof(TextColorObj));
+#endif
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public string EffectiveBodyColor
+        {
+            get
+            {
+                if (IsCrystalClear)
+                {
+                    // Crystal Clear mode: Frosted glass / transparent background
+                    // Note transparency controls how much frosted/tinted or transparent the glass is
+                    byte alpha = (byte)(Math.Clamp(Opacity, 0.0, 1.0) * 45); // subtle glass tint up to ~18%
+                    if (TryParseHexColor(BodyColor, out var c))
+                    {
+                        return $"#{alpha:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                    }
+                    return $"#{alpha:X2}FFFFFF";
+                }
+
+                if (TryParseHexColor(BodyColor, out var col))
+                {
+                    byte a = (byte)(Math.Clamp(Opacity, 0.1, 1.0) * 255);
+                    return $"#{a:X2}{col.R:X2}{col.G:X2}{col.B:X2}";
+                }
+                return BodyColor;
+            }
+        }
+
+        public string EffectiveTitleBarColor
+        {
+            get
+            {
+                if (IsCrystalClear)
+                {
+                    byte alpha = (byte)(Math.Clamp(Opacity, 0.0, 1.0) * 60);
+                    var baseCol = !string.IsNullOrWhiteSpace(TitleBarColor) ? TitleBarColor : BodyColor;
+                    if (TryParseHexColor(baseCol, out var c))
+                    {
+                        return $"#{alpha:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                    }
+                    return $"#{alpha:X2}FFFFFF";
+                }
+
+                var tColor = !string.IsNullOrWhiteSpace(TitleBarColor) ? TitleBarColor : BodyColor;
+                if (TryParseHexColor(tColor, out var col))
+                {
+                    byte a = (byte)(Math.Clamp(Opacity, 0.15, 1.0) * 255);
+                    return $"#{a:X2}{col.R:X2}{col.G:X2}{col.B:X2}";
+                }
+                return TitleBarColor;
+            }
+        }
+
+        public string EffectiveBorderBrush => IsCrystalClear ? "#44FFFFFF" : "#44000000";
+
+        public string EffectiveTextColor
+        {
+            get
+            {
+                var alpha = (byte)(Math.Clamp(TextOpacity, 0.1, 1.0) * 255);
+                if (!string.IsNullOrEmpty(CustomTextColor) && TryParseHexColor(CustomTextColor, out var customP))
+                {
+                    return $"#{alpha:X2}{customP.R:X2}{customP.G:X2}{customP.B:X2}";
+                }
+
+                if (IsCrystalClear)
+                {
+                    if (TryParseHexColor(BodyColor, out var parsed))
+                    {
+                        double brightness = (0.299 * parsed.R + 0.587 * parsed.G + 0.114 * parsed.B) / 255.0;
+                        if (brightness < 0.25)
+                        {
+                            return $"#{alpha:X2}FFFFFF";
+                        }
+                        return $"#{alpha:X2}{parsed.R:X2}{parsed.G:X2}{parsed.B:X2}";
+                    }
+                    return $"#{alpha:X2}FFFFFF";
+                }
+
+                if (TextColor == "White")
+                {
+                    return $"#{alpha:X2}FFFFFF";
+                }
+                return $"#{alpha:X2}000000";
+            }
+        }
+
+#if !WINDOWS
+        public Avalonia.Media.Color NoteColorObj
+        {
+            get
+            {
+                if (Avalonia.Media.Color.TryParse(BodyColor, out var c))
+                    return c;
+                return Avalonia.Media.Colors.White;
+            }
+            set
+            {
+                var hex = $"#{value.R:X2}{value.G:X2}{value.B:X2}";
+                BodyColor = hex;
+                TitleBarColor = CreateTitleBarColor(hex, hex);
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(NoteColorObj));
+            }
+        }
+
+        public Avalonia.Media.Color TextColorObj
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(CustomTextColor) && Avalonia.Media.Color.TryParse(CustomTextColor, out var c))
+                    return c;
+                if (Avalonia.Media.Color.TryParse(EffectiveTextColor, out var eff))
+                    return eff;
+                return Avalonia.Media.Colors.Black;
+            }
+            set
+            {
+                var hex = $"#{value.R:X2}{value.G:X2}{value.B:X2}";
+                CustomTextColor = hex;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TextColorObj));
+            }
+        }
+#endif
 
         public string TextColor
         {
@@ -276,7 +507,7 @@ namespace PinNote.ViewModels
             {
                 try
                 {
-                    if (TryParseColor(BodyColor, out var c))
+                    if (TryParseHexColor(BodyColor, out var c))
                     {
                         double brightness = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
                         return brightness > 0.5 ? "Black" : "White";
@@ -291,17 +522,22 @@ namespace PinNote.ViewModels
             }
         }
 
+#if WINDOWS
         public System.Windows.Media.Brush TextBrush
         {
             get
             {
-                var alpha = (byte)(Math.Clamp(Opacity - 0.05, 0.35, 1.0) * 255);
+                var alpha = (byte)(Math.Clamp(TextOpacity, 0.2, 1.0) * 255);
 
                 System.Windows.Media.Color resultColor;
-                if (IsCrystalClear)
+                if (!string.IsNullOrEmpty(CustomTextColor) && TryParseHexColor(CustomTextColor, out var customP))
+                {
+                    resultColor = System.Windows.Media.Color.FromArgb(alpha, customP.R, customP.G, customP.B);
+                }
+                else if (IsCrystalClear)
                 {
                     // When crystal-clear mode is enabled, use the note's selected BodyColor as the text color
-                    if (TryParseColor(BodyColor, out var parsed))
+                    if (TryParseHexColor(BodyColor, out var parsed))
                     {
                         resultColor = System.Windows.Media.Color.FromArgb(alpha, parsed.R, parsed.G, parsed.B);
                     }
@@ -322,6 +558,7 @@ namespace PinNote.ViewModels
                 return resultBrush;
             }
         }
+#endif
 
         /// <summary>
         /// Returns a darker version of BodyColor for the active title bar
@@ -343,8 +580,49 @@ namespace PinNote.ViewModels
                 {
                     _model.IsPinned = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(PinOpacity));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
+            }
+        }
+
+        public double PinOpacity => IsPinned ? 1.0 : 0.65;
+
+        public string HeaderIconColor
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(CustomTextColor)) return CustomTextColor;
+                if (IsCrystalClear)
+                {
+                    if (TryParseHexColor(BodyColor, out var parsed))
+                    {
+                        double brightness = (0.299 * parsed.R + 0.587 * parsed.G + 0.114 * parsed.B) / 255.0;
+                        if (brightness < 0.25) return "#FFFFFF";
+                        return BodyColor;
+                    }
+                    return "#FFFFFF";
+                }
+
+                return TextColor == "White" ? "#FFFFFF" : "#1A1A1A";
+            }
+        }
+
+        public string CardTextColor => TextColor == "White" ? "#FFFFFF" : "#1A1A1A";
+
+        public string PlainTextPreview => GetPlainText();
+
+        public void UpdateBounds(double x, double y, double width, double height)
+        {
+            bool changed = false;
+            if (Math.Abs(_model.X - x) > 0.5) { _model.X = x; OnPropertyChanged(nameof(X)); changed = true; }
+            if (Math.Abs(_model.Y - y) > 0.5) { _model.Y = y; OnPropertyChanged(nameof(Y)); changed = true; }
+            if (Math.Abs(_model.Width - width) > 0.5) { _model.Width = width; OnPropertyChanged(nameof(Width)); changed = true; }
+            if (Math.Abs(_model.Height - height) > 0.5) { _model.Height = height; OnPropertyChanged(nameof(Height)); changed = true; }
+
+            if (changed)
+            {
+                SaveRequested?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -371,7 +649,7 @@ namespace PinNote.ViewModels
         {
             try
             {
-                if (!TryParseColor(color, out var c)) return color;
+                if (!TryParseHexColor(color, out var c)) return color;
 
                 int r = Math.Clamp((int)(c.R * factor), 0, 255);
                 int g = Math.Clamp((int)(c.G * factor), 0, 255);
@@ -385,37 +663,51 @@ namespace PinNote.ViewModels
             }
         }
 
-        private static bool TryParseColor(string? input, out System.Windows.Media.Color color)
+        private static bool TryParseHexColor(string? input, out (byte R, byte G, byte B) color)
         {
-            color = System.Windows.Media.Colors.Transparent;
+            color = (0, 0, 0);
             if (string.IsNullOrWhiteSpace(input)) return false;
 
-            try
+            var hex = input.Trim().TrimStart('#');
+            if (hex.Length == 6)
             {
-                var conv = System.Windows.Media.ColorConverter.ConvertFromString(input!);
-                if (conv is System.Windows.Media.Color c)
+                if (byte.TryParse(hex.Substring(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var r) &&
+                    byte.TryParse(hex.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var g) &&
+                    byte.TryParse(hex.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
                 {
-                    color = c;
+                    color = (r, g, b);
                     return true;
                 }
-
-                if (conv is System.Windows.Media.SolidColorBrush b)
+            }
+            else if (hex.Length == 8)
+            {
+                if (byte.TryParse(hex.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var r) &&
+                    byte.TryParse(hex.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var g) &&
+                    byte.TryParse(hex.Substring(6, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
                 {
-                    color = b.Color;
+                    color = (r, g, b);
                     return true;
                 }
+            }
 
-                return false;
-            }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
 
         private void OnDeleteRequested()
         {
             DeleteRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex XamlTagRegex = new("<.*?>", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        public string GetPlainText()
+        {
+            if (string.IsNullOrWhiteSpace(_model.Content)) return string.Empty;
+            var text = _model.Content;
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<LineBreak\s*/?>", " ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"</Paragraph\s*>", " ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = XamlTagRegex.Replace(text, " ");
+            return System.Net.WebUtility.HtmlDecode(text).Trim();
         }
 
         public NoteModel GetModel() => _model;

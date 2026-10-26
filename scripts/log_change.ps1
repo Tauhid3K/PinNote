@@ -17,13 +17,17 @@ foreach ($f in $Files) { $entry += "- $f`n" }
 $entry += "`nChange summary:`n- $Summary`n`nReason:`n- $Reason`n`nNotes / Testing:`n- $Notes`n`n---`n`
 "
 
-$stepsFile = Join-Path -Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) -ChildPath "..\STEPS.md"
-$stepsFile = [System.IO.Path]::GetFullPath($stepsFile)
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$logFile = Join-Path -Path $repoRoot -ChildPath "DEVELOPMENT_LOG.md"
 
-if (-not (Test-Path $stepsFile)) {
-    Write-Host "STEPS.md not found at $stepsFile" -ForegroundColor Yellow
+if (-not (Test-Path $logFile)) {
+    $logFile = Join-Path -Path $repoRoot -ChildPath "STEPS.md"
+}
+
+if (-not (Test-Path $logFile)) {
+    Write-Host "Log file not found at $logFile" -ForegroundColor Yellow
     exit 1
 }
 
-Add-Content -Path $stepsFile -Value $entry -Encoding UTF8
-Write-Host "Appended entry to STEPS.md" -ForegroundColor Green
+Add-Content -Path $logFile -Value $entry -Encoding UTF8
+Write-Host "Appended entry to $logFile" -ForegroundColor Green

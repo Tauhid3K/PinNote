@@ -12,4 +12,11 @@
   <SolidColorBrush x:Key="PrimaryButtonBackground" Color="#0078D4" />
   <SolidColorBrush x:Key="PrimaryButtonHover" Color="#106EBE" />
   <SolidColorBrush x:Key="PrimaryButtonPressed" Color="#005A9E" />
+  <!-- Instructions window specific brushes -->
+  <SolidColorBrush x:Key="SectionCardBackgroundBrush" Color="#F8F9FA" />
+  <SolidColorBrush x:Key="SectionCardBorderBrush" Color="#E1E4E8" />
+  <SolidColorBrush x:Key="ActionChipBackground" Color="#F1F3F5" />
+  <SolidColorBrush x:Key="ActionChipBorderBrush" Color="#D0D7DE" />
+  <SolidColorBrush x:Key="IconOnColorBrush" Color="#0078D4" />
+  <SolidColorBrush x:Key="IconCircleDefaultBackgroundBrush" Color="#F3F4F6" />
 </ResourceDictionary>
