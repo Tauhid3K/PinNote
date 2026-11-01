@@ -154,6 +154,12 @@ namespace PinNote.Services
             public double? DashboardY { get; set; }
             public double DashboardWidth { get; set; } = 800;
             public double DashboardHeight { get; set; } = 500;
+
+            // Sort preference (matches NoteSortMode enum int values)
+            public int SortMode { get; set; } = 0;
+
+            // Wayland shortcut notice — shown once so we don't spam the user on every startup
+            public bool HasShownWaylandShortcutNotice { get; set; } = false;
         }
 
         public (double? X, double? Y, double Width, double Height) GetDashboardState()
@@ -267,6 +273,36 @@ namespace PinNote.Services
             AppState state = LoadState();
             state.ThemeMode = mode;
             SaveState(state);
+        }
+
+        public int GetSortMode()
+        {
+            AppState state = LoadState();
+            return state.SortMode;
+        }
+
+        public void SetSortMode(int sortMode)
+        {
+            AppState state = LoadState();
+            state.SortMode = sortMode;
+            SaveState(state);
+        }
+
+        /// <summary>
+        /// Returns true the first time this is called on a Wayland session, so the app can show
+        /// a one-time notification about manual keyboard-shortcut binding.
+        /// </summary>
+        public bool ShouldShowWaylandShortcutNotice()
+        {
+            AppState state = LoadState();
+            if (state.HasShownWaylandShortcutNotice)
+            {
+                return false;
+            }
+
+            state.HasShownWaylandShortcutNotice = true;
+            SaveState(state);
+            return true;
         }
     }
 }

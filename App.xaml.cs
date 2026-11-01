@@ -15,6 +15,8 @@ namespace PinNote
         private Forms.NotifyIcon? _notifyIcon;
         private Bitmap? _trayIconBitmap;
         private readonly AppStateService _appStateService = new();
+        private SingleInstanceService? _singleInstanceService;
+        private IGlobalShortcutService? _shortcutService;
 
         public bool IsShuttingDown { get; private set; }
 
@@ -31,6 +33,20 @@ namespace PinNote
                     string.Equals(arg, "--show-instructions", StringComparison.OrdinalIgnoreCase));
                 bool skipElevateCheck = Array.Exists(e.Args, arg =>
                     string.Equals(arg, "--no-elevate-check", StringComparison.OrdinalIgnoreCase));
+                bool isNewNoteArg = Array.Exists(e.Args, arg =>
+                    string.Equals(arg, "--new-note", StringComparison.OrdinalIgnoreCase));
+
+                // Check single-instance
+                _singleInstanceService = new SingleInstanceService();
+                if (!_singleInstanceService.IsFirstInstance)
+                {
+                    string cmd = isNewNoteArg ? "NEW_NOTE" : "SHOW_DASHBOARD";
+                    SingleInstanceService.SendCommandToRunningInstanceAsync(cmd).GetAwaiter().GetResult();
+                    Shutdown();
+                    return;
+                }
+
+                _singleInstanceService.StartServer();
 
                 // If running elevated, restart unelevated so tray icon appears in normal notification area
                 if (!skipElevateCheck)
@@ -65,6 +81,22 @@ namespace PinNote
 
                 _mainViewModel = (PinNote.ViewModels.MainViewModel)FindResource("MainVM");
                 _mainViewModel.WindowManager = new WpfWindowManager(_mainViewModel);
+                _singleInstanceService.CommandReceived += cmd => _mainViewModel.HandleExternalCommand(cmd);
+
+                _shortcutService = new WindowsGlobalShortcutService();
+                _shortcutService.RegisterQuickNoteShortcut(() =>
+                {
+                    RunOnUiThread(() =>
+                    {
+                        _mainViewModel?.CreateNewNote(openWindow: true);
+                        _mainViewModel?.BringNotesOnTop();
+                    });
+                });
+
+                if (isNewNoteArg)
+                {
+                    _mainViewModel.CreateNewNote(openWindow: true);
+                }
 
                 InitializeTrayIcon();
                 Debug.WriteLine("PinNote tray app is ready.");
@@ -144,6 +176,11 @@ namespace PinNote
             menu.Items.Add("Show all notes", null, (_, _) => RunOnUiThread(() => _mainViewModel?.ShowAllNotes()));
             menu.Items.Add("Hide all notes", null, (_, _) => RunOnUiThread(() => _mainViewModel?.HideAllCommand.Execute(null)));
             menu.Items.Add("Bring notes on top", null, (_, _) => RunOnUiThread(() => _mainViewModel?.BringNotesOnTopCommand.Execute(null)));
+            menu.Items.Add(new Forms.ToolStripSeparator());
+            menu.Items.Add("Import notes...", null, (_, _) => RunOnUiThread(() => _mainViewModel?.ImportNotesCommand.Execute(null)));
+            menu.Items.Add("Export notes...", null, (_, _) => RunOnUiThread(() => _mainViewModel?.ExportNotesCommand.Execute(null)));
+            menu.Items.Add("Create backup", null, (_, _) => RunOnUiThread(() => _mainViewModel?.BackupNotesCommand.Execute(null)));
+            menu.Items.Add(new Forms.ToolStripSeparator());
             // Theme submenu
             var themeMenu = new Forms.ToolStripMenuItem("Theme");
             var currentTheme = _appStateService.GetThemeMode();
@@ -327,6 +364,8 @@ namespace PinNote
         protected override void OnExit(ExitEventArgs e)
         {
             IsShuttingDown = true;
+            _shortcutService?.Dispose();
+            _singleInstanceService?.Dispose();
             if (_notifyIcon != null)
             {
                 _notifyIcon.Visible = false;

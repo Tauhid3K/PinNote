@@ -1,31 +1,28 @@
 # PinNote
 
-PinNote is a lightweight, intuitive sticky note application designed for Windows. Built with WPF and .NET 8.0, it provides a seamless way to capture ideas, manage tasks, and keep important information always within reach.
+PinNote is a free, open-source, cross-platform desktop sticky note application built with .NET 8, WPF for Windows, and Avalonia UI for Linux. It provides a reliable way to capture ideas, manage tasks, and keep important information always within reach.
 
 ## 🚀 Features
 
-- **Dynamic Sticky Notes:** Create, edit, and resize notes from any edge or corner.
-- **Ultra-Small Responsive UI:** Shrink notes down to 100x100; toolbars automatically adapt and scroll to remain accessible.
+- **Interactive Checklists:** Create, check, uncheck, reorder (up/down), and delete checklist items. Seamlessly switch between plain text and checklist mode.
+- **Quick Note Creation:** Instant note creation via global shortcut (`Ctrl+Alt+N`) on Windows/X11 or `pinnote --new-note` command on Linux/Wayland.
+- **Reliable Autosave & Recovery:** Debounced atomic JSON writes, `.bak` snapshot recovery, corrupt file preservation, and protection against zero-byte overwrite.
+- **Fast Cross-Platform Search & Sorting:** Case-insensitive search with whitespace normalization and multi-word matching across titles, plain text, rich text (FlowDocument XAML), and checklist contents. Flexible dashboard sorting by Title (A-Z, Z-A), Last Modified date, Creation date, or Default insertion order, with pinned notes always prioritized.
+- **Backup, Export & Import:** Convenient JSON interchange format (`NoteExportPackage`) with schema versioning, collision protection (reassigning IDs), and automatic pre-import safety backups.
+- **Multi-Monitor Window Restoration:** Intelligently restores note positions across multi-monitor configurations, negative coordinates, and handles disconnected monitors by relocating notes to the active primary screen.
 - **Always on Top (Pinning):** Pin critical notes to keep them visible above all other windows.
-- **Automatic Restoration:** Your notes are automatically restored to their exact screen positions every time you launch the application.
-- **Resizable Dashboard:** A central, resizable dashboard to manage and search all your notes.
-- **Professional Interface:** Clean, centered titles and a streamlined context menu with professional iconography.
-- **System Tray Integration:** Runs silently in the tray with a subtle "notify only" minimize experience.
-- **Customizable Appearance:** Adjust note colors, font sizes (including Extra Small), and opacity.
-- **Auto-Startup:** Option to launch PinNote automatically when Windows starts.
- - **Theme Support:** Light and Dark themes in the dashboard; a System theme option is available from the tray menu to follow Windows preferences.
- - **Crystal Clear Mode:** A per-note mode that makes the note background transparent and shows note text in the selected color for a minimal overlay look.
- - **Quick Duplicate Action:** Copy any note from the dashboard with a single button to create a new note with the same content, colors, size, opacity, and pin state.
- - **Simplified Color Workflow:** The `More colors...` dialog opens the standard system color picker. After picking a color the choice is applied immediately when you press OK. Custom swatches you add inside the color dialog are persisted between runs and will reappear the next time you open the color picker. (The app no longer auto-inserts dialog-picked colors into the in-app palette.)
+- **Crystal Clear Mode:** A per-note frosted glass transparent mode with customizable text colors and opacity.
+- **Quick Duplicate Action:** Duplicate any note with matching contents, colors, size, and checklist items.
+- **System Tray Integration:** Native tray integration on Windows and Linux with customizable themes (System, Light, Dark).
 
 ## 🛠️ Tech Stack
 
-- **Framework:** [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows Desktop)
-- **UI Framework:** WPF (Windows Presentation Foundation)
+- **Framework:** [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **UI Frameworks:**
+  - Windows: WPF (Windows Presentation Foundation)
+  - Linux: Avalonia UI 11
 - **Design Pattern:** MVVM (Model-View-ViewModel)
-- **Key Libraries:**
-  - [Newtonsoft.Json](https://www.newtonsoft.com/json): For robust data serialization and local storage.
-  - [System.Windows.Forms.NotifyIcon](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon): For native Windows notification area (system tray) integration.
+- **Persistence & Serialization:** [Newtonsoft.Json](https://www.newtonsoft.com/json)
 
 ## 📂 Project Structure
 
@@ -107,13 +104,17 @@ To build a standard Windows setup file with shortcuts, uninstall support, a laun
 The generated installer is self-contained, so the target PC does not need .NET 8 installed.
 
 ### Quick Usage Notes
-- To change a note color: Right-click a note → Color → select a palette swatch or click `More colors...` to pick a custom color with the system color dialog.
-- To enable Crystal Clear: Right-click a note → check `Crystal clear`. The note background becomes transparent and the text will use the selected note color.
-- To duplicate a note: On the dashboard card, click the duplicate button to create a copy of the note with the same content and styling.
-- Theme controls: Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
-- Show all notes: Use the tray menu to restore every saved note window, including notes that are saved but not currently visible.
-- Hide notes: Use the tray menu action `Hide all notes` to hide open note windows while keeping PinNote active in the system tray.
-- Tray behavior: Minimize or close the dashboard to send it to the system tray; click the tray icon to restore the dashboard.
+- **Global Shortcut:** Press `Ctrl+Alt+N` on Windows or X11 to instantly create and focus a new note. On Linux/Wayland, bind a custom shortcut (such as `Super+Shift+N` or `Ctrl+Alt+N`) to run `pinnote --new-note`.
+- **Checklist Mode:** Click the ☑ button in the note title bar or context menu to switch between freeform text and an interactive checklist. Checklist items can be checked, unchecked, reordered (▲/▼), and deleted.
+- **Backup & Import/Export:** In the Dashboard or tray menu, use `Export Notes...` to create a standard JSON backup or `Import Notes...` to restore notes. Existing notes are never overwritten (duplicate IDs are safely reassigned).
+- **Search & Sort:** Search in the dashboard filters across titles, text, and checklist items with instant case-insensitive multi-word matching. Use the Settings menu to sort notes by title, creation date, or modification time (pinned notes always remain at the top).
+- **Change note color:** Right-click a note → Color → select a palette swatch or click `More colors...` to pick a custom color with the system color dialog.
+- **Crystal Clear Mode:** Right-click a note → check `Crystal clear`. The note background becomes transparent and the text uses the selected note color.
+- **Duplicate a note:** On the dashboard card, click the duplicate button to create a copy of the note with the same content and styling.
+- **Theme controls:** Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
+- **Show all notes:** Use the tray menu or dashboard `Show All` to restore every saved note window.
+- **Hide notes:** Use the tray menu action `Hide all notes` to hide open note windows while keeping PinNote active in the system tray.
+- **Tray behavior:** Minimize or close the dashboard to send it to the system tray; click the tray icon to restore the dashboard.
 
 ## 📝 License
 This project is licensed under the MIT License - see the LICENSE file for details.

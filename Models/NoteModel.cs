@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace PinNote.Models
 {
@@ -20,6 +22,16 @@ namespace PinNote.Models
         public double BodyFontSize { get; set; } = 20;
         public bool IsCrystalClear { get; set; } = false;
         public string? CustomTextColor { get; set; } = null;
+        public NoteType NoteType { get; set; } = NoteType.Text;
+        public List<ChecklistItemModel> ChecklistItems { get; set; } = new();
+        public bool IsVisible { get; set; } = true;
+
+        /// <summary>UTC timestamp when this note was first created. Defaults to DateTime.UtcNow on creation
+        /// or when migrated from older versions that lacked timestamp fields.</summary>
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>UTC timestamp of the last edit to title or content. Updated by NoteViewModel on every save.</summary>
+        public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
 
         public NoteModel Clone()
         {
@@ -40,7 +52,12 @@ namespace PinNote.Models
                 TitleFontSize = TitleFontSize,
                 BodyFontSize = BodyFontSize,
                 IsCrystalClear = IsCrystalClear,
-                CustomTextColor = CustomTextColor
+                CustomTextColor = CustomTextColor,
+                NoteType = NoteType,
+                ChecklistItems = ChecklistItems?.Select(item => item.Clone()).ToList() ?? new List<ChecklistItemModel>(),
+                IsVisible = IsVisible,
+                CreatedAt = CreatedAt,
+                ModifiedAt = ModifiedAt
             };
         }
     }

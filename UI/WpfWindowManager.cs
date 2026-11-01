@@ -171,6 +171,7 @@ namespace PinNote.UI
 
         public void Shutdown()
         {
+            FlushPendingEdits();
             Application.Current.Shutdown();
         }
 
@@ -193,6 +194,43 @@ namespace PinNote.UI
         public void ShowErrorMessage(string title, string message)
         {
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        public void ShowMessage(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public void FlushPendingEdits()
+        {
+            foreach (var window in _openWindows.Values)
+            {
+                window.SaveEditorContent();
+            }
+        }
+
+        public Task<string?> ShowOpenFileDialogAsync(string title, string filter)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = title,
+                Filter = filter
+            };
+            bool? res = dlg.ShowDialog();
+            return Task.FromResult(res == true ? dlg.FileName : null);
+        }
+
+        public Task<string?> ShowSaveFileDialogAsync(string title, string defaultFileName, string filter)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = title,
+                FileName = defaultFileName,
+                Filter = filter,
+                DefaultExt = "json"
+            };
+            bool? res = dlg.ShowDialog();
+            return Task.FromResult(res == true ? dlg.FileName : null);
         }
     }
 }

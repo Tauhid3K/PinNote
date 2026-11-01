@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using PinNote.Services;
 using PinNote.ViewModels;
 
@@ -145,9 +147,9 @@ namespace PinNote.Views
         private async Task<bool> ShowDeleteDialogInternalAsync(string noteTitle)
         {
             var dialog = new ConfirmDeleteDialog(noteTitle);
-            Window? owner = System.Linq.Enumerable.FirstOrDefault(_desktop.Windows, w => w.IsActive && w.IsVisible)
+            Window? owner = _desktop.Windows.FirstOrDefault(w => w.IsActive && w.IsVisible)
                          ?? (_dashboardWindow != null && _dashboardWindow.IsVisible ? (Window)_dashboardWindow : null)
-                         ?? (_openWindows.Values.Count > 0 ? (Window?)System.Linq.Enumerable.FirstOrDefault(_openWindows.Values, w => w.IsVisible) : null);
+                         ?? (_openWindows.Values.Count > 0 ? (Window?)_openWindows.Values.FirstOrDefault(w => w.IsVisible) : null);
 
             if (owner != null)
             {
@@ -174,6 +176,8 @@ namespace PinNote.Views
 
         public void Shutdown()
         {
+            FlushPendingEdits();
+
             foreach (var window in new List<AvaloniaNoteWindow>(_openWindows.Values))
             {
                 window.Close();
@@ -205,6 +209,61 @@ namespace PinNote.Views
         public void ShowErrorMessage(string title, string message)
         {
             NotificationService.ShowNotification(title, message);
+        }
+
+        public void ShowMessage(string title, string message)
+        {
+            NotificationService.ShowNotification(title, message);
+        }
+
+        public void FlushPendingEdits()
+        {
+            foreach (var window in _openWindows.Values)
+            {
+                window.FlushPendingEdits();
+            }
+        }
+
+        public async Task<string?> ShowOpenFileDialogAsync(string title, string filter)
+        {
+            Window? owner = _desktop.Windows.FirstOrDefault(w => w.IsVisible)
+                         ?? (_dashboardWindow != null && _dashboardWindow.IsVisible ? (Window)_dashboardWindow : null)
+                         ?? _openWindows.Values.FirstOrDefault();
+
+            if (owner == null) return null;
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false
+            };
+
+            var files = await owner.StorageProvider.OpenFilePickerAsync(options);
+            if (files != null && files.Count > 0)
+            {
+                return files[0].Path.LocalPath;
+            }
+
+            return null;
+        }
+
+        public async Task<string?> ShowSaveFileDialogAsync(string title, string defaultFileName, string filter)
+        {
+            Window? owner = _desktop.Windows.FirstOrDefault(w => w.IsVisible)
+                         ?? (_dashboardWindow != null && _dashboardWindow.IsVisible ? (Window)_dashboardWindow : null)
+                         ?? _openWindows.Values.FirstOrDefault();
+
+            if (owner == null) return null;
+
+            var options = new FilePickerSaveOptions
+            {
+                Title = title,
+                SuggestedFileName = defaultFileName,
+                DefaultExtension = "json"
+            };
+
+            var file = await owner.StorageProvider.SaveFilePickerAsync(options);
+            return file?.Path.LocalPath;
         }
     }
 }

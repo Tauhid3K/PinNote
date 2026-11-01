@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
 using PinNote.Models;
@@ -11,18 +11,30 @@ namespace PinNote.Services
     public class StorageService
     {
         private static readonly object _fileLock = new();
+        private readonly string _folderPath;
         private readonly string _filePath;
         private readonly string _backupFilePath;
         private bool _hasLoadError;
+        private long _lastSavedTimestamp;
 
         public event EventHandler<string>? SaveFailed;
         public event EventHandler<string>? LoadFailed;
+        public event EventHandler<string>? LoadSucceeded;
 
-        public StorageService()
+        public string StorageFolderPath => _folderPath;
+        public string FilePath => _filePath;
+        public string BackupFilePath => _backupFilePath;
+        public bool HasLoadError => _hasLoadError;
+
+        public StorageService(string? customFolderPath = null)
         {
-            string folderPath = GetStorageFolderPath();
-            _filePath = Path.Combine(folderPath, "notes.json");
-            _backupFilePath = Path.Combine(folderPath, "notes.json.bak");
+            _folderPath = !string.IsNullOrWhiteSpace(customFolderPath)
+                ? customFolderPath
+                : GetStorageFolderPath();
+
+            EnsureDirectoryExists(_folderPath);
+            _filePath = Path.Combine(_folderPath, "notes.json");
+            _backupFilePath = Path.Combine(_folderPath, "notes.json.bak");
         }
 
         public List<NoteModel> LoadNotes()
@@ -31,6 +43,7 @@ namespace PinNote.Services
             {
                 if (!File.Exists(_filePath))
                 {
+                    // If primary does not exist, check if a backup exists to restore from
                     if (File.Exists(_backupFilePath))
                     {
                         try
@@ -39,75 +52,110 @@ namespace PinNote.Services
                             var backupNotes = JsonConvert.DeserializeObject<List<NoteModel>>(backupJson);
                             if (backupNotes != null)
                             {
+                                Debug.WriteLine("StorageService.LoadNotes: Restored notes from backup because primary was missing.");
+                                _hasLoadError = false;
+                                LoadSucceeded?.Invoke(this, "Restored notes from backup file.");
                                 return backupNotes;
                             }
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"StorageService.LoadNotes backup error: {ex}");
+                            Debug.WriteLine($"StorageService.LoadNotes backup recovery error: {ex}");
                         }
                     }
 
+                    _hasLoadError = false;
                     return new List<NoteModel>();
                 }
 
                 try
                 {
                     string json = File.ReadAllText(_filePath);
+                    if (string.IsNullOrWhiteSpace(json))
+                    {
+                        // File is empty - try backup
+                        return TryRecoverFromBackup("Primary notes.json is empty.");
+                    }
+
                     var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json);
                     if (notes != null)
                     {
                         _hasLoadError = false;
+                        LoadSucceeded?.Invoke(this, $"Successfully loaded {notes.Count} notes.");
                         return notes;
                     }
+
+                    return TryRecoverFromBackup("Deserialization returned null.");
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"StorageService.LoadNotes primary read error: {ex}");
                     _hasLoadError = true;
 
-                    // Attempt to restore from backup
-                    if (File.Exists(_backupFilePath))
+                    // Preserve corrupt file for recovery rather than losing data
+                    try
                     {
-                        try
+                        string corruptPath = Path.Combine(_folderPath, $"notes.json.corrupt.{DateTime.UtcNow:yyyyMMddHHmmss}");
+                        if (File.Exists(_filePath))
                         {
-                            string backupJson = File.ReadAllText(_backupFilePath);
-                            var backupNotes = JsonConvert.DeserializeObject<List<NoteModel>>(backupJson);
-                            if (backupNotes != null)
-                            {
-                                Debug.WriteLine("StorageService.LoadNotes: Restored notes from backup.");
-                                return backupNotes;
-                            }
+                            File.Copy(_filePath, corruptPath, true);
+                            Debug.WriteLine($"StorageService.LoadNotes: Preserved corrupt file at {corruptPath}");
                         }
-                        catch (Exception backupEx)
-                        {
-                            Debug.WriteLine($"StorageService.LoadNotes backup read error: {backupEx}");
-                        }
+                    }
+                    catch (Exception copyEx)
+                    {
+                        Debug.WriteLine($"Failed to preserve corrupt file: {copyEx}");
+                    }
+
+                    // Attempt to restore from backup
+                    var recovered = TryRecoverFromBackup(ex.Message);
+                    if (recovered.Count > 0)
+                    {
+                        return recovered;
                     }
 
                     LoadFailed?.Invoke(this, ex.Message);
                     NotificationService.ShowNotification("PinNote Storage Warning", $"Failed to load notes: {ex.Message}");
-
-                    // Preserve corrupt file for user recovery rather than silently losing data
-                    try
-                    {
-                        string corruptPath = $"{_filePath}.corrupt.{DateTime.UtcNow:yyyyMMddHHmmss}";
-                        File.Copy(_filePath, corruptPath, true);
-                    }
-                    catch { }
+                    return new List<NoteModel>();
                 }
-
-                return new List<NoteModel>();
             }
         }
 
-        public void SaveNotes(List<NoteModel> notes)
+        private List<NoteModel> TryRecoverFromBackup(string reason)
         {
-            string json = JsonConvert.SerializeObject(notes ?? new List<NoteModel>(), Formatting.Indented);
-            SaveNotesJson(json, notes?.Count ?? 0);
+            if (File.Exists(_backupFilePath))
+            {
+                try
+                {
+                    string backupJson = File.ReadAllText(_backupFilePath);
+                    if (!string.IsNullOrWhiteSpace(backupJson))
+                    {
+                        var backupNotes = JsonConvert.DeserializeObject<List<NoteModel>>(backupJson);
+                        if (backupNotes != null)
+                        {
+                            Debug.WriteLine($"StorageService.LoadNotes: Restored {backupNotes.Count} notes from backup. Reason: {reason}");
+                            _hasLoadError = false;
+                            LoadSucceeded?.Invoke(this, $"Restored {backupNotes.Count} notes from backup.");
+                            return backupNotes;
+                        }
+                    }
+                }
+                catch (Exception backupEx)
+                {
+                    Debug.WriteLine($"StorageService.LoadNotes backup read error: {backupEx}");
+                }
+            }
+
+            return new List<NoteModel>();
         }
 
-        public void SaveNotesJson(string json, int noteCount)
+        public void SaveNotes(List<NoteModel> notes, long snapshotTimestamp = 0)
+        {
+            string json = JsonConvert.SerializeObject(notes ?? new List<NoteModel>(), Formatting.Indented);
+            SaveNotesJson(json, notes?.Count ?? 0, snapshotTimestamp);
+        }
+
+        public void SaveNotesJson(string json, int noteCount, long snapshotTimestamp = 0)
         {
             lock (_fileLock)
             {
@@ -118,14 +166,27 @@ namespace PinNote.Services
                     return;
                 }
 
+                // Guard against stale async saves overwriting newer content
+                if (snapshotTimestamp > 0 && snapshotTimestamp < _lastSavedTimestamp)
+                {
+                    Debug.WriteLine("StorageService.SaveNotes skipped: snapshot is older than last saved timestamp.");
+                    return;
+                }
+
                 try
                 {
-                    // Update backup before overwriting
+                    EnsureDirectoryExists(_folderPath);
+
+                    // Update backup before overwriting, but only if the current file exists and is non-empty
                     if (File.Exists(_filePath))
                     {
                         try
                         {
-                            File.Copy(_filePath, _backupFilePath, true);
+                            var fileInfo = new FileInfo(_filePath);
+                            if (fileInfo.Length > 2) // more than just "{}" or "[]"
+                            {
+                                File.Copy(_filePath, _backupFilePath, true);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -135,6 +196,9 @@ namespace PinNote.Services
 
                     WriteAtomically(_filePath, json);
                     _hasLoadError = false;
+                    _lastSavedTimestamp = snapshotTimestamp > 0
+                        ? Math.Max(snapshotTimestamp, DateTime.UtcNow.Ticks)
+                        : DateTime.UtcNow.Ticks;
                 }
                 catch (Exception ex)
                 {
@@ -146,24 +210,45 @@ namespace PinNote.Services
             }
         }
 
+        public string CreateBackup(string? customTag = null)
+        {
+            lock (_fileLock)
+            {
+                EnsureDirectoryExists(_folderPath);
+                string tag = string.IsNullOrWhiteSpace(customTag) ? "manual" : customTag.Trim();
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+                string backupPath = Path.Combine(_folderPath, $"notes_backup_{tag}_{timestamp}.json");
+
+                if (File.Exists(_filePath))
+                {
+                    File.Copy(_filePath, backupPath, true);
+                    return backupPath;
+                }
+
+                // If notes.json doesn't exist, write empty list
+                File.WriteAllText(backupPath, "[]");
+                return backupPath;
+            }
+        }
+
         private static void WriteAtomically(string path, string content)
         {
-            string tempPath = $"{path}.tmp";
+            string tempPath = $"{path}.tmp_{Guid.NewGuid():N}";
             try
             {
                 File.WriteAllText(tempPath, content);
 
-                int retries = 3;
+                int retries = 5;
                 while (true)
                 {
                     try
                     {
-                        File.Move(tempPath, path, true);
+                        File.Move(tempPath, path, overwrite: true);
                         break;
                     }
                     catch (IOException) when (--retries > 0)
                     {
-                        Thread.Sleep(30);
+                        Thread.Sleep(40);
                     }
                 }
             }
@@ -171,11 +256,22 @@ namespace PinNote.Services
             {
                 try
                 {
-                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    if (File.Exists(tempPath))
+                    {
+                        File.Delete(tempPath);
+                    }
                 }
                 catch { }
 
                 throw new IOException($"Atomic write failed for '{path}': {ex.Message}", ex);
+            }
+        }
+
+        private static void EnsureDirectoryExists(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
             }
         }
 

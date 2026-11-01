@@ -187,11 +187,39 @@
                         </Grid>
                     </Border>
 
-                    <CheckBox Grid.Column="2"
-                              IsChecked="{Binding IsStartupEnabled, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              Content="Start with Windows"
-                              Foreground="{DynamicResource PrimaryTextBrush}" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Import"
+                                Margin="0,0,6,0"
+                                Padding="8,4"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource SearchBoxBorderBrush}"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Command="{Binding ImportNotesCommand}"
+                                ToolTip="Import notes from JSON backup" />
+                        <Button Content="Export"
+                                Margin="0,0,6,0"
+                                Padding="8,4"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource SearchBoxBorderBrush}"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Command="{Binding ExportNotesCommand}"
+                                ToolTip="Export notes to JSON backup" />
+                        <Button Content="Backup"
+                                Margin="0,0,12,0"
+                                Padding="8,4"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource SearchBoxBorderBrush}"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Command="{Binding BackupNotesCommand}"
+                                ToolTip="Create instant backup snapshot" />
+                        <CheckBox IsChecked="{Binding IsStartupEnabled, Mode=TwoWay}"
+                                  VerticalAlignment="Center"
+                                  Content="Start with Windows"
+                                  Foreground="{DynamicResource PrimaryTextBrush}" />
+                    </StackPanel>
                 </Grid>
             </Border>
 

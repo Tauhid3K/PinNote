@@ -21,5 +21,9 @@ namespace PinNote.Services
         void ApplyTheme(string themeMode);
         void SetShowInTaskbar(bool show);
         void ShowErrorMessage(string title, string message);
+        void ShowMessage(string title, string message);
+        void FlushPendingEdits();
+        Task<string?> ShowOpenFileDialogAsync(string title, string filter);
+        Task<string?> ShowSaveFileDialogAsync(string title, string defaultFileName, string filter);
     }
 }

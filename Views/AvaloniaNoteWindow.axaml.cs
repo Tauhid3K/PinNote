@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using PinNote.Services;
 using PinNote.ViewModels;
 
 namespace PinNote.Views
@@ -38,6 +40,7 @@ namespace PinNote.Views
             LoadContent();
 
             ContentEditor.TextChanged += ContentEditor_TextChanged;
+            ContentEditor.KeyDown += ContentEditor_KeyDown;
             Closing += AvaloniaNoteWindow_Closing;
 
             PositionChanged += (_, _) => ScheduleGeometryCommit();
@@ -53,16 +56,53 @@ namespace PinNote.Views
 
             Opened += (_, _) =>
             {
-                Console.WriteLine($"[TRANSPARENCY DEBUG] ActualTransparencyLevel: {ActualTransparencyLevel}, TransparencyLevelHint: {TransparencyLevelHint}");
-                if (_viewModel.X > 0 && _viewModel.Y > 0)
-                {
-                    Position = new PixelPoint((int)_viewModel.X, (int)_viewModel.Y);
-                }
+                RestoreWindowBounds();
             };
+        }
+
+        private void RestoreWindowBounds()
+        {
+            if (_viewModel == null) return;
+
+            var screenList = new List<ScreenBounds>();
+            if (Screens?.All != null)
+            {
+                foreach (var s in Screens.All)
+                {
+                    var b = s.Bounds;
+                    screenList.Add(new ScreenBounds(b.X, b.Y, b.Width, b.Height));
+                }
+            }
+
+            var bounds = WindowRestorationHelper.SanitizeBounds(
+                _viewModel.X,
+                _viewModel.Y,
+                _viewModel.Width,
+                _viewModel.Height,
+                screenList);
+
+            Width = bounds.Width;
+            Height = bounds.Height;
+
+            try
+            {
+                Position = new PixelPoint((int)bounds.X, (int)bounds.Y);
+            }
+            catch { }
+        }
+
+        public void FlushPendingEdits()
+        {
+            _saveTimer.Stop();
+            _geometryTimer.Stop();
+            CommitGeometry();
+            SaveContent();
         }
 
         private void LoadContent()
         {
+            if (_viewModel.IsChecklist) return;
+
             _isLoadingContent = true;
             try
             {
@@ -74,7 +114,6 @@ namespace PinNote.Views
                     return;
                 }
 
-                // If content was saved by WPF as FlowDocument XAML, parse line breaks and paragraphs cleanly
                 if (_originalRawContent.Contains("<FlowDocument") || _originalRawContent.Contains("<Paragraph"))
                 {
                     var text = _originalRawContent;
@@ -101,7 +140,7 @@ namespace PinNote.Views
 
         private void ContentEditor_TextChanged(object? sender, EventArgs e)
         {
-            if (_isLoadingContent) return;
+            if (_isLoadingContent || _viewModel.IsChecklist) return;
             _saveTimer.Stop();
             _saveTimer.Start();
         }
@@ -112,12 +151,11 @@ namespace PinNote.Views
             SaveContent();
         }
 
-        private void SaveContent()
+        public void SaveContent()
         {
-            if (_isLoadingContent || _viewModel == null) return;
+            if (_isLoadingContent || _viewModel == null || _viewModel.IsChecklist) return;
             var currentText = ContentEditor.Text ?? string.Empty;
 
-            // If the content has not changed since loading, do not overwrite original rich text!
             if (string.Equals(currentText, _loadedPlainText, StringComparison.Ordinal))
             {
                 return;
@@ -125,7 +163,6 @@ namespace PinNote.Views
 
             _loadedPlainText = currentText;
 
-            // If the original content was a FlowDocument, re-wrap into clean FlowDocument XAML for WPF compatibility
             if (!string.IsNullOrEmpty(_originalRawContent) &&
                 (_originalRawContent.Contains("<FlowDocument") || _originalRawContent.Contains("<Paragraph")))
             {
@@ -193,17 +230,192 @@ namespace PinNote.Views
 
         private void Close_Click(object? sender, RoutedEventArgs e)
         {
-            _geometryTimer.Stop();
-            CommitGeometry();
-            SaveContent();
+            FlushPendingEdits();
             Close();
         }
 
         private void AvaloniaNoteWindow_Closing(object? sender, WindowClosingEventArgs e)
         {
-            _geometryTimer.Stop();
-            CommitGeometry();
-            SaveContent();
+            FlushPendingEdits();
+        }
+
+        private void ContentEditor_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                if (e.Key == Key.B)
+                {
+                    ApplyInlineFormatting("**", "**");
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.I)
+                {
+                    ApplyInlineFormatting("*", "*");
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.U)
+                {
+                    ApplyInlineFormatting("<u>", "</u>");
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void BoldButton_Click(object? sender, RoutedEventArgs e)
+        {
+            ApplyInlineFormatting("**", "**");
+        }
+
+        private void ItalicButton_Click(object? sender, RoutedEventArgs e)
+        {
+            ApplyInlineFormatting("*", "*");
+        }
+
+        private void UnderlineButton_Click(object? sender, RoutedEventArgs e)
+        {
+            ApplyInlineFormatting("<u>", "</u>");
+        }
+
+        private void ApplyInlineFormatting(string prefix, string suffix)
+        {
+            var text = ContentEditor.Text ?? string.Empty;
+            int start = Math.Min(ContentEditor.SelectionStart, ContentEditor.SelectionEnd);
+            int end = Math.Max(ContentEditor.SelectionStart, ContentEditor.SelectionEnd);
+            int len = end - start;
+
+            if (len > 0)
+            {
+                string selected = text.Substring(start, len);
+                if (selected.StartsWith(prefix) && selected.EndsWith(suffix) && selected.Length >= prefix.Length + suffix.Length)
+                {
+                    string unwrapped = selected.Substring(prefix.Length, selected.Length - prefix.Length - suffix.Length);
+                    ContentEditor.Text = text.Substring(0, start) + unwrapped + text.Substring(end);
+                    ContentEditor.SelectionStart = start;
+                    ContentEditor.SelectionEnd = start + unwrapped.Length;
+                }
+                else
+                {
+                    string wrapped = prefix + selected + suffix;
+                    ContentEditor.Text = text.Substring(0, start) + wrapped + text.Substring(end);
+                    ContentEditor.SelectionStart = start;
+                    ContentEditor.SelectionEnd = start + wrapped.Length;
+                }
+            }
+            else
+            {
+                int caret = ContentEditor.CaretIndex;
+                if (caret < 0 || caret > text.Length) caret = text.Length;
+                string insertion = prefix + suffix;
+                ContentEditor.Text = text.Insert(caret, insertion);
+                ContentEditor.CaretIndex = caret + prefix.Length;
+            }
+            ContentEditor.Focus();
+        }
+
+        private void BulletButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var text = ContentEditor.Text ?? string.Empty;
+            int start = Math.Min(ContentEditor.SelectionStart, ContentEditor.SelectionEnd);
+            int end = Math.Max(ContentEditor.SelectionStart, ContentEditor.SelectionEnd);
+
+            int lineStart = text.LastIndexOf('\n', Math.Max(0, start - 1)) + 1;
+            int lineEnd = text.IndexOf('\n', end);
+            if (lineEnd == -1) lineEnd = text.Length;
+
+            string targetBlock = text.Substring(lineStart, lineEnd - lineStart);
+            var lines = targetBlock.Split('\n');
+
+            bool allBulleted = true;
+            int nonEmptyCount = 0;
+            foreach (var line in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    nonEmptyCount++;
+                    if (!line.TrimStart().StartsWith("• ") && !line.TrimStart().StartsWith("- "))
+                    {
+                        allBulleted = false;
+                        break;
+                    }
+                }
+            }
+
+            if (nonEmptyCount == 0) allBulleted = false;
+
+            var newLines = new List<string>();
+            foreach (var line in lines)
+            {
+                if (allBulleted)
+                {
+                    if (line.TrimStart().StartsWith("• "))
+                    {
+                        int idx = line.IndexOf("• ");
+                        newLines.Add(line.Remove(idx, 2));
+                    }
+                    else if (line.TrimStart().StartsWith("- "))
+                    {
+                        int idx = line.IndexOf("- ");
+                        newLines.Add(line.Remove(idx, 2));
+                    }
+                    else
+                    {
+                        newLines.Add(line);
+                    }
+                }
+                else
+                {
+                    newLines.Add("• " + line);
+                }
+            }
+
+            string replacement = string.Join("\n", newLines);
+            ContentEditor.Text = text.Substring(0, lineStart) + replacement + text.Substring(lineEnd);
+            ContentEditor.SelectionStart = lineStart;
+            ContentEditor.SelectionEnd = lineStart + replacement.Length;
+            ContentEditor.Focus();
+        }
+
+        private async void ImageButton_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel?.StorageProvider == null) return;
+
+                var options = new Avalonia.Platform.Storage.FilePickerOpenOptions
+                {
+                    Title = "Insert Image",
+                    AllowMultiple = false,
+                    FileTypeFilter = new[]
+                    {
+                        new Avalonia.Platform.Storage.FilePickerFileType("Images")
+                        {
+                            Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.webp" }
+                        }
+                    }
+                };
+
+                var result = await topLevel.StorageProvider.OpenFilePickerAsync(options);
+                if (result != null && result.Count > 0)
+                {
+                    var file = result[0];
+                    string filePath = file.Path.LocalPath;
+                    string altText = System.IO.Path.GetFileNameWithoutExtension(filePath);
+                    string markdownImage = $"\n![{altText}]({filePath})\n";
+
+                    var text = ContentEditor.Text ?? string.Empty;
+                    int caret = ContentEditor.CaretIndex;
+                    if (caret < 0 || caret > text.Length) caret = text.Length;
+
+                    ContentEditor.Text = text.Insert(caret, markdownImage);
+                    ContentEditor.CaretIndex = caret + markdownImage.Length;
+                    ContentEditor.Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Image insert error: {ex.Message}");
+            }
         }
     }
 }

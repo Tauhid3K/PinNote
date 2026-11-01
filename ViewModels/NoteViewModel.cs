@@ -1,10 +1,13 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Input;
 #if WINDOWS
 using System.Windows.Media;
 #endif
 using PinNote.Models;
+using PinNote.Services;
 
 namespace PinNote.ViewModels
 {
@@ -12,16 +15,30 @@ namespace PinNote.ViewModels
     {
         private readonly NoteModel _model;
         private readonly MainViewModel _mainViewModel;
+        private readonly ObservableCollection<ChecklistItemViewModel> _checklistItems = new();
+        private string? _searchableTextCache;
+        private bool _updatingTitleFromBody;
 
         public NoteViewModel(NoteModel model, MainViewModel mainViewModel)
         {
             _model = model;
             _mainViewModel = mainViewModel;
+
+            // Initialize checklist items from model
+            if (_model.ChecklistItems != null)
+            {
+                foreach (var item in _model.ChecklistItems.OrderBy(i => i.Order))
+                {
+                    _checklistItems.Add(CreateChecklistItemViewModel(item));
+                }
+            }
+
             DeleteCommand = new RelayCommand(_ => OnDeleteRequested());
             DuplicateCommand = new RelayCommand(_ => _mainViewModel.DuplicateNote(this));
             TogglePinCommand = new RelayCommand(_ => IsPinned = !IsPinned);
             NewNoteCommand = _mainViewModel.NewNoteCommand;
-            ChangeColorCommand = new RelayCommand(colorParam => 
+
+            ChangeColorCommand = new RelayCommand(colorParam =>
             {
                 if (colorParam is string colors)
                 {
@@ -33,11 +50,11 @@ namespace PinNote.ViewModels
                     }
                 }
             });
+
             SetOpacityCommand = new RelayCommand(opacityParam =>
             {
                 if (opacityParam is string value && double.TryParse(value, out double opacity))
                 {
-                    // Allow more transparency down to 0.2 (20%)
                     Opacity = Math.Clamp(opacity, 0.2, 1.0);
                 }
             });
@@ -84,7 +101,7 @@ namespace PinNote.ViewModels
 
             SetTextOpacityCommand = new RelayCommand(p =>
             {
-                if (p is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var val))
+                if (p is string str && double.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out var val))
                 {
                     TextOpacity = val;
                 }
@@ -93,6 +110,9 @@ namespace PinNote.ViewModels
                     TextOpacity = d;
                 }
             });
+
+            AddChecklistItemCommand = new RelayCommand(param => AddChecklistItem(param as string));
+            ToggleNoteTypeCommand = new RelayCommand(_ => ToggleNoteType());
         }
 
         public Guid Id => _model.Id;
@@ -100,6 +120,210 @@ namespace PinNote.ViewModels
         public ICommand ToggleCrystalClearCommand { get; }
         public ICommand ChangeTextColorCommand { get; }
         public ICommand SetTextOpacityCommand { get; }
+        public ICommand AddChecklistItemCommand { get; }
+        public ICommand ToggleNoteTypeCommand { get; }
+
+        public NoteType NoteType
+        {
+            get => _model.NoteType;
+            set
+            {
+                if (_model.NoteType != value)
+                {
+                    _model.NoteType = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsChecklist));
+                    InvalidateSearchableText();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public bool IsChecklist
+        {
+            get => NoteType == NoteType.Checklist;
+            set
+            {
+                if (value != IsChecklist)
+                {
+                    NoteType = value ? NoteType.Checklist : NoteType.Text;
+                }
+            }
+        }
+
+        public ObservableCollection<ChecklistItemViewModel> ChecklistItems => _checklistItems;
+
+        public void AddChecklistItem(string? text = null)
+        {
+            var itemModel = new ChecklistItemModel
+            {
+                Id = Guid.NewGuid(),
+                Text = text ?? string.Empty,
+                IsChecked = false,
+                Order = _checklistItems.Count
+            };
+
+            var itemVm = CreateChecklistItemViewModel(itemModel);
+            _checklistItems.Add(itemVm);
+            SyncModelChecklist();
+            InvalidateSearchableText();
+            SaveRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void RemoveChecklistItem(ChecklistItemViewModel item)
+        {
+            if (_checklistItems.Remove(item))
+            {
+                ReorderChecklistItems();
+                SyncModelChecklist();
+                InvalidateSearchableText();
+                SaveRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void MoveChecklistItemUp(ChecklistItemViewModel item)
+        {
+            int index = _checklistItems.IndexOf(item);
+            if (index > 0)
+            {
+                _checklistItems.Move(index, index - 1);
+                ReorderChecklistItems();
+                SyncModelChecklist();
+                InvalidateSearchableText();
+                SaveRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void MoveChecklistItemDown(ChecklistItemViewModel item)
+        {
+            int index = _checklistItems.IndexOf(item);
+            if (index >= 0 && index < _checklistItems.Count - 1)
+            {
+                _checklistItems.Move(index, index + 1);
+                ReorderChecklistItems();
+                SyncModelChecklist();
+                InvalidateSearchableText();
+                SaveRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void ReorderChecklistItems()
+        {
+            for (int i = 0; i < _checklistItems.Count; i++)
+            {
+                _checklistItems[i].Order = i;
+            }
+        }
+
+        private void SyncModelChecklist()
+        {
+            _model.ChecklistItems = _checklistItems.Select(vm => vm.GetModel()).ToList();
+        }
+
+        private ChecklistItemViewModel CreateChecklistItemViewModel(ChecklistItemModel model)
+        {
+            return new ChecklistItemViewModel(
+                model,
+                deleteAction: RemoveChecklistItem,
+                moveUpAction: MoveChecklistItemUp,
+                moveDownAction: MoveChecklistItemDown,
+                onChangedAction: () =>
+                {
+                    SyncModelChecklist();
+                    InvalidateSearchableText();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                });
+        }
+
+        public void ToggleNoteType()
+        {
+            if (NoteType == NoteType.Text)
+            {
+                // Convert text to checklist
+                string plainText = GetPlainText();
+                _checklistItems.Clear();
+
+                if (!string.IsNullOrWhiteSpace(plainText))
+                {
+                    var lines = plainText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        var trimmed = line.Trim();
+                        bool isChecked = false;
+                        if (trimmed.StartsWith("[x] ", StringComparison.OrdinalIgnoreCase) ||
+                            trimmed.StartsWith("- [x] ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isChecked = true;
+                            trimmed = trimmed.Substring(trimmed.IndexOf(']') + 1).Trim();
+                        }
+                        else if (trimmed.StartsWith("[ ] ", StringComparison.OrdinalIgnoreCase) ||
+                                 trimmed.StartsWith("- [ ] ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isChecked = false;
+                            trimmed = trimmed.Substring(trimmed.IndexOf(']') + 1).Trim();
+                        }
+                        else if (trimmed.StartsWith("- ") || trimmed.StartsWith("* "))
+                        {
+                            trimmed = trimmed.Substring(2).Trim();
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                        {
+                            var item = new ChecklistItemModel
+                            {
+                                Text = trimmed,
+                                IsChecked = isChecked,
+                                Order = _checklistItems.Count
+                            };
+                            _checklistItems.Add(CreateChecklistItemViewModel(item));
+                        }
+                    }
+                }
+
+                if (_checklistItems.Count == 0)
+                {
+                    AddChecklistItem(string.Empty);
+                }
+
+                NoteType = NoteType.Checklist;
+                SyncModelChecklist();
+            }
+            else
+            {
+                // Convert checklist to text
+                var sb = new System.Text.StringBuilder();
+                foreach (var item in _checklistItems)
+                {
+                    if (string.IsNullOrWhiteSpace(item.Text)) continue;
+                    sb.AppendLine(item.IsChecked ? $"[x] {item.Text}" : $"[ ] {item.Text}");
+                }
+
+                Content = sb.ToString().TrimEnd();
+                NoteType = NoteType.Text;
+            }
+
+            InvalidateSearchableText();
+            SaveRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public string SearchableText
+        {
+            get
+            {
+                if (_searchableTextCache == null)
+                {
+                    _searchableTextCache = SearchService.ExtractSearchableText(_model.Content, _model.NoteType, _model.ChecklistItems);
+                }
+                return _searchableTextCache;
+            }
+        }
+
+        public void InvalidateSearchableText()
+        {
+            _searchableTextCache = null;
+            OnPropertyChanged(nameof(SearchableText));
+            OnPropertyChanged(nameof(PlainTextPreview));
+        }
 
         public string Title
         {
@@ -109,11 +333,17 @@ namespace PinNote.ViewModels
                 if (_model.Title != value)
                 {
                     _model.Title = value;
+                    _model.ModifiedAt = DateTime.UtcNow;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(ModifiedAt));
+                    InvalidateSearchableText();
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
+
+        public DateTime CreatedAt => _model.CreatedAt;
+        public DateTime ModifiedAt => _model.ModifiedAt;
 
 #if WINDOWS
         public System.Windows.Media.Brush PreviewTextBrush
@@ -139,8 +369,10 @@ namespace PinNote.ViewModels
                 if (_model.Content != value)
                 {
                     _model.Content = value;
+                    _model.ModifiedAt = DateTime.UtcNow;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(PlainTextPreview));
+                    OnPropertyChanged(nameof(ModifiedAt));
+                    InvalidateSearchableText();
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -287,7 +519,6 @@ namespace PinNote.ViewModels
                     _model.BodyFontSize = value;
                     OnPropertyChanged();
 
-                    // Keep title font size exactly the same as body font size.
                     if (!_updatingTitleFromBody)
                     {
                         try
@@ -306,9 +537,6 @@ namespace PinNote.ViewModels
             }
         }
 
-        private bool _updatingTitleFromBody = false;
-
-
         public string TitleBarColor
         {
             get => _model.TitleBarColor;
@@ -323,6 +551,7 @@ namespace PinNote.ViewModels
                     OnPropertyChanged("PreviewTextBrush");
                     OnPropertyChanged(nameof(TextColor));
                     OnPropertyChanged(nameof(CardTextColor));
+                    OnPropertyChanged(nameof(CardHeaderTextColor));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
                 }
@@ -346,8 +575,9 @@ namespace PinNote.ViewModels
                     OnPropertyChanged("PreviewTextBrush");
                     OnPropertyChanged(nameof(TextColor));
                     OnPropertyChanged(nameof(CardTextColor));
+                    OnPropertyChanged(nameof(CardBodyTextColor));
+                    OnPropertyChanged(nameof(CardHeaderTextColor));
                     OnPropertyChanged(nameof(ActiveTitleBarColor));
-                    OnPropertyChanged(nameof(HeaderIconColor));
 #if !WINDOWS
                     OnPropertyChanged(nameof(NoteColorObj));
                     OnPropertyChanged(nameof(TextColorObj));
@@ -384,9 +614,7 @@ namespace PinNote.ViewModels
             {
                 if (IsCrystalClear)
                 {
-                    // Crystal Clear mode: Frosted glass / transparent background
-                    // Note transparency controls how much frosted/tinted or transparent the glass is
-                    byte alpha = (byte)(Math.Clamp(Opacity, 0.0, 1.0) * 45); // subtle glass tint up to ~18%
+                    byte alpha = (byte)(Math.Clamp(Opacity, 0.0, 1.0) * 45);
                     if (TryParseHexColor(BodyColor, out var c))
                     {
                         return $"#{alpha:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
@@ -536,7 +764,6 @@ namespace PinNote.ViewModels
                 }
                 else if (IsCrystalClear)
                 {
-                    // When crystal-clear mode is enabled, use the note's selected BodyColor as the text color
                     if (TryParseHexColor(BodyColor, out var parsed))
                     {
                         resultColor = System.Windows.Media.Color.FromArgb(alpha, parsed.R, parsed.G, parsed.B);
@@ -560,16 +787,7 @@ namespace PinNote.ViewModels
         }
 #endif
 
-        /// <summary>
-        /// Returns a darker version of BodyColor for the active title bar
-        /// </summary>
-        public string ActiveTitleBarColor
-        {
-            get
-            {
-                return CreateTitleBarColor(TitleBarColor, BodyColor);
-            }
-        }
+        public string ActiveTitleBarColor => CreateTitleBarColor(TitleBarColor, BodyColor);
 
         public bool IsPinned
         {
@@ -608,7 +826,33 @@ namespace PinNote.ViewModels
             }
         }
 
-        public string CardTextColor => TextColor == "White" ? "#FFFFFF" : "#1A1A1A";
+        public string CardHeaderTextColor
+        {
+            get
+            {
+                if (TryParseHexColor(TitleBarColor, out var c))
+                {
+                    double brightness = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
+                    return brightness > 0.55 ? "#1A1A1A" : "#FFFFFF";
+                }
+                return "#1A1A1A";
+            }
+        }
+
+        public string CardBodyTextColor
+        {
+            get
+            {
+                if (TryParseHexColor(BodyColor, out var c))
+                {
+                    double brightness = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0;
+                    return brightness > 0.55 ? "#1A1A1A" : "#FFFFFF";
+                }
+                return "#1A1A1A";
+            }
+        }
+
+        public string CardTextColor => CardBodyTextColor;
 
         public string PlainTextPreview => GetPlainText();
 
@@ -698,16 +942,9 @@ namespace PinNote.ViewModels
             DeleteRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        private static readonly System.Text.RegularExpressions.Regex XamlTagRegex = new("<.*?>", System.Text.RegularExpressions.RegexOptions.Compiled);
-
         public string GetPlainText()
         {
-            if (string.IsNullOrWhiteSpace(_model.Content)) return string.Empty;
-            var text = _model.Content;
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"<LineBreak\s*/?>", " ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"</Paragraph\s*>", " ", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            text = XamlTagRegex.Replace(text, " ");
-            return System.Net.WebUtility.HtmlDecode(text).Trim();
+            return SearchService.ExtractSearchableText(_model.Content, _model.NoteType, _model.ChecklistItems);
         }
 
         public NoteModel GetModel() => _model;

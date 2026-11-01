@@ -65,16 +65,34 @@ namespace PinNote.UI
 
         private void EnsureOnScreen()
         {
-            double minX = SystemParameters.VirtualScreenLeft;
-            double maxX = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 60;
-            double minY = SystemParameters.VirtualScreenTop;
-            double maxY = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 60;
-
-            if (Left < minX || Left > maxX || Top < minY || Top > maxY)
+            try
             {
-                Left = Math.Max(minX, Math.Min(Left, maxX));
-                Top = Math.Max(minY, Math.Min(Top, maxY));
+                var screens = new List<PinNote.Services.ScreenBounds>();
+                foreach (var s in Forms.Screen.AllScreens)
+                {
+                    screens.Add(new PinNote.Services.ScreenBounds(s.Bounds.X, s.Bounds.Y, s.Bounds.Width, s.Bounds.Height));
+                }
+
+                var sanitized = PinNote.Services.WindowRestorationHelper.SanitizeBounds(Left, Top, Width, Height, screens);
+                Left = sanitized.X;
+                Top = sanitized.Y;
+                Width = sanitized.Width;
+                Height = sanitized.Height;
                 UpdatePosition();
+            }
+            catch
+            {
+                double minX = SystemParameters.VirtualScreenLeft;
+                double maxX = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 60;
+                double minY = SystemParameters.VirtualScreenTop;
+                double maxY = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 60;
+
+                if (Left < minX || Left > maxX || Top < minY || Top > maxY)
+                {
+                    Left = Math.Max(minX, Math.Min(Left, maxX));
+                    Top = Math.Max(minY, Math.Min(Top, maxY));
+                    UpdatePosition();
+                }
             }
         }
 
@@ -504,7 +522,7 @@ namespace PinNote.UI
             }
         }
 
-        private void SaveEditorContent()
+        public void SaveEditorContent()
         {
             if (_isLoadingEditorContent || DataContext is not NoteViewModel vm || EditorBox?.Document == null)
             {

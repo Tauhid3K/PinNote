@@ -2,6 +2,84 @@
 
 This file tracks the features implemented, changes made, and the rationale behind them.
 
+### Date: 2026-10-26 (P0 Essential Features Implementation)
+Author: Antigravity (assistant)
+Files changed:
+- Models/ChecklistItemModel.cs (new)
+- Models/NoteExportPackage.cs (new)
+- Models/NoteModel.cs
+- Models/NoteType.cs (new)
+- Services/IGlobalShortcutService.cs (new)
+- Services/ImportExportService.cs (new)
+- Services/IWindowManager.cs
+- Services/LinuxGlobalShortcutService.cs (new)
+- Services/SearchService.cs (new)
+- Services/SingleInstanceService.cs (new)
+- Services/StorageService.cs
+- Services/WindowRestorationHelper.cs (new)
+- Services/WindowsGlobalShortcutService.cs (new)
+- UI/MainDashboardWindow.xaml
+- UI/NoteWindow.xaml
+- UI/NoteWindow.xaml.cs
+- UI/WpfWindowManager.cs
+- ViewModels/ChecklistItemViewModel.cs (new)
+- ViewModels/MainViewModel.cs
+- ViewModels/NoteViewModel.cs
+- Views/AvaloniaDashboardWindow.axaml
+- Views/AvaloniaNoteWindow.axaml
+- Views/AvaloniaNoteWindow.axaml.cs
+- Views/AvaloniaWindowManager.cs
+- App.axaml.cs
+- App.xaml.cs
+- Program.cs
+- PinNote.csproj
+- tests/PinNote.Tests/PinNote.Tests.csproj (new)
+- tests/PinNote.Tests/AutosaveAndRecoveryTests.cs (new)
+- tests/PinNote.Tests/ChecklistTests.cs (new)
+- tests/PinNote.Tests/ImportExportTests.cs (new)
+- tests/PinNote.Tests/QuickNoteAndSingleInstanceTests.cs (new)
+- tests/PinNote.Tests/SearchServiceTests.cs (new)
+- tests/PinNote.Tests/WindowRestorationTests.cs (new)
+
+Change summary:
+- 1. Reliable Autosave & Crash Recovery:
+  - Ensured atomic writes with unique GUID temp files, monotonic backup verification, and corrupt-state protection against zero-byte wiping.
+  - Added `FlushPendingEdits()` hook in `IWindowManager` so that note editor contents in WPF and Avalonia windows are flushed before shutdown or immediate saves.
+  - Implemented automatic recovery from `notes.json.bak` and corrupt file preservation (`notes.json.corrupt.{timestamp}`).
+- 2. Quick Note Creation & Single Instance:
+  - Implemented cross-platform `SingleInstanceService` using named Mutex and local IPC (NamedPipe on Windows, Unix domain socket on Linux).
+  - Secondary instances pass command-line arguments (e.g., `--new-note`, `--show-dashboard`) to the running primary instance and exit immediately without spawning duplicate processes.
+  - Windows: Added `WindowsGlobalShortcutService` registering global `Ctrl+Alt+N` via Win32 `RegisterHotKey` with non-blocking message loop.
+  - Linux: Added `LinuxGlobalShortcutService` with X11 key grabbing support and documented CLI fallback (`pinnote --new-note`) for Wayland environments where compositor security disallows client-side global key grabbing.
+- 3. Checklists:
+  - Added `NoteType` enum and `ChecklistItemModel` with full roundtrip serialization in `NoteModel`.
+  - Created `ChecklistItemViewModel` supporting create, edit, toggle check/uncheck, delete, and reorder (up/down).
+  - Implemented dynamic note-type conversion: plain text to checklist (auto-detecting `- [ ]`, `[x]`, bullets, lines) and checklist back to text.
+  - Added interactive checklist UI in both Avalonia (`AvaloniaNoteWindow.axaml`) and WPF (`NoteWindow.xaml`).
+- 4. Reliable Cross-Platform Search:
+  - Built `SearchService` with case-insensitive matching, whitespace normalization, and multi-term queries matching words across title and content.
+  - Extracted clean text from FlowDocument XML/XAML, handling tags, paragraph breaks, and malformed XML safely without exceptions.
+  - Included checklist item text and completion status in searchable index.
+  - Added caching with automatic invalidation in `NoteViewModel` to prevent UI stutter on large collections.
+- 5. Backup, Import, and Export:
+  - Built `ImportExportService` with versioned `NoteExportPackage` schema and support for raw backup arrays.
+  - Duplicate identifier protection: reassigns GUIDs on collision to guarantee existing notes are never overwritten.
+  - Pre-import snapshot backup: automatically creates timestamped backup before bulk import operations.
+  - Added Import, Export, and Backup buttons and menus in both Windows and Linux dashboards and tray menus.
+- 6. Multi-Monitor and Window Restoration:
+  - Built `WindowRestorationHelper` supporting negative coordinates (screens placed to the left or above primary) and virtual desktop boundaries.
+  - Disconnected monitor fallback: safely detects unmapped coordinates and relocates notes to active primary screen.
+  - Dimension and screen edge clamping ensuring note title bars are always visible and accessible.
+- 7. Vector Icon Geometry for Linux UI (Avalonia):
+  - Replaced all unicode emoji text glyphs (`📌`, `🎨`, `📄`, `🗑️`, `📥`, `📤`, `💾`, `☑`, `🪟`) with scalable vector `Path` geometry across `AvaloniaDashboardWindow.axaml`, `AvaloniaNoteWindow.axaml`, `AvaloniaInstructionsWindow.axaml`, and `ConfirmDeleteDialog.axaml`.
+  - Dynamically bound icon brushes to `CardTextColor`, `HeaderIconColor`, and `SystemControlForegroundBaseHighBrush` so icons remain crisp, high-contrast, and independent of system emoji font packages.
+- 8. Title Bar Drag Region & Text Formatting Toolbar:
+  - Resized and constrained Title `TextBox` (`MinWidth="70"`, `MaxWidth="115"`) so that it fits titles and watermarks without monopolizing the title bar width.
+  - Added dedicated middle draggable area (`Cursor="SizeAll"`, `ToolTip="Drag to move note"`) allowing effortless window dragging across all window sizes without accidentally triggering title text focus.
+  - Added bottom formatting toolbar in Avalonia text mode matching the WPF formatting bar: Bold (`B`, `Ctrl+B`), Italic (`I`, `Ctrl+I`), Underline (`U`, `Ctrl+U`), Bullet list toggle (`•`), and Image insertion.
+- Automated Test Suite:
+  - Added 35 xUnit tests in `PinNote.Tests` covering autosave, recovery, checklists, search, import/export, IPC, and window restoration.
+
 ### Date: 2026-10-26 (Single-Path Save & Concurrency Elimination)
 Author: Antigravity (assistant)
 Files changed:
@@ -428,7 +506,39 @@ Notes / Testing:
 ### Verification
 - `dotnet build` completed successfully.
 
+## [P0 Cross-Platform Product Hardening] - October 29, 2026
+
+### Changes
+- **Sorting in Dashboard (P0.4)**:
+    - Added `NoteSortMode` enum supporting Title (A-Z, Z-A), Last Modified (Newest/Oldest), Creation Date (Newest/Oldest), and Default insertion order.
+    - Updated `MainViewModel` with `SortedFilteredNotes`, ensuring pinned notes always stay grouped at the top.
+    - Persisted user's sort preference in `AppStateService` (`SortMode`).
+    - Added interactive Sort menu to `AvaloniaDashboardWindow.axaml`.
+- **Note Timestamps (P0.1, P0.4)**:
+    - Added `CreatedAt` and `ModifiedAt` (UTC) to `NoteModel` and `NoteViewModel`.
+    - Automatically updated `ModifiedAt` on title and content edits.
+    - Backward-compatible migration ensures older notes load seamlessly without loss of data.
+- **Asynchronous Save Protection (P0.1)**:
+    - Added `snapshotTimestamp` guard in `StorageService.SaveNotesJson` to prevent stale delayed saves from overwriting newer content.
+- **Wayland Shortcut Fallback Notice (P0.2)**:
+    - Detected Wayland environment when global shortcut registration cannot grab keys.
+    - Added a graceful one-time notification advising users to bind `pinnote --new-note` in desktop keyboard settings, tracked via `AppStateService.ShouldShowWaylandShortcutNotice()`.
+- **Dashboard Position Restoration (P0.6)**:
+    - Enhanced `AvaloniaDashboardWindow` to restore saved bounds and position on launch using `WindowRestorationHelper.SanitizeBounds()`, and persist bounds upon closing or hiding.
+- **Safe Export Atomicity (P0.5)**:
+    - Updated `ImportExportService.ExportNotes` to write to a temporary file before atomic rename, preventing truncated exports.
+- **Comprehensive Automated Test Coverage (P0.1-P0.6)**:
+    - Added `SortingTests.cs` (13 tests): verifies default pinned grouping, alphabetical ordering, date sorting, combined search+sort, and timestamp tracking.
+    - Added `StorageEdgeCaseTests.cs` (8 tests): verifies both-corrupt handling, crash safety guard, concurrent saves, atomic writes, stale snapshot rejection, and timestamp backward compatibility.
+    - Added `MigrationTests.cs` (9 tests): verifies backward compatibility of legacy notes (omitted NoteType, ChecklistItems, Timestamps, Opacity, IsVisible).
+    - Added lifecycle and Wayland detection tests in `QuickNoteAndSingleInstanceTests.cs`.
+    - Total test suite now stands at 69 automated tests passing (0 failures).
+
+### Verification
+- `dotnet test tests/PinNote.Tests/`: 69 passed, 0 failed.
+- `dotnet build -c Release`: 0 warnings, 0 errors.
+
 ---
 
-*Log updated on May 24, 2026.*
+*Log updated on October 29, 2026.*
 

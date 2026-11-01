@@ -74,6 +74,23 @@
         <Style Selector="Button.close-btn:pointerover TextBlock">
             <Setter Property="Foreground" Value="White" />
         </Style>
+        <Style Selector="Button.close-btn:pointerover Path">
+            <Setter Property="Fill" Value="White" />
+        </Style>
+
+        <!-- Formatting bar button styles -->
+        <Style Selector="Button.fmt-btn">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.fmt-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#33888888" />
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="8"
@@ -87,20 +104,34 @@
                     <MenuItem Header="Always on top"
                               Command="{Binding TogglePinCommand}">
                         <MenuItem.Icon>
-                            <TextBlock Text="📌" FontSize="12" />
+                            <Path Data="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z"
+                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                  Width="12" Height="12" Stretch="Uniform" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Checklist Mode"
+                              Command="{Binding ToggleNoteTypeCommand}">
+                        <MenuItem.Icon>
+                            <Path Data="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.1 3.89,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.89 20.1,3 19,3ZM10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"
+                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                  Width="12" Height="12" Stretch="Uniform" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Crystal clear"
                               ToggleType="CheckBox"
                               IsChecked="{Binding IsCrystalClear, Mode=TwoWay}">
                         <MenuItem.Icon>
-                            <TextBlock Text="🪟" FontSize="12" />
+                            <Path Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 8H5V5h6v6zm2-6h6v6h-6V5zm-2 8v6H5v-6h6zm2 6v-6h6v6h-6z"
+                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                  Width="12" Height="12" Stretch="Uniform" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="Note Color">
                         <MenuItem.Icon>
-                            <TextBlock Text="🎨" FontSize="11" />
+                            <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                  Width="12" Height="12" Stretch="Uniform" />
                         </MenuItem.Icon>
                         <MenuItem>
                             <MenuItem.Header>
@@ -128,7 +159,9 @@
                         <Separator />
                         <MenuItem Header="Custom Color...">
                             <MenuItem.Icon>
-                                <TextBlock Text="🎨" FontSize="11" />
+                                <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                      Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                      Width="12" Height="12" Stretch="Uniform" />
                             </MenuItem.Icon>
                             <MenuItem>
                                 <MenuItem.Header>
@@ -178,7 +211,9 @@
                         <Separator />
                         <MenuItem Header="Custom Color...">
                             <MenuItem.Icon>
-                                <TextBlock Text="🎨" FontSize="11" />
+                                <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                      Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                      Width="12" Height="12" Stretch="Uniform" />
                             </MenuItem.Icon>
                             <MenuItem>
                                 <MenuItem.Header>
@@ -208,12 +243,16 @@
                     <Separator />
                     <MenuItem Header="Duplicate note" Command="{Binding DuplicateCommand}">
                         <MenuItem.Icon>
-                            <TextBlock Text="📄" FontSize="12" />
+                            <Path Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                  Width="12" Height="12" Stretch="Uniform" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Delete note" Command="{Binding DeleteCommand}" Foreground="#E5534B">
                         <MenuItem.Icon>
-                            <TextBlock Text="🗑️" FontSize="12" />
+                            <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                  Fill="#E5534B"
+                                  Width="12" Height="12" Stretch="Uniform" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
@@ -222,51 +261,90 @@
             <!-- Title Bar -->
             <Border Grid.Row="0"
                     Background="{Binding EffectiveTitleBarColor}"
-                    PointerPressed="TitleBar_PointerPressed">
-                <Grid ColumnDefinitions="*,Auto">
-                    <!-- Title Input -->
+                    PointerPressed="TitleBar_PointerPressed"
+                    Cursor="SizeAll">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Title Input: sized to content, constrained so it doesn't block window moving -->
                     <TextBox Grid.Column="0"
                              Text="{Binding Title, Mode=TwoWay}"
                              VerticalAlignment="Center"
+                             HorizontalAlignment="Left"
+                             MinWidth="70"
+                             MaxWidth="115"
                              Background="Transparent"
                              BorderThickness="0"
-                             Margin="8,0,4,0"
+                             Margin="8,0,0,0"
                              FontSize="{Binding TitleFontSize}"
                              FontWeight="SemiBold"
                              Foreground="{Binding EffectiveTextColor}"
-                             Watermark="Note title" />
+                             Watermark="Note title"
+                             Cursor="IBeam" />
+
+                    <!-- Draggable Title Bar Region -->
+                    <Border Grid.Column="1"
+                            Background="Transparent"
+                            Cursor="SizeAll"
+                            PointerPressed="TitleBar_PointerPressed"
+                            ToolTip.Tip="Drag to move note" />
 
                     <!-- Title Bar Actions -->
-                    <StackPanel Grid.Column="1"
+                    <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 Spacing="2"
-                                Margin="0,0,4,0">
+                                Margin="4,0,4,0">
+
+                        <!-- Checklist Toggle Button -->
+                        <Button Classes="title-btn"
+                                Command="{Binding ToggleNoteTypeCommand}"
+                                ToolTip.Tip="Toggle Checklist Mode">
+                            <Path Data="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.1 3.89,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.89 20.1,3 19,3ZM10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"
+                                  Fill="{Binding HeaderIconColor}"
+                                  Width="12" Height="12" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Button>
 
                         <!-- Color Menu Button -->
                         <Button Name="ColorsButton"
                                 Classes="title-btn"
                                 ToolTip.Tip="Options &amp; Colors">
-                            <TextBlock Text="🎨" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                  Fill="{Binding HeaderIconColor}"
+                                  Width="12" Height="12" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                             <Button.Flyout>
                                 <MenuFlyout Placement="Bottom">
                                     <MenuItem Header="Always on top"
                                               Command="{Binding TogglePinCommand}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="📌" FontSize="11" />
+                                            <Path Data="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z"
+                                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                  Width="12" Height="12" Stretch="Uniform" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Checklist mode"
+                                              Command="{Binding ToggleNoteTypeCommand}">
+                                        <MenuItem.Icon>
+                                            <Path Data="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.1 3.89,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.89 20.1,3 19,3ZM10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"
+                                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                  Width="12" Height="12" Stretch="Uniform" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem Header="Crystal clear"
                                               ToggleType="CheckBox"
                                               IsChecked="{Binding IsCrystalClear, Mode=TwoWay}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="🪟" FontSize="11" />
+                                            <Path Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 8H5V5h6v6zm2-6h6v6h-6V5zm-2 8v6H5v-6h6zm2 6v-6h6v6h-6z"
+                                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                  Width="12" Height="12" Stretch="Uniform" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem Header="Note Color">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="🎨" FontSize="11" />
+                                            <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                  Width="12" Height="12" Stretch="Uniform" />
                                         </MenuItem.Icon>
                                         <MenuItem>
                                             <MenuItem.Header>
@@ -294,7 +372,9 @@
                                         <Separator />
                                         <MenuItem Header="Custom Color...">
                                             <MenuItem.Icon>
-                                                <TextBlock Text="🎨" FontSize="11" />
+                                                <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                                      Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                      Width="12" Height="12" Stretch="Uniform" />
                                             </MenuItem.Icon>
                                             <MenuItem>
                                                 <MenuItem.Header>
@@ -344,7 +424,9 @@
                                         <Separator />
                                         <MenuItem Header="Custom Color...">
                                             <MenuItem.Icon>
-                                                <TextBlock Text="🎨" FontSize="11" />
+                                                <Path Data="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.38,22 14.5,20.88 14.5,19.5C14.5,18.86 14.24,18.28 13.82,17.86C13.41,17.45 13.15,16.89 13.15,16.27C13.15,14.9 14.27,13.78 15.64,13.78H18C20.21,13.78 22,11.99 22,9.78C22,5.48 17.52,2 12,2ZM6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12ZM9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8ZM14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8ZM17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z"
+                                                      Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                      Width="12" Height="12" Stretch="Uniform" />
                                             </MenuItem.Icon>
                                             <MenuItem>
                                                 <MenuItem.Header>
@@ -375,14 +457,18 @@
                                     <MenuItem Header="Duplicate note"
                                               Command="{Binding DuplicateCommand}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="📄" FontSize="11" />
+                                            <Path Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                  Width="12" Height="12" Stretch="Uniform" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem Header="Delete Note"
                                               Command="{Binding DeleteCommand}"
                                               Foreground="#E5534B">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="🗑️" FontSize="11" />
+                                            <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                                  Fill="#E5534B"
+                                                  Width="12" Height="12" Stretch="Uniform" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </MenuFlyout>
@@ -393,24 +479,27 @@
                         <Button Classes="title-btn"
                                 Command="{Binding TogglePinCommand}"
                                 ToolTip.Tip="Pin on top">
-                            <TextBlock Text="📌" FontSize="12"
-                                       Opacity="{Binding PinOpacity}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z"
+                                  Fill="{Binding HeaderIconColor}"
+                                  Opacity="{Binding PinOpacity}"
+                                  Width="12" Height="12" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Button>
 
                         <!-- Close Button -->
                         <Button Classes="title-btn close-btn"
                                 Click="Close_Click"
                                 ToolTip.Tip="Close (keeps note)">
-                            <TextBlock Text="✕" FontSize="13" FontWeight="Bold"
-                                       Foreground="{Binding HeaderIconColor}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12Z"
+                                  Fill="{Binding HeaderIconColor}"
+                                  Width="11" Height="11" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Note Content Editor -->
+            <!-- Note Content Editor (Text Mode) -->
             <TextBox Name="ContentEditor"
                      Grid.Row="1"
                      AcceptsReturn="True"
@@ -420,20 +509,163 @@
                      Margin="8,4,8,4"
                      FontSize="{Binding BodyFontSize}"
                      Foreground="{Binding EffectiveTextColor}"
-                     Watermark="Take a note..." />
+                     Watermark="Take a note..."
+                     IsVisible="{Binding !IsChecklist}" />
 
-            <!-- Bottom Resize Grip -->
-            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="4,0,2,2">
+            <!-- Checklist Mode Content Area -->
+            <ScrollViewer Grid.Row="1"
+                          IsVisible="{Binding IsChecklist}"
+                          Margin="6,4,6,4"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="4">
+                    <ItemsControl ItemsSource="{Binding ChecklistItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChecklistItemViewModel">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,2">
+                                    <!-- Checkbox -->
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,4,0" />
+
+                                    <!-- Item Text -->
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding Text, Mode=TwoWay}"
+                                             VerticalAlignment="Center"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             Foreground="{Binding $parent[Window].((vm:NoteViewModel)DataContext).EffectiveTextColor}"
+                                             Watermark="List item..." />
+
+                                    <!-- Move Up -->
+                                    <Button Grid.Column="2"
+                                            Classes="title-btn"
+                                            Width="20" Height="20"
+                                            Command="{Binding MoveUpCommand}"
+                                            ToolTip.Tip="Move up">
+                                        <Path Data="M7,14L12,9L17,14H7Z"
+                                              Fill="{Binding $parent[Window].((vm:NoteViewModel)DataContext).HeaderIconColor}"
+                                              Width="8" Height="8" Stretch="Uniform"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Button>
+
+                                    <!-- Move Down -->
+                                    <Button Grid.Column="3"
+                                            Classes="title-btn"
+                                            Width="20" Height="20"
+                                            Command="{Binding MoveDownCommand}"
+                                            ToolTip.Tip="Move down">
+                                        <Path Data="M7,10L12,15L17,10H7Z"
+                                              Fill="{Binding $parent[Window].((vm:NoteViewModel)DataContext).HeaderIconColor}"
+                                              Width="8" Height="8" Stretch="Uniform"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Button>
+
+                                    <!-- Delete Item -->
+                                    <Button Grid.Column="4"
+                                            Classes="title-btn close-btn"
+                                            Width="20" Height="20"
+                                            Command="{Binding DeleteCommand}"
+                                            ToolTip.Tip="Delete item">
+                                        <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12Z"
+                                              Fill="{Binding $parent[Window].((vm:NoteViewModel)DataContext).HeaderIconColor}"
+                                              Width="8" Height="8" Stretch="Uniform"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- "+ Add Item" Button -->
+                    <Button Classes="title-btn"
+                            Command="{Binding AddChecklistItemCommand}"
+                            HorizontalAlignment="Left"
+                            Margin="4,4,0,4"
+                            Padding="6,2"
+                            Width="NaN"
+                            ToolTip.Tip="Add checklist item">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="+" FontWeight="Bold" FontSize="13" Foreground="{Binding HeaderIconColor}" />
+                            <TextBlock Text="Add item" FontSize="12" VerticalAlignment="Center" Foreground="{Binding HeaderIconColor}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Bottom Row: Formatting Toolbar & Resize Grip -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="6,2,4,4">
+                <!-- Formatting Toolbar (Text Mode Only) -->
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="3"
+                            VerticalAlignment="Center"
+                            IsVisible="{Binding !IsChecklist}">
+                    <!-- Bold Button -->
+                    <Button Classes="fmt-btn"
+                            Click="BoldButton_Click"
+                            ToolTip.Tip="Bold (Ctrl+B)">
+                        <TextBlock Text="B" FontWeight="Bold" FontSize="12"
+                                   Foreground="{Binding HeaderIconColor}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+
+                    <!-- Italic Button -->
+                    <Button Classes="fmt-btn"
+                            Click="ItalicButton_Click"
+                            ToolTip.Tip="Italic (Ctrl+I)">
+                        <TextBlock Text="I" FontStyle="Italic" FontSize="12"
+                                   Foreground="{Binding HeaderIconColor}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+
+                    <!-- Underline Button -->
+                    <Button Classes="fmt-btn"
+                            Click="UnderlineButton_Click"
+                            ToolTip.Tip="Underline (Ctrl+U)">
+                        <TextBlock Text="U" TextDecorations="Underline" FontSize="12"
+                                   Foreground="{Binding HeaderIconColor}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+
+                    <!-- Separator -->
+                    <Rectangle Width="1" Height="14"
+                               Fill="{Binding HeaderIconColor}"
+                               Opacity="0.3" Margin="2,0"
+                               VerticalAlignment="Center" />
+
+                    <!-- Bullet List Button -->
+                    <Button Classes="fmt-btn"
+                            Click="BulletButton_Click"
+                            ToolTip.Tip="Bullet list">
+                        <Path Data="M4,10.5C3.17,10.5 2.5,11.17 2.5,12C2.5,12.83 3.17,13.5 4,13.5C4.83,13.5 5.5,12.83 5.5,12C5.5,11.17 4.83,10.5 4,10.5ZM4,4.5C3.17,4.5 2.5,5.17 2.5,6C2.5,6.83 3.17,7.5 4,7.5C4.83,7.5 5.5,6.83 5.5,6C5.5,5.17 4.83,4.5 4,4.5ZM4,16.5C3.17,16.5 2.5,17.17 2.5,18C2.5,18.83 3.17,19.5 4,19.5C4.83,19.5 5.5,18.83 5.5,18C5.5,17.17 4.83,16.5 4,16.5ZM7,19H21V17H7V19ZM7,13H21V11H7V13ZM7,5V7H21V5H7Z"
+                              Fill="{Binding HeaderIconColor}"
+                              Width="12" Height="12" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+
+                    <!-- Image Button -->
+                    <Button Classes="fmt-btn"
+                            Click="ImageButton_Click"
+                            ToolTip.Tip="Insert image">
+                        <Path Data="M21,19V5C21,3.89 20.1,3 19,3H5C3.9,3 3,3.89 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19ZM8.5,13.5L11,16.51L14.5,12L19,18H5L8.5,13.5Z"
+                              Fill="{Binding HeaderIconColor}"
+                              Width="12" Height="12" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+                </StackPanel>
+
+                <!-- Bottom Resize Grip -->
                 <Border Grid.Column="1"
                         Width="14" Height="14"
                         Cursor="BottomRightCorner"
                         PointerPressed="ResizeGrip_PointerPressed">
-                    <TextBlock Text="⋱"
-                               FontSize="12"
-                               Foreground="{Binding EffectiveTextColor}"
-                               Opacity="0.4"
-                               HorizontalAlignment="Right"
-                               VerticalAlignment="Bottom" />
+                    <Path Data="M12,12H10V10H12V12ZM12,8H10V6H12V8ZM8,12H6V10H8V12ZM12,4H10V2H12V4ZM8,8H6V6H8V8ZM4,12H2V10H4V12Z"
+                          Fill="{Binding EffectiveTextColor}"
+                          Opacity="0.4"
+                          Width="10" Height="10" Stretch="Uniform"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Bottom" />
                 </Border>
             </Grid>
         </Grid>

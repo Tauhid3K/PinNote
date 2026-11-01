@@ -108,6 +108,12 @@
                             <TextBlock Text="&#xE718;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem Header="Checklist mode"
+                              Command="{Binding ToggleNoteTypeCommand}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="&#xE73A;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Color">
                         <MenuItem.Icon>
@@ -300,6 +306,9 @@
                             <DataTrigger Binding="{Binding IsCrystalClear}" Value="True">
                                 <Setter Property="Background" Value="Transparent" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding IsChecklist}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </RichTextBox.Style>
@@ -314,6 +323,82 @@
                 </RichTextBox.Resources>
             </RichTextBox>
 
+            <ScrollViewer Grid.Row="2"
+                          Margin="8,4"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsChecklist}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding ChecklistItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,6,0" />
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             VerticalAlignment="Center"
+                                             Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                             CaretBrush="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                             FontSize="{Binding DataContext.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    <Button Grid.Column="2"
+                                            Content="&#xE70E;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Style="{StaticResource ToolbarIconButtonStyle}"
+                                            Command="{Binding MoveUpCommand}"
+                                            Width="20" Height="20"
+                                            ToolTip="Move up" />
+                                    <Button Grid.Column="3"
+                                            Content="&#xE70D;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Style="{StaticResource ToolbarIconButtonStyle}"
+                                            Command="{Binding MoveDownCommand}"
+                                            Width="20" Height="20"
+                                            ToolTip="Move down" />
+                                    <Button Grid.Column="4"
+                                            Content="&#xE711;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Style="{StaticResource ToolbarIconButtonStyle}"
+                                            Command="{Binding DeleteCommand}"
+                                            Width="20" Height="20"
+                                            Foreground="#CC0000"
+                                            ToolTip="Delete item" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="+ Add item"
+                            Style="{StaticResource NoteButtonStyle}"
+                            HorizontalAlignment="Left"
+                            Margin="0,6,0,0"
+                            Padding="8,2"
+                            Height="24"
+                            FontSize="12"
+                            Command="{Binding AddChecklistItemCommand}"
+                            ToolTip="Add new checklist item" />
+                </StackPanel>
+            </ScrollViewer>
+
             <Border x:Name="FormattingBar"
                     Grid.Row="3"
                     Background="{Binding ActiveTitleBarColor}"
@@ -321,12 +406,13 @@
                     BorderThickness="0,1,0,1"
                     Padding="4,5">
                 <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                    <Grid MinWidth="180">
+                    <Grid MinWidth="210">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
@@ -347,6 +433,11 @@
                                 Style="{StaticResource ToolbarIconButtonStyle}"
                                 ToolTip="Add image"
                                 Click="ImageButton_Click" />
+                        <Button Grid.Column="6"
+                                Content="&#xE73A;"
+                                Style="{StaticResource ToolbarIconButtonStyle}"
+                                ToolTip="Toggle checklist"
+                                Command="{Binding ToggleNoteTypeCommand}" />
                     </Grid>
                 </ScrollViewer>
             </Border>

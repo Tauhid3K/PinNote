@@ -15,6 +15,8 @@ namespace PinNote
         private MainViewModel? _mainViewModel;
         private AvaloniaTrayService? _trayService;
         private readonly AppStateService _appStateService = new();
+        private SingleInstanceService? _singleInstanceService;
+        private IGlobalShortcutService? _shortcutService;
 
         public override void Initialize()
         {
@@ -25,9 +27,62 @@ namespace PinNote
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                bool isNewNoteArg = Array.Exists(desktop.Args ?? Array.Empty<string>(),
+                    arg => string.Equals(arg, "--new-note", StringComparison.OrdinalIgnoreCase));
+
+                _singleInstanceService = new SingleInstanceService();
+                if (!_singleInstanceService.IsFirstInstance)
+                {
+                    string cmd = isNewNoteArg ? "NEW_NOTE" : "SHOW_DASHBOARD";
+                    SingleInstanceService.SendCommandToRunningInstanceAsync(cmd).GetAwaiter().GetResult();
+                    desktop.Shutdown(0);
+                    return;
+                }
+
+                _singleInstanceService.StartServer();
+
                 _mainViewModel = new MainViewModel();
                 var windowManager = new AvaloniaWindowManager(_mainViewModel, desktop);
                 _mainViewModel.WindowManager = windowManager;
+
+                _singleInstanceService.CommandReceived += cmd => _mainViewModel.HandleExternalCommand(cmd);
+
+                try
+                {
+                    _shortcutService = new LinuxGlobalShortcutService();
+                    bool shortcutRegistered = _shortcutService.RegisterQuickNoteShortcut(() =>
+                    {
+                        windowManager.RunOnUiThread(() =>
+                        {
+                            _mainViewModel.CreateNewNote(openWindow: true);
+                            _mainViewModel.BringNotesOnTop();
+                        });
+                    });
+
+                    if (!shortcutRegistered && _appStateService.ShouldShowWaylandShortcutNotice())
+                    {
+                        // Defer to avoid racing with window initialization
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            NotificationService.ShowNotification(
+                                "PinNote — Keyboard Shortcut",
+                                "Global shortcut (Ctrl+Alt+N) is not available under Wayland. " +
+                                "To create notes instantly from anywhere, open your desktop keyboard settings " +
+                                "and bind 'pinnote --new-note' to your preferred key combination. " +
+                                "(This notice will not appear again.)");
+                        }, Avalonia.Threading.DispatcherPriority.Background);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"LinuxGlobalShortcutService error: {ex}");
+                }
+
+                desktop.Exit += (_, _) =>
+                {
+                    _shortcutService?.Dispose();
+                    _singleInstanceService?.Dispose();
+                };
 
                 try
                 {
@@ -70,7 +125,11 @@ namespace PinNote
                 bool showUi = _appStateService.GetShowUiOnStartup();
                 bool startMinimized = _appStateService.GetStartMinimized();
 
-                if (showPostInstallInstructions)
+                if (isNewNoteArg)
+                {
+                    _mainViewModel.CreateNewNote(openWindow: true);
+                }
+                else if (showPostInstallInstructions)
                 {
                     _mainViewModel.ShowDashboard();
                     if (_mainViewModel.Notes.Count > 0)
