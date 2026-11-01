@@ -16,6 +16,57 @@ namespace PinNote.Services
             !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")) ||
             string.Equals(Environment.GetEnvironmentVariable("XDG_SESSION_TYPE"), "wayland", StringComparison.OrdinalIgnoreCase);
 
+        public LinuxShortcutMode ShortcutMode =>
+            !OperatingSystem.IsLinux() ? LinuxShortcutMode.Unsupported :
+            IsWayland ? LinuxShortcutMode.WaylandFallback :
+            LinuxShortcutMode.X11Native;
+
+        public LinuxShortcutDiagnostics GetDiagnostics()
+        {
+            var diag = new LinuxShortcutDiagnostics
+            {
+                IsLinux = OperatingSystem.IsLinux(),
+                IsWayland = IsWayland,
+                SessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE"),
+                WaylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"),
+                DesktopEnvironment = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? Environment.GetEnvironmentVariable("DESKTOP_SESSION"),
+                Mode = ShortcutMode
+            };
+
+            if (!diag.IsLinux)
+            {
+                diag.Guidance = "Global shortcuts on non-Linux systems use their native platform service.";
+            }
+            else if (diag.IsWayland)
+            {
+                diag.Guidance = GenerateWaylandGuidance(diag.DesktopEnvironment);
+            }
+            else
+            {
+                diag.Guidance = "Native X11 global key grab active for Ctrl+Alt+N.";
+            }
+
+            return diag;
+        }
+
+        public static string GenerateWaylandGuidance(string? desktop)
+        {
+            var de = (desktop ?? string.Empty).ToLowerInvariant();
+            if (de.Contains("gnome"))
+            {
+                return "GNOME Wayland detected: Open Settings -> Keyboard -> Keyboard Shortcuts -> Custom Shortcuts. Add a shortcut: Name: 'PinNote New Note', Command: 'pinnote --new-note', Shortcut: 'Ctrl+Alt+N'.";
+            }
+            if (de.Contains("kde") || de.Contains("plasma"))
+            {
+                return "KDE Plasma Wayland detected: Open System Settings -> Shortcuts -> Custom Shortcuts. Add Command/URL: 'pinnote --new-note', Trigger: 'Ctrl+Alt+N'.";
+            }
+            if (de.Contains("sway"))
+            {
+                return "Sway Wayland detected: In ~/.config/sway/config, add: bindsym $mod+Control+n exec pinnote --new-note";
+            }
+            return "Wayland compositor detected: Global keystroke grabbing is restricted by design for privacy. Bind 'pinnote --new-note' to your preferred hotkey (e.g. Ctrl+Alt+N) in your desktop environment's keyboard settings.";
+        }
+
         public bool RegisterQuickNoteShortcut(Action onTriggered)
         {
             if (!OperatingSystem.IsLinux()) return false;
@@ -133,5 +184,25 @@ namespace PinNote.Services
         private delegate int XGrabKeyDelegate(IntPtr display, int keycode, uint modifiers, IntPtr grabWindow, int ownerEvents, int pointerMode, int keyboardMode);
         private delegate int XNextEventDelegate(IntPtr display, byte[] eventReturn);
         private delegate int XCloseDisplayDelegate(IntPtr display);
+    }
+
+    public enum LinuxShortcutMode
+    {
+        Unsupported,
+        X11Native,
+        WaylandFallback
+    }
+
+    public class LinuxShortcutDiagnostics
+    {
+        public bool IsLinux { get; set; }
+        public bool IsWayland { get; set; }
+        public string? SessionType { get; set; }
+        public string? WaylandDisplay { get; set; }
+        public string? DesktopEnvironment { get; set; }
+        public LinuxShortcutMode Mode { get; set; }
+        public string RecommendedCommand => "pinnote --new-note";
+        public string RecommendedKeyBinding => "Ctrl+Alt+N";
+        public string Guidance { get; set; } = string.Empty;
     }
 }

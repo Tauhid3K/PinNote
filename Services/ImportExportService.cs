@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PinNote.Models;
@@ -96,6 +97,65 @@ namespace PinNote.Services
             }
         }
 
+        public static async Task<ExportResult> ExportNotesAsync(IEnumerable<NoteModel> notes, string destinationPath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(destinationPath))
+                {
+                    return new ExportResult { Success = false, Message = "Export file path cannot be empty." };
+                }
+
+                var noteList = notes?.Select(n => n.Clone()).ToList() ?? new List<NoteModel>();
+
+                var package = new NoteExportPackage
+                {
+                    SchemaVersion = CurrentSchemaVersion,
+                    Application = "PinNote",
+                    AppVersion = "1.0.3",
+                    ExportedAt = DateTime.UtcNow,
+                    Notes = noteList
+                };
+
+                string json = await Task.Run(() => JsonConvert.SerializeObject(package, Formatting.Indented));
+
+                string? dir = Path.GetDirectoryName(destinationPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                string tempPath = $"{destinationPath}.tmp_{Guid.NewGuid():N}";
+                try
+                {
+                    await File.WriteAllTextAsync(tempPath, json, System.Text.Encoding.UTF8);
+                    File.Move(tempPath, destinationPath, overwrite: true);
+                }
+                catch
+                {
+                    try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                    throw;
+                }
+
+                return new ExportResult
+                {
+                    Success = true,
+                    ExportedCount = noteList.Count,
+                    FilePath = destinationPath,
+                    Message = $"Successfully exported {noteList.Count} notes to '{Path.GetFileName(destinationPath)}'."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ExportResult
+                {
+                    Success = false,
+                    ExportedCount = 0,
+                    Message = $"Export failed: {ex.Message}"
+                };
+            }
+        }
+
         public static ImportResult ImportNotes(
             string sourceFilePath,
             IEnumerable<NoteModel> existingNotes,
@@ -114,101 +174,7 @@ namespace PinNote.Services
                     return new ImportResult { Success = false, Message = "The selected import file is empty." };
                 }
 
-                List<NoteModel>? candidateNotes = null;
-                int schemaVersion = 1;
-
-                // Try parsing as NoteExportPackage first
-                try
-                {
-                    var token = JToken.Parse(json);
-                    if (token is JObject obj)
-                    {
-                        if (obj.TryGetValue("schemaVersion", StringComparison.OrdinalIgnoreCase, out var verToken))
-                        {
-                            schemaVersion = verToken.Value<int>();
-                        }
-
-                        if (obj.TryGetValue("notes", StringComparison.OrdinalIgnoreCase, out var notesToken))
-                        {
-                            candidateNotes = notesToken.ToObject<List<NoteModel>>();
-                        }
-                    }
-                    else if (token is JArray)
-                    {
-                        // Raw list of notes from a direct notes.json backup
-                        candidateNotes = JsonConvert.DeserializeObject<List<NoteModel>>(json);
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    return new ImportResult { Success = false, Message = $"Invalid JSON format in import file: {ex.Message}" };
-                }
-
-                if (candidateNotes == null || candidateNotes.Count == 0)
-                {
-                    return new ImportResult { Success = false, Message = "No valid notes found in the import file." };
-                }
-
-                // Create a pre-import backup of existing notes before any changes
-                string backupPath = string.Empty;
-                try
-                {
-                    if (!Directory.Exists(storageFolderPath))
-                    {
-                        Directory.CreateDirectory(storageFolderPath);
-                    }
-                    string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-                    backupPath = Path.Combine(storageFolderPath, $"notes_backup_before_import_{timestamp}.json");
-                    var existingList = existingNotes?.ToList() ?? new List<NoteModel>();
-                    File.WriteAllText(backupPath, JsonConvert.SerializeObject(existingList, Formatting.Indented));
-                }
-                catch (Exception backupEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Failed to create pre-import backup: {backupEx}");
-                }
-
-                // Check for duplicate identifiers to prevent overwriting existing notes
-                var existingIds = new HashSet<Guid>(existingNotes?.Select(n => n.Id) ?? Enumerable.Empty<Guid>());
-                int reassignedCount = 0;
-                var validatedNotes = new List<NoteModel>();
-
-                foreach (var note in candidateNotes)
-                {
-                    if (note == null) continue;
-
-                    var cloned = note.Clone();
-
-                    // If Id is empty or already in use by an existing note, assign a new unique ID
-                    if (cloned.Id == Guid.Empty || existingIds.Contains(cloned.Id))
-                    {
-                        cloned.Id = Guid.NewGuid();
-                        reassignedCount++;
-                    }
-
-                    // Sanitize dimensions
-                    if (cloned.Width < 160) cloned.Width = 250;
-                    if (cloned.Height < 120) cloned.Height = 250;
-                    if (cloned.Opacity <= 0 || cloned.Opacity > 1.0) cloned.Opacity = 1.0;
-                    if (cloned.TextOpacity <= 0 || cloned.TextOpacity > 1.0) cloned.TextOpacity = 1.0;
-                    if (string.IsNullOrEmpty(cloned.Title)) cloned.Title = "Imported Note";
-
-                    existingIds.Add(cloned.Id);
-                    validatedNotes.Add(cloned);
-                }
-
-                string detail = reassignedCount > 0
-                    ? $" ({reassignedCount} IDs re-assigned to prevent conflicts)"
-                    : string.Empty;
-
-                return new ImportResult
-                {
-                    Success = true,
-                    ImportedCount = validatedNotes.Count,
-                    ReassignedIdCount = reassignedCount,
-                    ImportedNotes = validatedNotes,
-                    BackupPath = backupPath,
-                    Message = $"Successfully imported {validatedNotes.Count} notes{detail}."
-                };
+                return ProcessImportJson(json, existingNotes, storageFolderPath, isAsync: false).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -218,6 +184,149 @@ namespace PinNote.Services
                     Message = $"Import failed: {ex.Message}"
                 };
             }
+        }
+
+        public static async Task<ImportResult> ImportNotesAsync(
+            string sourceFilePath,
+            IEnumerable<NoteModel> existingNotes,
+            string storageFolderPath)
+        {
+            try
+            {
+                if (!File.Exists(sourceFilePath))
+                {
+                    return new ImportResult { Success = false, Message = $"File not found: '{sourceFilePath}'" };
+                }
+
+                string json = await File.ReadAllTextAsync(sourceFilePath);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return new ImportResult { Success = false, Message = "The selected import file is empty." };
+                }
+
+                return await ProcessImportJson(json, existingNotes, storageFolderPath, isAsync: true);
+            }
+            catch (Exception ex)
+            {
+                return new ImportResult
+                {
+                    Success = false,
+                    Message = $"Import failed: {ex.Message}"
+                };
+            }
+        }
+
+        private static async Task<ImportResult> ProcessImportJson(
+            string json,
+            IEnumerable<NoteModel> existingNotes,
+            string storageFolderPath,
+            bool isAsync)
+        {
+            List<NoteModel>? candidateNotes = null;
+            int schemaVersion = 1;
+
+            // Try parsing as NoteExportPackage first
+            try
+            {
+                var token = JToken.Parse(json);
+                if (token is JObject obj)
+                {
+                    if (obj.TryGetValue("schemaVersion", StringComparison.OrdinalIgnoreCase, out var verToken))
+                    {
+                        schemaVersion = verToken.Value<int>();
+                    }
+
+                    if (obj.TryGetValue("notes", StringComparison.OrdinalIgnoreCase, out var notesToken))
+                    {
+                        candidateNotes = notesToken.ToObject<List<NoteModel>>();
+                    }
+                }
+                else if (token is JArray)
+                {
+                    // Raw list of notes from a direct notes.json backup
+                    candidateNotes = JsonConvert.DeserializeObject<List<NoteModel>>(json);
+                }
+            }
+            catch (JsonException ex)
+            {
+                return new ImportResult { Success = false, Message = $"Invalid JSON format in import file: {ex.Message}" };
+            }
+
+            if (candidateNotes == null || candidateNotes.Count == 0)
+            {
+                return new ImportResult { Success = false, Message = "No valid notes found in the import file." };
+            }
+
+            DataMigrationService.Migrate(candidateNotes, storageFolderPath);
+
+            // Create a pre-import backup of existing notes before any changes
+            string backupPath = string.Empty;
+            try
+            {
+                if (!Directory.Exists(storageFolderPath))
+                {
+                    Directory.CreateDirectory(storageFolderPath);
+                }
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+                backupPath = Path.Combine(storageFolderPath, $"notes_backup_before_import_{timestamp}.json");
+                var existingList = existingNotes?.ToList() ?? new List<NoteModel>();
+                string backupJson = JsonConvert.SerializeObject(existingList, Formatting.Indented);
+                if (isAsync)
+                {
+                    await File.WriteAllTextAsync(backupPath, backupJson);
+                }
+                else
+                {
+                    File.WriteAllText(backupPath, backupJson);
+                }
+            }
+            catch (Exception backupEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to create pre-import backup: {backupEx}");
+            }
+
+            // Check for duplicate identifiers to prevent overwriting existing notes
+            var existingIds = new HashSet<Guid>(existingNotes?.Select(n => n.Id) ?? Enumerable.Empty<Guid>());
+            int reassignedCount = 0;
+            var validatedNotes = new List<NoteModel>();
+
+            foreach (var note in candidateNotes)
+            {
+                if (note == null) continue;
+
+                var cloned = note.Clone();
+
+                // If Id is empty or already in use by an existing note, assign a new unique ID
+                if (cloned.Id == Guid.Empty || existingIds.Contains(cloned.Id))
+                {
+                    cloned.Id = Guid.NewGuid();
+                    reassignedCount++;
+                }
+
+                // Sanitize dimensions
+                if (cloned.Width < 160) cloned.Width = 250;
+                if (cloned.Height < 120) cloned.Height = 250;
+                if (cloned.Opacity <= 0 || cloned.Opacity > 1.0) cloned.Opacity = 1.0;
+                if (cloned.TextOpacity <= 0 || cloned.TextOpacity > 1.0) cloned.TextOpacity = 1.0;
+                if (string.IsNullOrEmpty(cloned.Title)) cloned.Title = "Imported Note";
+
+                existingIds.Add(cloned.Id);
+                validatedNotes.Add(cloned);
+            }
+
+            string detail = reassignedCount > 0
+                ? $" ({reassignedCount} IDs re-assigned to prevent conflicts)"
+                : string.Empty;
+
+            return new ImportResult
+            {
+                Success = true,
+                ImportedCount = validatedNotes.Count,
+                ReassignedIdCount = reassignedCount,
+                ImportedNotes = validatedNotes,
+                BackupPath = backupPath,
+                Message = $"Successfully imported {validatedNotes.Count} notes{detail}."
+            };
         }
     }
 }

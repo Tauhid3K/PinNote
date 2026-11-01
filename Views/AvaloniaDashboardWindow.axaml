@@ -4,9 +4,9 @@
         x:Class="PinNote.Views.AvaloniaDashboardWindow"
         x:DataType="vm:MainViewModel"
         Title="PinNote - All Notes"
-        Width="780"
-        Height="540"
-        MinWidth="520"
+        Width="820"
+        Height="580"
+        MinWidth="540"
         MinHeight="400"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="{Binding ShowInTaskbar}">
@@ -32,7 +32,7 @@
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="56,*">
+    <Grid RowDefinitions="56,Auto,*">
         <!-- Top Navigation / Search Bar -->
         <Border Grid.Row="0"
                 Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
@@ -48,10 +48,11 @@
                 </StackPanel>
 
                 <!-- Search Box -->
-                <TextBox Grid.Column="1"
+                <TextBox Name="SearchBox"
+                         Grid.Column="1"
                          Margin="24,0,16,0"
                          Text="{Binding SearchText, Mode=TwoWay}"
-                         Watermark="Search notes..."
+                         Watermark="Search notes... (Ctrl+F)"
                          VerticalAlignment="Center"
                          CornerRadius="6"
                          Height="34" />
@@ -66,7 +67,8 @@
                         Padding="14,6"
                         Height="34"
                         Margin="0,0,8,0"
-                        Cursor="Hand">
+                        Cursor="Hand"
+                        ToolTip.Tip="New Note (Ctrl+N)">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <TextBlock Text="+" FontSize="16" FontWeight="Bold" />
                         <TextBlock Text="New Note" VerticalAlignment="Center" />
@@ -102,7 +104,7 @@
                         Padding="0"
                         CornerRadius="6"
                         Margin="8,0,0,0"
-                        ToolTip.Tip="Settings"
+                        ToolTip.Tip="Settings and Options"
                         Cursor="Hand">
                     <Path Data="M19.14,12.94C19.18,12.63 19.2,12.32 19.2,12C19.2,11.68 19.18,11.37 19.14,11.06L21.41,9.29C21.62,9.13 21.68,8.83 21.54,8.6L19.4,4.89C19.26,4.66 18.98,4.57 18.74,4.66L16.07,5.74C15.52,5.31 14.91,4.96 14.25,4.69L13.85,1.85C13.81,1.6 13.6,1.41 13.34,1.41H9.06C8.8,1.41 8.59,1.6 8.55,1.85L8.15,4.69C7.49,4.96 6.88,5.31 6.33,5.74L3.66,4.66C3.42,4.57 3.14,4.66 3,4.89L0.86,8.6C0.72,8.83 0.78,9.13 0.99,9.29L3.26,11.06C3.22,11.37 3.2,11.68 3.2,12C3.2,12.32 3.22,12.63 3.26,12.94L0.99,14.71C0.78,14.87 0.72,15.17 0.86,15.4L3,19.11C3.14,19.34 3.42,19.43 3.66,19.34L6.33,18.26C6.88,18.69 7.49,19.04 8.15,19.31L8.55,22.15C8.59,22.4 8.8,22.59 9.06,22.59H13.34C13.6,22.59 13.81,22.4 13.85,22.15L14.25,19.31C14.91,19.04 15.52,18.69 16.07,18.26L18.74,19.34C18.98,19.43 19.26,19.34 19.4,19.11L21.54,15.4C21.68,15.17 21.62,14.87 21.41,14.71L19.14,12.94ZM11.2,15.6C9.21,15.6 7.6,13.99 7.6,12C7.6,10.01 9.21,8.4 11.2,8.4C13.19,8.4 14.8,10.01 14.8,12C14.8,13.99 13.19,15.6 11.2,15.6Z"
                           Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
@@ -177,8 +179,83 @@
             </Grid>
         </Border>
 
+        <!-- Filter & Organization Bar (Workspaces, Categories, Tags, Reminders, Templates) -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource SystemControlBackgroundAltMediumBrush}"
+                BorderBrush="#15000000"
+                BorderThickness="0,0,0,1"
+                Padding="16,8">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Workspace Switcher -->
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                    <TextBlock Text="Workspace:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
+                    <ComboBox ItemsSource="{Binding Workspaces}"
+                              SelectedItem="{Binding ActiveWorkspace, Mode=TwoWay}"
+                              Height="28" FontSize="12" CornerRadius="4">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Category Filter -->
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                    <TextBlock Text="Category:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
+                    <ComboBox SelectedItem="{Binding SelectedCategoryFilter, Mode=TwoWay}"
+                              Height="28" FontSize="12" CornerRadius="4">
+                        <ComboBoxItem Content="All Categories" />
+                        <ComboBoxItem Content="Study" />
+                        <ComboBoxItem Content="Personal" />
+                        <ComboBoxItem Content="Work" />
+                        <ComboBoxItem Content="Projects" />
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Tag Filter -->
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                    <TextBlock Text="Tag:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
+                    <ComboBox ItemsSource="{Binding AllTags}"
+                              SelectedItem="{Binding SelectedTagFilter, Mode=TwoWay}"
+                              Height="28" FontSize="12" CornerRadius="4" MinWidth="90" />
+                </StackPanel>
+
+                <!-- Reminders Toggle Button -->
+                <ToggleButton IsChecked="{Binding ShowRemindersOnly, Mode=TwoWay}"
+                              Height="28" Padding="10,0" Margin="0,0,8,0" CornerRadius="4" Cursor="Hand"
+                              ToolTip.Tip="Filter notes with reminders">
+                    <TextBlock Text="⏰ Reminders" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </ToggleButton>
+
+                <!-- Clear Filters Button -->
+                <Button Command="{Binding ClearFiltersCommand}"
+                        Height="28" Padding="10,0" Margin="0,0,10,0" CornerRadius="4" Cursor="Hand"
+                        ToolTip.Tip="Reset all filters">
+                    <TextBlock Text="Reset Filters" FontSize="11" VerticalAlignment="Center" />
+                </Button>
+
+                <!-- New Note From Template Button -->
+                <Button Height="28" Padding="10,0" CornerRadius="4" Cursor="Hand"
+                        ToolTip.Tip="Create structured note from template">
+                    <TextBlock Text="📋 Templates" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button.Flyout>
+                        <MenuFlyout ItemsSource="{Binding Templates}">
+                            <MenuFlyout.ItemTemplate>
+                                <DataTemplate>
+                                    <MenuItem Header="{Binding Name}"
+                                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NewNoteFromTemplateCommand}"
+                                              CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </MenuFlyout.ItemTemplate>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </WrapPanel>
+        </Border>
+
         <!-- Main Content Area: Note Cards -->
-        <ScrollViewer Grid.Row="1" Padding="16">
+        <ScrollViewer Grid.Row="2" Padding="16">
             <ItemsControl ItemsSource="{Binding SortedFilteredNotes}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -189,7 +266,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:NoteViewModel">
                         <Border Width="220"
-                                Height="180"
+                                Height="185"
                                 Margin="8"
                                 CornerRadius="8"
                                 BorderBrush="#33000000"
@@ -241,25 +318,50 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Card Preview Body -->
-                                <TextBlock Grid.Row="1"
-                                           Margin="10,8"
-                                           Text="{Binding PlainTextPreview}"
-                                           TextWrapping="Wrap"
-                                           TextTrimming="CharacterEllipsis"
-                                           FontSize="12"
-                                           Foreground="{Binding CardBodyTextColor}"
-                                           Opacity="0.85" />
+                                <!-- Card Preview Body & Metadata -->
+                                <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="10,6">
+                                    <!-- Badges: Category & Reminder -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                                        <Border Background="#25000000" CornerRadius="3" Padding="4,1"
+                                                IsVisible="{Binding Category, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="SemiBold"
+                                                       Foreground="{Binding CardBodyTextColor}" />
+                                        </Border>
+                                        <Border Background="#30FF8800" CornerRadius="3" Padding="3,1"
+                                                IsVisible="{Binding HasReminder}">
+                                            <TextBlock Text="⏰" FontSize="9" />
+                                        </Border>
+                                    </StackPanel>
 
-                                <!-- Card Footer -->
+                                    <!-- Content Preview -->
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding PlainTextPreview}"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="12"
+                                               Foreground="{Binding CardBodyTextColor}"
+                                               Opacity="0.85" />
+                                </Grid>
+
+                                <!-- Card Footer: Workspace & Hint -->
                                 <Border Grid.Row="2"
                                         Padding="10,0"
                                         Background="#11000000">
-                                    <TextBlock Text="Click to open note"
-                                               FontSize="11"
-                                               Foreground="{Binding CardBodyTextColor}"
-                                               Opacity="0.6"
-                                               VerticalAlignment="Center" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding WorkspaceName}"
+                                                   FontSize="10"
+                                                   Opacity="0.6"
+                                                   Foreground="{Binding CardBodyTextColor}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="Open ↗"
+                                                   FontSize="10"
+                                                   Opacity="0.6"
+                                                   Foreground="{Binding CardBodyTextColor}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </Border>

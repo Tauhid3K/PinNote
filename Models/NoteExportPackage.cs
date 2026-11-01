@@ -11,7 +11,7 @@ namespace PinNote.Models
     {
         public int SchemaVersion { get; set; } = 1;
         public string Application { get; set; } = "PinNote";
-        public string AppVersion { get; set; } = "1.0.3";
+        public string AppVersion { get; set; } = "1.0.4";
         public DateTime ExportedAt { get; set; } = DateTime.UtcNow;
         public List<NoteModel> Notes { get; set; } = new();
     }

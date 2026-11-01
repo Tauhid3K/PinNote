@@ -3,6 +3,7 @@ namespace PinNote.Models
     public enum NoteType
     {
         Text = 0,
-        Checklist = 1
+        Checklist = 1,
+        Markdown = 2
     }
 }

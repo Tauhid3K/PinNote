@@ -80,6 +80,7 @@ namespace PinNote
 
                 desktop.Exit += (_, _) =>
                 {
+                    _mainViewModel?.Storage.FlushPendingSave();
                     _shortcutService?.Dispose();
                     _singleInstanceService?.Dispose();
                 };

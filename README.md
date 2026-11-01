@@ -4,15 +4,21 @@ PinNote is a free, open-source, cross-platform desktop sticky note application b
 
 ## 🚀 Features
 
-- **Interactive Checklists:** Create, check, uncheck, reorder (up/down), and delete checklist items. Seamlessly switch between plain text and checklist mode.
-- **Quick Note Creation:** Instant note creation via global shortcut (`Ctrl+Alt+N`) on Windows/X11 or `pinnote --new-note` command on Linux/Wayland.
-- **Reliable Autosave & Recovery:** Debounced atomic JSON writes, `.bak` snapshot recovery, corrupt file preservation, and protection against zero-byte overwrite.
-- **Fast Cross-Platform Search & Sorting:** Case-insensitive search with whitespace normalization and multi-word matching across titles, plain text, rich text (FlowDocument XAML), and checklist contents. Flexible dashboard sorting by Title (A-Z, Z-A), Last Modified date, Creation date, or Default insertion order, with pinned notes always prioritized.
-- **Backup, Export & Import:** Convenient JSON interchange format (`NoteExportPackage`) with schema versioning, collision protection (reassigning IDs), and automatic pre-import safety backups.
-- **Multi-Monitor Window Restoration:** Intelligently restores note positions across multi-monitor configurations, negative coordinates, and handles disconnected monitors by relocating notes to the active primary screen.
+- **Interactive Checklists:** Create, check, uncheck, reorder (up/down), and delete checklist items with intuitive keyboard workflow (Enter adds item, Backspace deletes empty item). Seamlessly switch between text, checklist, and markdown modes.
+- **Organization — Tags & Categories:** Assign multiple tags to notes, classify notes into categories (`Study`, `Personal`, `Work`, `Projects`), and filter instantly in the dashboard.
+- **Workspace Groups:** Separate notes by workspace (`Default`, `University`, `Personal`, `Development`, `Projects`) with safe deletion reassigning notes to `Default`.
+- **Productivity — Reminders & Due Dates:** Schedule note reminders and due dates with quick presets (In 1 Hour, Today Evening, Tomorrow Morning, Next Week), missed reminder scanning on restart, and native system notification alerts.
+- **Real Markdown Editing & Preview:** Write notes in Markdown with headings, bold, italic, strikethrough, lists, blockquotes, inline/fenced code blocks, and toggle between editing and formatted preview mode (`Ctrl+M`).
+- **Reusable Templates:** Instant note creation from built-in student templates (`Lecture Notes`, `Exam Preparation`, `Daily Planner`, `Meeting Notes`, `Project Planning`, `Personal To-do List`) or save custom notes as templates.
+- **Quick Note Creation:** Instant note creation via global shortcut (`Ctrl+Alt+N`) on Windows/X11 or `pinnote --new-note` command on Linux/Wayland with desktop environment integration.
+- **Reliable Autosave & Recovery:** Non-blocking asynchronous file operations off the UI thread, debounced writes with monotonic concurrency protection, `.bak` snapshot recovery, automatic pre-migration backups, and safe pending edit flushing on shutdown.
+- **Fast Cross-Platform Search & Sorting:** Instant case-insensitive search across titles, content, tags, categories, and checklist items. Flexible dashboard sorting by Title, Modified Date, Creation Date, or Insertion Order with pinned notes prioritized.
+- **Accessibility & Keyboard Navigation:** Comprehensive screen-reader labels (`AutomationProperties.Name`), logical focus order, and keyboard shortcuts (`Ctrl+N` new note, `Ctrl+P` pin, `Ctrl+T` checklist, `Ctrl+M` markdown toggle, `Ctrl+F` search focus, `Escape` clear/close).
+- **Backup, Export & Import:** Versioned JSON interchange format (`NoteExportPackage`), markdown file import/export, collision protection, and automatic safety snapshots.
+- **Multi-Monitor Window Restoration:** Intelligently restores note positions across multi-monitor setups, negative coordinates, and handles disconnected monitors by relocating notes to the active primary screen.
 - **Always on Top (Pinning):** Pin critical notes to keep them visible above all other windows.
 - **Crystal Clear Mode:** A per-note frosted glass transparent mode with customizable text colors and opacity.
-- **Quick Duplicate Action:** Duplicate any note with matching contents, colors, size, and checklist items.
+- **Quick Duplicate Action:** Duplicate any note with matching contents, colors, size, tags, and checklist items.
 - **System Tray Integration:** Native tray integration on Windows and Linux with customizable themes (System, Light, Dark).
 
 ## 🛠️ Tech Stack

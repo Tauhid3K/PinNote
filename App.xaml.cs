@@ -364,6 +364,7 @@ namespace PinNote
         protected override void OnExit(ExitEventArgs e)
         {
             IsShuttingDown = true;
+            _mainViewModel?.Storage.FlushPendingSave();
             _shortcutService?.Dispose();
             _singleInstanceService?.Dispose();
             if (_notifyIcon != null)

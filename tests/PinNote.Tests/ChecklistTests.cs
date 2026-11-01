@@ -146,5 +146,27 @@ namespace PinNote.Tests
             Assert.Contains("[x] Done item", vm.Content);
             Assert.Contains("[ ] Line 3", vm.Content);
         }
+
+        [Fact]
+        public void NoteViewModel_InsertChecklistItemAfter_InsertsAtCorrectPosition()
+        {
+            var model = new NoteModel { NoteType = NoteType.Checklist };
+            var mainVm = new MainViewModel();
+            var vm = new NoteViewModel(model, mainVm);
+
+            vm.AddChecklistItem("Item 1");
+            vm.AddChecklistItem("Item 3");
+
+            // Insert Item 2 after Item 1
+            var newItem = vm.InsertChecklistItemAfter(vm.ChecklistItems[0], "Item 2");
+
+            Assert.Equal(3, vm.ChecklistItems.Count);
+            Assert.Equal("Item 1", vm.ChecklistItems[0].Text);
+            Assert.Equal("Item 2", vm.ChecklistItems[1].Text);
+            Assert.Equal("Item 3", vm.ChecklistItems[2].Text);
+            Assert.Equal(0, vm.ChecklistItems[0].Order);
+            Assert.Equal(1, vm.ChecklistItems[1].Order);
+            Assert.Equal(2, vm.ChecklistItems[2].Order);
+        }
     }
 }

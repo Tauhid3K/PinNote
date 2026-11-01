@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -16,13 +17,27 @@ namespace PinNote.ViewModels
         private readonly NoteModel _model;
         private readonly MainViewModel _mainViewModel;
         private readonly ObservableCollection<ChecklistItemViewModel> _checklistItems = new();
+        private readonly ObservableCollection<string> _tags = new();
         private string? _searchableTextCache;
         private bool _updatingTitleFromBody;
+        private string _newTagInput = string.Empty;
 
         public NoteViewModel(NoteModel model, MainViewModel mainViewModel)
         {
             _model = model;
             _mainViewModel = mainViewModel;
+
+            // Initialize tags from model
+            if (_model.Tags != null)
+            {
+                foreach (var tag in _model.Tags)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag) && !_tags.Contains(tag.Trim()))
+                    {
+                        _tags.Add(tag.Trim());
+                    }
+                }
+            }
 
             // Initialize checklist items from model
             if (_model.ChecklistItems != null)
@@ -113,6 +128,68 @@ namespace PinNote.ViewModels
 
             AddChecklistItemCommand = new RelayCommand(param => AddChecklistItem(param as string));
             ToggleNoteTypeCommand = new RelayCommand(_ => ToggleNoteType());
+
+            AddTagCommand = new RelayCommand(p =>
+            {
+                string? tag = p as string ?? NewTagInput;
+                if (!string.IsNullOrWhiteSpace(tag))
+                {
+                    AddTag(tag);
+                    NewTagInput = string.Empty;
+                }
+            });
+
+            RemoveTagCommand = new RelayCommand(p =>
+            {
+                if (p is string tag)
+                {
+                    RemoveTag(tag);
+                }
+            });
+
+            SetCategoryCommand = new RelayCommand(p => Category = p as string);
+            SetWorkspaceCommand = new RelayCommand(p => { if (p is string ws) WorkspaceName = ws; });
+            ToggleMarkdownPreviewCommand = new RelayCommand(_ =>
+            {
+                IsMarkdownPreview = !IsMarkdownPreview;
+                OnPropertyChanged(nameof(MarkdownBlocks));
+            });
+
+            ToggleMarkdownModeCommand = new RelayCommand(_ =>
+            {
+                if (NoteType == NoteType.Markdown)
+                {
+                    NoteType = NoteType.Text;
+                    IsMarkdownPreview = false;
+                }
+                else
+                {
+                    NoteType = NoteType.Markdown;
+                }
+                OnPropertyChanged(nameof(IsMarkdown));
+                OnPropertyChanged(nameof(MarkdownBlocks));
+            });
+
+            SetReminderCommand = new RelayCommand(p =>
+            {
+                if (p is DateTime dt)
+                {
+                    ReminderDateTime = dt;
+                }
+            });
+
+            SetReminder1HourCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Now.AddHours(1));
+            SetReminderTodayEveningCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddHours(18) > DateTime.Now ? DateTime.Today.AddHours(18) : DateTime.Now.AddHours(2));
+            SetReminderTomorrowMorningCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddDays(1).AddHours(9));
+            SetReminderNextWeekCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddDays(7).AddHours(9));
+
+            DismissReminderCommand = new RelayCommand(_ => IsReminderDismissed = true);
+            ClearReminderCommand = new RelayCommand(_ =>
+            {
+                ReminderDateTime = null;
+                DueDate = null;
+                IsReminderDismissed = false;
+            });
         }
 
         public Guid Id => _model.Id;
@@ -122,6 +199,197 @@ namespace PinNote.ViewModels
         public ICommand SetTextOpacityCommand { get; }
         public ICommand AddChecklistItemCommand { get; }
         public ICommand ToggleNoteTypeCommand { get; }
+        public ICommand ToggleMarkdownModeCommand { get; }
+        public ICommand AddTagCommand { get; }
+        public ICommand RemoveTagCommand { get; }
+        public ICommand SetCategoryCommand { get; }
+        public ICommand SetWorkspaceCommand { get; }
+        public ICommand ToggleMarkdownPreviewCommand { get; }
+        public ICommand SetReminderCommand { get; }
+        public ICommand SetReminder1HourCommand { get; }
+        public ICommand SetReminderTodayEveningCommand { get; }
+        public ICommand SetReminderTomorrowMorningCommand { get; }
+        public ICommand SetReminderNextWeekCommand { get; }
+        public ICommand DismissReminderCommand { get; }
+        public ICommand ClearReminderCommand { get; }
+
+        public ObservableCollection<string> Tags => _tags;
+        public IReadOnlyList<string> AvailableCategories => DataMigrationService.DefaultCategories;
+        public IReadOnlyList<MarkdownBlock> MarkdownBlocks => MarkdownService.ParseBlocks(Content);
+
+        public string NewTagInput
+        {
+            get => _newTagInput;
+            set => SetProperty(ref _newTagInput, value);
+        }
+
+        public void AddTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return;
+            string trimmed = tag.Trim();
+            if (!_tags.Any(t => string.Equals(t, trimmed, StringComparison.OrdinalIgnoreCase)))
+            {
+                _tags.Add(trimmed);
+                _model.Tags = _tags.ToList();
+                InvalidateSearchableText();
+                _mainViewModel?.NotifyTagsChanged();
+                SaveRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void RemoveTag(string tag)
+        {
+            var existing = _tags.FirstOrDefault(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                _tags.Remove(existing);
+                _model.Tags = _tags.ToList();
+                InvalidateSearchableText();
+                _mainViewModel?.NotifyTagsChanged();
+                SaveRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public string? Category
+        {
+            get => _model.Category;
+            set
+            {
+                string? clean = string.IsNullOrWhiteSpace(value) || value == "None" ? null : value.Trim();
+                if (_model.Category != clean)
+                {
+                    _model.Category = clean;
+                    OnPropertyChanged();
+                    InvalidateSearchableText();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public string WorkspaceName
+        {
+            get => string.IsNullOrWhiteSpace(_model.WorkspaceName) ? "Default" : _model.WorkspaceName;
+            set
+            {
+                string clean = string.IsNullOrWhiteSpace(value) ? "Default" : value.Trim();
+                if (_model.WorkspaceName != clean)
+                {
+                    _model.WorkspaceName = clean;
+                    OnPropertyChanged();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public Guid? WorkspaceId
+        {
+            get => _model.WorkspaceId;
+            set
+            {
+                if (_model.WorkspaceId != value)
+                {
+                    _model.WorkspaceId = value;
+                    OnPropertyChanged();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public DateTime? DueDate
+        {
+            get => _model.DueDate;
+            set
+            {
+                if (_model.DueDate != value)
+                {
+                    _model.DueDate = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(HasDueDate));
+                    OnPropertyChanged(nameof(IsOverdue));
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public bool HasDueDate => DueDate.HasValue;
+        public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateTime.UtcNow;
+
+        public DateTime? ReminderDateTime
+        {
+            get => _model.ReminderDateTime;
+            set
+            {
+                if (_model.ReminderDateTime != value)
+                {
+                    _model.ReminderDateTime = value;
+                    _model.IsReminderDismissed = false;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(HasReminder));
+                    OnPropertyChanged(nameof(IsReminderDismissed));
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public bool HasReminder => ReminderDateTime.HasValue;
+        public string ReminderSummary => ReminderDateTime.HasValue ? ReminderDateTime.Value.ToString("MMM d, HH:mm") : string.Empty;
+
+        public bool IsReminderDismissed
+        {
+            get => _model.IsReminderDismissed;
+            set
+            {
+                if (_model.IsReminderDismissed != value)
+                {
+                    _model.IsReminderDismissed = value;
+                    OnPropertyChanged();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public bool IsMarkdown
+        {
+            get => NoteType == NoteType.Markdown;
+            set
+            {
+                if (value)
+                {
+                    NoteType = NoteType.Markdown;
+                }
+                else if (NoteType == NoteType.Markdown)
+                {
+                    NoteType = NoteType.Text;
+                }
+                OnPropertyChanged(nameof(IsMarkdown));
+                OnPropertyChanged(nameof(IsMarkdownPreviewMode));
+                OnPropertyChanged(nameof(IsTextEditorVisible));
+                OnPropertyChanged(nameof(HasMetadata));
+            }
+        }
+
+        public bool IsMarkdownPreview
+        {
+            get => _model.IsMarkdownPreview;
+            set
+            {
+                if (_model.IsMarkdownPreview != value)
+                {
+                    _model.IsMarkdownPreview = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(MarkdownBlocks));
+                    OnPropertyChanged(nameof(IsMarkdownPreviewMode));
+                    OnPropertyChanged(nameof(IsTextEditorVisible));
+                    OnPropertyChanged(nameof(MarkdownModeText));
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public bool IsMarkdownPreviewMode => IsMarkdown && IsMarkdownPreview;
+        public bool IsTextEditorVisible => !IsChecklist && !IsMarkdownPreviewMode;
+        public string MarkdownModeText => IsMarkdownPreview ? "Preview" : "Edit";
+        public bool HasMetadata => !string.IsNullOrEmpty(Category) || HasReminder || IsMarkdown || _tags.Count > 0 || (!string.IsNullOrEmpty(WorkspaceName) && WorkspaceName != "Default");
 
         public NoteType NoteType
         {
@@ -133,6 +401,11 @@ namespace PinNote.ViewModels
                     _model.NoteType = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsChecklist));
+                    OnPropertyChanged(nameof(IsMarkdown));
+                    OnPropertyChanged(nameof(IsMarkdownPreviewMode));
+                    OnPropertyChanged(nameof(IsTextEditorVisible));
+                    OnPropertyChanged(nameof(HasMetadata));
+                    OnPropertyChanged(nameof(MarkdownBlocks));
                     InvalidateSearchableText();
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
@@ -168,6 +441,27 @@ namespace PinNote.ViewModels
             SyncModelChecklist();
             InvalidateSearchableText();
             SaveRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public ChecklistItemViewModel InsertChecklistItemAfter(ChecklistItemViewModel currentItem, string? text = null)
+        {
+            int index = _checklistItems.IndexOf(currentItem);
+            int insertIndex = index >= 0 ? index + 1 : _checklistItems.Count;
+            var itemModel = new ChecklistItemModel
+            {
+                Id = Guid.NewGuid(),
+                Text = text ?? string.Empty,
+                IsChecked = false,
+                Order = insertIndex
+            };
+
+            var itemVm = CreateChecklistItemViewModel(itemModel);
+            _checklistItems.Insert(insertIndex, itemVm);
+            ReorderChecklistItems();
+            SyncModelChecklist();
+            InvalidateSearchableText();
+            SaveRequested?.Invoke(this, EventArgs.Empty);
+            return itemVm;
         }
 
         public void RemoveChecklistItem(ChecklistItemViewModel item)
@@ -312,7 +606,10 @@ namespace PinNote.ViewModels
             {
                 if (_searchableTextCache == null)
                 {
-                    _searchableTextCache = SearchService.ExtractSearchableText(_model.Content, _model.NoteType, _model.ChecklistItems);
+                    string baseText = SearchService.ExtractSearchableText(_model.Content, _model.NoteType, _model.ChecklistItems);
+                    string tagsText = _tags.Count > 0 ? " " + string.Join(" ", _tags) : string.Empty;
+                    string catText = !string.IsNullOrWhiteSpace(_model.Category) ? " " + _model.Category : string.Empty;
+                    _searchableTextCache = baseText + tagsText + catText;
                 }
                 return _searchableTextCache;
             }
@@ -372,6 +669,7 @@ namespace PinNote.ViewModels
                     _model.ModifiedAt = DateTime.UtcNow;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ModifiedAt));
+                    OnPropertyChanged(nameof(MarkdownBlocks));
                     InvalidateSearchableText();
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }

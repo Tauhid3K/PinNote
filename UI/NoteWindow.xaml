@@ -24,6 +24,7 @@
 
     <Window.Resources>
         <local:BooleanToPinTextConverter x:Key="BooleanToPinTextConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <Style x:Key="NoteButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
@@ -113,6 +114,35 @@
                         <MenuItem.Icon>
                             <TextBlock Text="&#xE73A;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
                         </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Markdown mode"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsMarkdown, Mode=TwoWay}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="MD" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Category">
+                        <MenuItem Header="None" Command="{Binding SetCategoryCommand}" CommandParameter="" />
+                        <MenuItem Header="Study" Command="{Binding SetCategoryCommand}" CommandParameter="Study" />
+                        <MenuItem Header="Personal" Command="{Binding SetCategoryCommand}" CommandParameter="Personal" />
+                        <MenuItem Header="Work" Command="{Binding SetCategoryCommand}" CommandParameter="Work" />
+                        <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
+                    </MenuItem>
+                    <MenuItem Header="Workspace">
+                        <MenuItem Header="Default" Command="{Binding SetWorkspaceCommand}" CommandParameter="Default" />
+                        <MenuItem Header="University" Command="{Binding SetWorkspaceCommand}" CommandParameter="University" />
+                        <MenuItem Header="Personal" Command="{Binding SetWorkspaceCommand}" CommandParameter="Personal" />
+                        <MenuItem Header="Development" Command="{Binding SetWorkspaceCommand}" CommandParameter="Development" />
+                        <MenuItem Header="Projects" Command="{Binding SetWorkspaceCommand}" CommandParameter="Projects" />
+                    </MenuItem>
+                    <MenuItem Header="Reminder">
+                        <MenuItem Header="In 1 Hour" Command="{Binding SetReminder1HourCommand}" />
+                        <MenuItem Header="Today Evening (6 PM)" Command="{Binding SetReminderTodayEveningCommand}" />
+                        <MenuItem Header="Tomorrow Morning (9 AM)" Command="{Binding SetReminderTomorrowMorningCommand}" />
+                        <MenuItem Header="Next Week" Command="{Binding SetReminderNextWeekCommand}" />
+                        <Separator />
+                        <MenuItem Header="Clear Reminder" Command="{Binding ClearReminderCommand}" />
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="Color">
@@ -213,6 +243,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="OptionsRow" Height="28" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition x:Name="FormattingRow" Height="34" />
             </Grid.RowDefinitions>
@@ -289,8 +320,88 @@
                          ToolTip="Edit note title" />
             </Border>
 
+            <!-- Row 2: Metadata Strip -->
+            <Border Grid.Row="2"
+                    BorderBrush="#33000000"
+                    BorderThickness="0,0,0,1"
+                    Padding="8,2"
+                    Visibility="{Binding HasMetadata, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="{Binding BodyColor}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCrystalClear}" Value="True">
+                                <Setter Property="Background" Value="Transparent" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <WrapPanel VerticalAlignment="Center">
+                    <!-- Category Badge -->
+                    <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2"
+                            Visibility="{Binding Category, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding TextBrush}" />
+                    </Border>
+
+                    <!-- Workspace Badge -->
+                    <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2">
+                        <TextBlock Text="{Binding WorkspaceName}" FontSize="10" Foreground="{Binding TextBrush}" />
+                    </Border>
+
+                    <!-- Reminder Badge -->
+                    <Border Background="#33FF9800" CornerRadius="3" Padding="4,1" Margin="0,0,4,2"
+                            Visibility="{Binding HasReminder, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Button Style="{StaticResource NoteButtonStyle}" Height="16" MinWidth="0" Padding="2,0"
+                                Command="{Binding ClearReminderCommand}" ToolTip="Click to clear reminder">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⏰ " FontSize="9" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding ReminderSummary}" FontSize="10" Foreground="{Binding TextBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text=" ×" FontSize="10" FontWeight="Bold" Foreground="{Binding TextBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Border>
+
+                    <!-- Markdown Mode Toggle Badge -->
+                    <Button Style="{StaticResource NoteButtonStyle}" Height="18" MinWidth="0" Padding="4,0" Margin="0,0,4,2"
+                            Command="{Binding ToggleMarkdownPreviewCommand}"
+                            Visibility="{Binding IsMarkdown, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            ToolTip="Toggle between Markdown Edit and Preview (Ctrl+M)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="MD " FontWeight="Bold" FontSize="10" Foreground="{Binding TextBrush}" />
+                            <TextBlock Text="{Binding MarkdownModeText}" FontSize="10" Foreground="{Binding TextBrush}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Tags -->
+                    <ItemsControl ItemsSource="{Binding Tags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="#" FontSize="9" Opacity="0.7" Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        <TextBlock Text="{Binding}" FontSize="10" Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        <Button Style="{StaticResource NoteButtonStyle}" Height="14" MinWidth="0" Padding="2,0" Margin="2,0,0,0"
+                                                Command="{Binding DataContext.RemoveTagCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}" ToolTip="Remove tag">
+                                            <TextBlock Text="×" FontSize="10" FontWeight="Bold" Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </WrapPanel>
+            </Border>
+
+            <!-- Row 3: Note Content Area -->
+            <!-- RichText / Markdown Editor -->
             <RichTextBox x:Name="EditorBox"
-                         Grid.Row="2"
+                         Grid.Row="3"
                          Foreground="{Binding TextBrush}"
                          BorderThickness="0"
                          Padding="10,8,10,10"
@@ -298,6 +409,7 @@
                          FontFamily="Segoe UI"
                          CaretBrush="{Binding TextBrush}"
                          VerticalScrollBarVisibility="Auto"
+                         AutomationProperties.Name="Note content"
                          AcceptsTab="True">
                 <RichTextBox.Style>
                     <Style TargetType="RichTextBox">
@@ -307,6 +419,9 @@
                                 <Setter Property="Background" Value="Transparent" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsChecklist}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsMarkdownPreviewMode}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -323,7 +438,155 @@
                 </RichTextBox.Resources>
             </RichTextBox>
 
-            <ScrollViewer Grid.Row="2"
+            <!-- Markdown Rendered Preview View -->
+            <ScrollViewer Grid.Row="3"
+                          Margin="10,8,10,10"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsMarkdownPreviewMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+                <ItemsControl ItemsSource="{Binding MarkdownBlocks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,2">
+                                <!-- Heading 1 -->
+                                <TextBlock Text="{Binding Text}" FontSize="18" FontWeight="Bold" Margin="0,6,0,2"
+                                           Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHeading1}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <!-- Heading 2 -->
+                                <TextBlock Text="{Binding Text}" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,2"
+                                           Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHeading2}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <!-- Heading 3 -->
+                                <TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" Margin="0,3,0,1"
+                                           Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHeading3}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <!-- Paragraph -->
+                                <TextBlock Text="{Binding Text}" FontSize="{Binding DataContext.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsParagraph}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <!-- Bullet -->
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBullet}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="• " FontSize="14" FontWeight="Bold" Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    <TextBlock Text="{Binding Text}" FontSize="{Binding DataContext.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <!-- Checklist -->
+                                <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="False" Margin="0,1">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChecklist}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                    <TextBlock Text="{Binding Text}" FontSize="{Binding DataContext.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" TextWrapping="Wrap" />
+                                </CheckBox>
+                                <!-- Quote -->
+                                <Border BorderBrush="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        BorderThickness="3,0,0,0" Padding="8,2" Margin="0,2">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsQuote}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Text}" FontStyle="Italic"
+                                               Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" TextWrapping="Wrap" />
+                                </Border>
+                                <!-- Code Block -->
+                                <Border Background="#22000000" CornerRadius="4" Padding="8,6" Margin="0,3">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCode}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Text}" FontFamily="Consolas,Courier New" FontSize="11"
+                                               Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}" TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Checklist View -->
+            <ScrollViewer Grid.Row="3"
                           Margin="8,4"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
@@ -352,12 +615,15 @@
                                     <CheckBox Grid.Column="0"
                                               IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                               VerticalAlignment="Center"
-                                              Margin="0,0,6,0" />
+                                              Margin="0,0,6,0"
+                                              AutomationProperties.Name="Checklist item status" />
                                     <TextBox Grid.Column="1"
                                              Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              Background="Transparent"
                                              BorderThickness="0"
+                                             KeyDown="ChecklistItem_KeyDown"
                                              VerticalAlignment="Center"
+                                             AutomationProperties.Name="Checklist item text"
                                              Foreground="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                              CaretBrush="{Binding DataContext.TextBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                              FontSize="{Binding DataContext.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -367,14 +633,16 @@
                                             Style="{StaticResource ToolbarIconButtonStyle}"
                                             Command="{Binding MoveUpCommand}"
                                             Width="20" Height="20"
-                                            ToolTip="Move up" />
+                                            ToolTip="Move up"
+                                            AutomationProperties.Name="Move checklist item up" />
                                     <Button Grid.Column="3"
                                             Content="&#xE70D;"
                                             FontFamily="Segoe MDL2 Assets"
                                             Style="{StaticResource ToolbarIconButtonStyle}"
                                             Command="{Binding MoveDownCommand}"
                                             Width="20" Height="20"
-                                            ToolTip="Move down" />
+                                            ToolTip="Move down"
+                                            AutomationProperties.Name="Move checklist item down" />
                                     <Button Grid.Column="4"
                                             Content="&#xE711;"
                                             FontFamily="Segoe MDL2 Assets"
@@ -382,7 +650,8 @@
                                             Command="{Binding DeleteCommand}"
                                             Width="20" Height="20"
                                             Foreground="#CC0000"
-                                            ToolTip="Delete item" />
+                                            ToolTip="Delete item"
+                                            AutomationProperties.Name="Delete checklist item" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -395,31 +664,35 @@
                             Height="24"
                             FontSize="12"
                             Command="{Binding AddChecklistItemCommand}"
-                            ToolTip="Add new checklist item" />
+                            ToolTip="Add new checklist item"
+                            AutomationProperties.Name="Add checklist item" />
                 </StackPanel>
             </ScrollViewer>
 
+            <!-- Row 4: Formatting Bar -->
             <Border x:Name="FormattingBar"
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Background="{Binding ActiveTitleBarColor}"
                     BorderBrush="#33000000"
                     BorderThickness="0,1,0,1"
                     Padding="4,5">
                 <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                    <Grid MinWidth="210">
+                    <Grid MinWidth="240">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Content="B" Style="{StaticResource ToolbarButtonStyle}" FontWeight="Bold" ToolTip="Bold (Ctrl+B)" Click="BoldButton_Click" />
-                        <Button Grid.Column="1" Content="I" Style="{StaticResource ToolbarButtonStyle}" FontStyle="Italic" ToolTip="Italic (Ctrl+I)" Click="ItalicButton_Click" />
-                        <Button Grid.Column="2" Content="U" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Underline (Ctrl+U)" Click="UnderlineButton_Click">
+                        <Button Grid.Column="0" Content="B" Style="{StaticResource ToolbarButtonStyle}" FontWeight="Bold" ToolTip="Bold (Ctrl+B)" Click="BoldButton_Click" AutomationProperties.Name="Bold" />
+                        <Button Grid.Column="1" Content="I" Style="{StaticResource ToolbarButtonStyle}" FontStyle="Italic" ToolTip="Italic (Ctrl+I)" Click="ItalicButton_Click" AutomationProperties.Name="Italic" />
+                        <Button Grid.Column="2" Content="U" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Underline (Ctrl+U)" Click="UnderlineButton_Click" AutomationProperties.Name="Underline">
                                 <Button.ContentTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="U" TextDecorations="Underline" />
@@ -427,33 +700,49 @@
                                 </Button.ContentTemplate>
                         </Button>
                         <Rectangle Grid.Column="3" Width="1" Height="20" Fill="#33000000" HorizontalAlignment="Center" />
-                        <Button Grid.Column="4" Content="&#xE8FD;" Style="{StaticResource ToolbarIconButtonStyle}" ToolTip="Bulleted list" Click="BulletsButton_Click" />
+                        <Button Grid.Column="4" Content="&#xE8FD;" Style="{StaticResource ToolbarIconButtonStyle}" ToolTip="Bulleted list" Click="BulletsButton_Click" AutomationProperties.Name="Bullet list" />
                         <Button Grid.Column="5"
                                 Content="&#xE91B;"
                                 Style="{StaticResource ToolbarIconButtonStyle}"
                                 ToolTip="Add image"
-                                Click="ImageButton_Click" />
+                                Click="ImageButton_Click"
+                                AutomationProperties.Name="Insert image" />
                         <Button Grid.Column="6"
                                 Content="&#xE73A;"
                                 Style="{StaticResource ToolbarIconButtonStyle}"
                                 ToolTip="Toggle checklist"
-                                Command="{Binding ToggleNoteTypeCommand}" />
+                                Command="{Binding ToggleNoteTypeCommand}"
+                                AutomationProperties.Name="Toggle checklist mode" />
+                        <Button Grid.Column="7"
+                                Content="MD"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                FontWeight="Bold"
+                                FontSize="11"
+                                ToolTip="Toggle markdown mode"
+                                Command="{Binding ToggleMarkdownModeCommand}"
+                                AutomationProperties.Name="Toggle markdown mode" />
+                        <Button Grid.Column="8"
+                                Content="&#xE890;"
+                                Style="{StaticResource ToolbarIconButtonStyle}"
+                                ToolTip="Toggle markdown preview (Ctrl+M)"
+                                Command="{Binding ToggleMarkdownPreviewCommand}"
+                                AutomationProperties.Name="Toggle markdown preview" />
                     </Grid>
                 </ScrollViewer>
             </Border>
 
             <!-- Resize Handles Layer -->
             <!-- Edges -->
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" Width="6" Cursor="SizeWE" Tag="Left" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" Width="6" Cursor="SizeWE" Tag="Right" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" VerticalAlignment="Top" Height="6" Cursor="SizeNS" Tag="Top" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" VerticalAlignment="Bottom" Height="6" Cursor="SizeNS" Tag="Bottom" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Left" Width="6" Cursor="SizeWE" Tag="Left" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Right" Width="6" Cursor="SizeWE" Tag="Right" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" VerticalAlignment="Top" Height="6" Cursor="SizeNS" Tag="Top" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" VerticalAlignment="Bottom" Height="6" Cursor="SizeNS" Tag="Bottom" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
             
             <!-- Corners -->
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNWSE" Tag="TopLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNESW" Tag="TopRight" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="10" Height="10" Cursor="SizeNESW" Tag="BottomLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
-            <Thumb Grid.RowSpan="4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="20" Height="20" Cursor="SizeNWSE" Tag="BottomRight" DragDelta="ResizeThumb_DragDelta">
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Left" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNWSE" Tag="TopLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="10" Height="10" Cursor="SizeNESW" Tag="TopRight" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="10" Height="10" Cursor="SizeNESW" Tag="BottomLeft" DragDelta="ResizeThumb_DragDelta" Style="{StaticResource ResizeThumbStyle}" />
+            <Thumb Grid.RowSpan="5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="20" Height="20" Cursor="SizeNWSE" Tag="BottomRight" DragDelta="ResizeThumb_DragDelta">
                 <Thumb.Template>
                     <ControlTemplate TargetType="Thumb">
                         <Grid Width="20" Height="20" Background="Transparent">

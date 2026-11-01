@@ -540,5 +540,73 @@ Notes / Testing:
 
 ---
 
-*Log updated on October 29, 2026.*
+### Date: 2026-11-01 (Full Cross-Platform Architecture, Organization & Productivity Implementation)
+Author: Antigravity (assistant)
+Files changed:
+- Models/NoteModel.cs
+- Models/NoteType.cs
+- Models/NoteExportPackage.cs
+- Models/WorkspaceModel.cs (new)
+- Models/NoteTemplateModel.cs (new)
+- Services/StorageService.cs
+- Services/DataMigrationService.cs (new)
+- Services/WorkspaceService.cs (new)
+- Services/ReminderService.cs (new)
+- Services/MarkdownService.cs (new)
+- Services/TemplateService.cs (new)
+- Services/ImportExportService.cs
+- Services/LinuxGlobalShortcutService.cs
+- ViewModels/NoteViewModel.cs
+- ViewModels/MainViewModel.cs
+- Views/AvaloniaDashboardWindow.axaml
+- Views/AvaloniaDashboardWindow.axaml.cs
+- Views/AvaloniaNoteWindow.axaml
+- Views/AvaloniaNoteWindow.axaml.cs
+- UI/MainDashboardWindow.xaml
+- UI/MainDashboardWindow.xaml.cs
+- UI/NoteWindow.xaml
+- UI/NoteWindow.xaml.cs
+- App.axaml.cs
+- App.xaml.cs
+- README.md
+- GEMINI.md
+- tests/PinNote.Tests/AsyncStorageTests.cs (new)
+- tests/PinNote.Tests/MigrationTests.cs
+- tests/PinNote.Tests/TagAndCategoryTests.cs (new)
+- tests/PinNote.Tests/WorkspaceTests.cs (new)
+- tests/PinNote.Tests/ReminderTests.cs (new)
+- tests/PinNote.Tests/MarkdownTests.cs (new)
+- tests/PinNote.Tests/TemplateTests.cs (new)
+- tests/PinNote.Tests/ChecklistTests.cs
+- tests/PinNote.Tests/QuickNoteAndSingleInstanceTests.cs
+
+Change summary:
+- **Phase 1 — Background Storage and Performance (P0)**:
+  - Added async file operations (`LoadNotesAsync`, `SaveNotesAsync`, `SaveNotesJsonAsync`, `CreateBackupAsync`, `WriteAtomicallyAsync`) with SemaphoreSlim synchronization off the UI thread.
+  - Implemented monotonic timestamp guards preventing out-of-order writes from overwriting newer changes.
+  - Added debounced save dispatcher and synchronous/asynchronous shutdown flushing (`FlushPendingSave`).
+- **Phase 2 — Shared Data Architecture & Migration Foundation (P1)**:
+  - Upgraded data models to versioned schema (v2) supporting tags, categories, workspaces, reminders, due dates, markdown preview, and templates.
+  - Added `DataMigrationService` that detects legacy unversioned/v1 JSON files and creates automated timestamped backups (`notes_migration_backup_v1_*.json`) before upgrading schemas safely.
+- **Phase 3 — Note Organization (P2 & P3)**:
+  - **Tags & Categories (P2)**: Multi-tag assignment with case-insensitive uniqueness, default categories (`Study`, `Personal`, `Work`, `Projects`), and combined search/tag/category filtering.
+  - **Workspace Groups (P3)**: Created `WorkspaceService` managing workspaces in `workspaces.json` with 5 default workspaces (`Default`, `University`, `Personal`, `Development`, `Projects`). Safe deletion reassigns orphaned notes to `Default`.
+- **Phase 4 — Productivity Features (P4, P5, P6)**:
+  - **Reminders & Due Dates (P4)**: Created `ReminderService` with background timer scanning, startup missed-reminder scanner, duplicate notification prevention, snooze, and dismiss. Added quick preset commands (1 hour, today evening, tomorrow morning, next week).
+  - **Markdown Editing and Preview (P5)**: Created `MarkdownService` with safe HTML encoding (preventing arbitrary HTML/script injection), formatting parsers (headings, bold, italic, strikethrough, lists, blockquotes, code blocks), markdown file export/import, and native block parsing (`MarkdownBlocks`) bound to Avalonia and WPF preview viewers.
+  - **Reusable Templates (P6)**: Created `TemplateService` with 6 built-in templates (`Lecture Notes`, `Exam Preparation`, `Daily Planner`, `Meeting Notes`, `Project Planning`, `Personal To-do List`), custom template persistence in `templates.json`, and dynamic template menus in dashboards.
+- **Phase 5 — Platform Polish (P7 & P8)**:
+  - **Accessibility & Keyboard Navigation (P7)**: Added `AutomationProperties.Name` across buttons, inputs, and check controls in Avalonia and WPF. Wired keyboard shortcuts (`Ctrl+N`, `Ctrl+P`, `Ctrl+T`, `Ctrl+M`, `Ctrl+F`, `Escape`) and interactive checklist keyboard navigation (`Enter` to insert next item, `Backspace` on empty item to delete).
+  - **Linux Wayland Global Shortcuts & Diagnostics (P8)**: Added diagnostic reporting (`LinuxShortcutDiagnostics`) and environment guidance for GNOME, KDE Plasma, Sway, and Wayland compositor fallback (`pinnote --new-note`).
+- **Test Suite Verification**:
+  - Expanded unit test suite from 69 to 104 comprehensive tests covering async storage, migrations, tags, categories, workspaces, reminders, markdown, templates, checklists, single-instance IPC, and Wayland diagnostics.
+  - 104 passed, 0 failed, 0 skipped.
+
+### Verification
+- `dotnet test tests/PinNote.Tests/`: 104 passed, 0 failed, 0 skipped.
+- `dotnet build`: 0 warnings, 0 errors.
+
+---
+
+*Log updated on November 1, 2026.*
 

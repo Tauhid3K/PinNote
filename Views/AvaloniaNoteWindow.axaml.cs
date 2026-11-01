@@ -41,6 +41,7 @@ namespace PinNote.Views
 
             ContentEditor.TextChanged += ContentEditor_TextChanged;
             ContentEditor.KeyDown += ContentEditor_KeyDown;
+            KeyDown += AvaloniaNoteWindow_KeyDown;
             Closing += AvaloniaNoteWindow_Closing;
 
             PositionChanged += (_, _) => ScheduleGeometryCommit();
@@ -257,6 +258,74 @@ namespace PinNote.Views
                 {
                     ApplyInlineFormatting("<u>", "</u>");
                     e.Handled = true;
+                }
+            }
+        }
+
+        private void AvaloniaNoteWindow_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                if (e.Key == Key.N)
+                {
+                    _viewModel?.NewNoteCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.P)
+                {
+                    _viewModel?.TogglePinCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.T)
+                {
+                    _viewModel?.ToggleNoteTypeCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.M)
+                {
+                    if (_viewModel != null)
+                    {
+                        if (_viewModel.IsMarkdown)
+                        {
+                            _viewModel.ToggleMarkdownPreviewCommand.Execute(null);
+                        }
+                        else
+                        {
+                            _viewModel.ToggleMarkdownModeCommand.Execute(null);
+                        }
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (e.Key == Key.Escape)
+            {
+                FlushPendingEdits();
+                Close();
+                e.Handled = true;
+            }
+        }
+
+        private void ChecklistItem_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (sender is TextBox tb && tb.DataContext is ChecklistItemViewModel currentItem && _viewModel != null)
+            {
+                if (e.Key == Key.Enter)
+                {
+                    _viewModel.InsertChecklistItemAfter(currentItem);
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Back && string.IsNullOrEmpty(tb.Text))
+                {
+                    if (_viewModel.ChecklistItems.Count > 1)
+                    {
+                        _viewModel.RemoveChecklistItem(currentItem);
+                        e.Handled = true;
+                    }
                 }
             }
         }

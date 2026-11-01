@@ -99,5 +99,30 @@ namespace PinNote.Tests
 
             Assert.Equal(expectedWayland, service.IsWayland);
         }
+
+        [Fact]
+        public void LinuxGlobalShortcutService_GetDiagnostics_ReturnsValidDiagnostics()
+        {
+            var service = new LinuxGlobalShortcutService();
+            var diag = service.GetDiagnostics();
+
+            Assert.NotNull(diag);
+            Assert.Equal("pinnote --new-note", diag.RecommendedCommand);
+            Assert.Equal("Ctrl+Alt+N", diag.RecommendedKeyBinding);
+            Assert.False(string.IsNullOrWhiteSpace(diag.Guidance));
+        }
+
+        [Theory]
+        [InlineData("GNOME", "GNOME Wayland detected")]
+        [InlineData("KDE", "KDE Plasma Wayland detected")]
+        [InlineData("plasma", "KDE Plasma Wayland detected")]
+        [InlineData("sway", "Sway Wayland detected")]
+        [InlineData("other-de", "Wayland compositor detected")]
+        public void LinuxGlobalShortcutService_GenerateWaylandGuidance_ReturnsSpecificInstructions(string desktop, string expectedSubstring)
+        {
+            string guidance = LinuxGlobalShortcutService.GenerateWaylandGuidance(desktop);
+            Assert.Contains(expectedSubstring, guidance);
+            Assert.Contains("pinnote --new-note", guidance);
+        }
     }
 }

@@ -235,5 +235,115 @@ namespace PinNote.Tests
             Assert.Equal(modifiedAt, clone.ModifiedAt);
             Assert.NotSame(original, clone);
         }
+
+        // ─── Phase 2 Data Model & Migration Tests ──────────────────────────────
+
+        [Fact]
+        public void OlderJson_WithoutPhase2Fields_MigratesSuccessfully()
+        {
+            string json = @"[{
+                ""Id"": """ + Guid.NewGuid() + @""",
+                ""Title"": ""Legacy Note"",
+                ""Content"": ""Some content""
+            }]";
+
+            var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json);
+            Assert.NotNull(notes);
+
+            bool migrated = DataMigrationService.Migrate(notes!);
+            Assert.True(migrated);
+            Assert.Equal(DataMigrationService.CurrentSchemaVersion, notes![0].SchemaVersion);
+            Assert.NotNull(notes[0].Tags);
+            Assert.Empty(notes[0].Tags);
+            Assert.Equal("Default", notes[0].WorkspaceName);
+        }
+
+        [Fact]
+        public void StorageService_LoadNotes_CreatesMigrationBackup_WhenLegacyDataLoaded()
+        {
+            string testDir = Path.Combine(Path.GetTempPath(), $"pinnote_mig_backup_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(testDir);
+            try
+            {
+                // Write a legacy file without schemaVersion and tags
+                string legacyJson = @"[{
+                    ""Id"": """ + Guid.NewGuid() + @""",
+                    ""Title"": ""Legacy Note Before Migration"",
+                    ""Content"": ""Old Content"",
+                    ""SchemaVersion"": 1
+                }]";
+                File.WriteAllText(Path.Combine(testDir, "notes.json"), legacyJson);
+
+                var storage = new StorageService(testDir);
+                var loaded = storage.LoadNotes();
+
+                Assert.Single(loaded);
+                Assert.Equal(DataMigrationService.CurrentSchemaVersion, loaded[0].SchemaVersion);
+
+                // Verify backup file was created
+                var backupFiles = Directory.GetFiles(testDir, "notes_migration_backup_v1_*.json");
+                Assert.NotEmpty(backupFiles);
+            }
+            finally
+            {
+                try { Directory.Delete(testDir, true); } catch { }
+            }
+        }
+
+        [Fact]
+        public void NoteModel_Clone_PreservesAllPhase2Properties()
+        {
+            var orig = new NoteModel
+            {
+                Title = "Original",
+                Tags = new List<string> { "Math", "Lecture" },
+                Category = "Study",
+                WorkspaceId = Guid.NewGuid(),
+                WorkspaceName = "University",
+                DueDate = DateTime.UtcNow.AddDays(2),
+                ReminderDateTime = DateTime.UtcNow.AddHours(3),
+                IsReminderDismissed = true,
+                IsMarkdownPreview = true,
+                IsTemplate = true,
+                TemplateName = "Student Note"
+            };
+
+            var clone = orig.Clone();
+
+            Assert.Equal(orig.Title, clone.Title);
+            Assert.Equal(orig.Category, clone.Category);
+            Assert.Equal(orig.WorkspaceId, clone.WorkspaceId);
+            Assert.Equal(orig.WorkspaceName, clone.WorkspaceName);
+            Assert.Equal(orig.DueDate, clone.DueDate);
+            Assert.Equal(orig.ReminderDateTime, clone.ReminderDateTime);
+            Assert.Equal(orig.IsReminderDismissed, clone.IsReminderDismissed);
+            Assert.Equal(orig.IsMarkdownPreview, clone.IsMarkdownPreview);
+            Assert.Equal(orig.IsTemplate, clone.IsTemplate);
+            Assert.Equal(orig.TemplateName, clone.TemplateName);
+            Assert.Equal(orig.Tags, clone.Tags);
+            Assert.NotSame(orig.Tags, clone.Tags);
+        }
+
+        [Fact]
+        public void NoteTemplateModel_CreateNote_ProducesValidNote()
+        {
+            var template = new NoteTemplateModel
+            {
+                Name = "Lecture Notes",
+                Content = "# Title\nNotes here",
+                NoteType = NoteType.Markdown,
+                Category = "Study",
+                Tags = new List<string> { "Lecture" }
+            };
+
+            var note = template.CreateNote();
+
+            Assert.NotEqual(Guid.Empty, note.Id);
+            Assert.Equal(template.Name, note.Title);
+            Assert.Equal(template.Content, note.Content);
+            Assert.Equal(NoteType.Markdown, note.NoteType);
+            Assert.Equal("Study", note.Category);
+            Assert.Contains("Lecture", note.Tags);
+        }
     }
 }

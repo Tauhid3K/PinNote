@@ -31,6 +31,45 @@ namespace PinNote.Views
             Closing += AvaloniaDashboardWindow_Closing;
             Opened += AvaloniaDashboardWindow_Opened;
             PropertyChanged += AvaloniaDashboardWindow_PropertyChanged;
+            KeyDown += AvaloniaDashboardWindow_KeyDown;
+        }
+
+        private void AvaloniaDashboardWindow_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                if (e.Key == Key.N)
+                {
+                    _viewModel?.NewNoteCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.F)
+                {
+                    var searchBox = this.FindControl<TextBox>("SearchBox");
+                    if (searchBox != null)
+                    {
+                        searchBox.Focus();
+                        searchBox.SelectAll();
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (e.Key == Key.Escape)
+            {
+                if (!string.IsNullOrEmpty(_viewModel?.SearchText))
+                {
+                    _viewModel.SearchText = string.Empty;
+                    e.Handled = true;
+                }
+                else
+                {
+                    Hide();
+                    e.Handled = true;
+                }
+            }
         }
 
         private void AvaloniaDashboardWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)

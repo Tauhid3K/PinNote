@@ -37,7 +37,17 @@ namespace PinNote.ViewModels
         private readonly AppStateService _appStateService = new();
         private bool _showUiOnStartup;
         private readonly StorageService _storageService;
+        private readonly WorkspaceService _workspaceService;
+        private readonly TemplateService _templateService;
+        private readonly ReminderService _reminderService;
         private readonly ObservableCollection<NoteViewModel> _notes;
+        private readonly ObservableCollection<WorkspaceModel> _workspaces = new();
+        private readonly ObservableCollection<string> _allTags = new();
+        private readonly ObservableCollection<NoteTemplateModel> _templates = new();
+        private WorkspaceModel? _activeWorkspace;
+        private string? _selectedTagFilter;
+        private string? _selectedCategoryFilter;
+        private bool _showRemindersOnly;
         private string _searchText = string.Empty;
         private bool _isStartupEnabled;
         private bool _startMinimized;
@@ -85,7 +95,7 @@ namespace PinNote.ViewModels
             }
 
             _saveDebounceTimer = new System.Timers.Timer(300) { AutoReset = false };
-            _saveDebounceTimer.Elapsed += (_, _) => SaveNotesImmediately();
+            _saveDebounceTimer.Elapsed += (_, _) => TriggerDebouncedSave();
 
             _notes = new ObservableCollection<NoteViewModel>();
             _notes.CollectionChanged += Notes_CollectionChanged;
@@ -103,6 +113,7 @@ namespace PinNote.ViewModels
             {
                 _windowManager?.FlushPendingEdits();
                 SaveNotesImmediately();
+                _storageService.FlushPendingSave();
                 _windowManager?.Shutdown();
             });
 
@@ -125,22 +136,90 @@ namespace PinNote.ViewModels
             // Load theme preference
             _themeMode = _appStateService.GetThemeMode();
 
+            _workspaceService = new WorkspaceService(_storageService.StorageFolderPath);
+            foreach (var ws in _workspaceService.LoadWorkspaces())
+            {
+                _workspaces.Add(ws);
+            }
+            _activeWorkspace = _workspaces.FirstOrDefault(w => w.IsDefault) ?? _workspaces.FirstOrDefault();
+
+            _templateService = new TemplateService(_storageService.StorageFolderPath);
+            foreach (var t in _templateService.LoadTemplates())
+            {
+                _templates.Add(t);
+            }
+
+            ClearFiltersCommand = new RelayCommand(_ => ClearFilters());
+            CreateWorkspaceCommand = new RelayCommand(p => CreateWorkspace(p as string));
+            RenameWorkspaceCommand = new RelayCommand(p =>
+            {
+                if (p is Tuple<WorkspaceModel, string> tuple)
+                {
+                    RenameWorkspace(tuple.Item1, tuple.Item2);
+                }
+            });
+            DeleteWorkspaceCommand = new RelayCommand(p => DeleteWorkspace(p as WorkspaceModel));
+            SwitchWorkspaceCommand = new RelayCommand(p => SwitchWorkspace(p as WorkspaceModel));
+
+            RenameTagCommand = new RelayCommand(p =>
+            {
+                if (p is Tuple<string, string> tuple)
+                {
+                    RenameTag(tuple.Item1, tuple.Item2);
+                }
+            });
+            DeleteTagCommand = new RelayCommand(p => DeleteTag(p as string));
+
+            NewNoteFromTemplateCommand = new RelayCommand(p => CreateNoteFromTemplate(p as NoteTemplateModel));
+            CreateTemplateFromNoteCommand = new RelayCommand(p => CreateTemplateFromNote(p as NoteViewModel));
+            DuplicateTemplateCommand = new RelayCommand(p => DuplicateTemplate(p as NoteTemplateModel));
+            DeleteTemplateCommand = new RelayCommand(p => DeleteTemplate(p as NoteTemplateModel));
+            ToggleRemindersFilterCommand = new RelayCommand(_ => ShowRemindersOnly = !ShowRemindersOnly);
+
+            _reminderService = new ReminderService(this);
+            _reminderService.Start();
+
             LoadNotes();
+            NotifyTagsChanged();
         }
 
         public ObservableCollection<NoteViewModel> Notes => _notes;
 
         /// <summary>
-        /// Notes filtered by the current search query and sorted by the current <see cref="SortMode"/>.
+        /// Notes filtered by the current search query, tags, category, and workspace,
+        /// sorted by the current <see cref="SortMode"/>.
         /// Pinned notes always appear first within each sort group.
         /// </summary>
         public IEnumerable<NoteViewModel> SortedFilteredNotes
         {
             get
             {
-                IEnumerable<NoteViewModel> source = string.IsNullOrWhiteSpace(SearchText)
-                    ? _notes
-                    : _notes.Where(n => SearchService.Matches(n.Title, n.SearchableText, SearchText));
+                IEnumerable<NoteViewModel> source = _notes;
+
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    source = source.Where(n => SearchService.Matches(n.Title, n.SearchableText, SearchText));
+                }
+
+                if (!string.IsNullOrWhiteSpace(SelectedTagFilter) && SelectedTagFilter != "All Tags")
+                {
+                    source = source.Where(n => n.Tags.Any(t => string.Equals(t, SelectedTagFilter, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                if (!string.IsNullOrWhiteSpace(SelectedCategoryFilter) && SelectedCategoryFilter != "All Categories")
+                {
+                    source = source.Where(n => string.Equals(n.Category, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (_activeWorkspace != null && !string.IsNullOrWhiteSpace(_activeWorkspace.Name) && _activeWorkspace.Name != "All Workspaces")
+                {
+                    source = source.Where(n => string.Equals(n.WorkspaceName, _activeWorkspace.Name, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (_showRemindersOnly)
+                {
+                    source = source.Where(n => n.HasReminder);
+                }
 
                 // Pinned notes always lead; secondary key is the selected sort criterion
                 return _sortMode switch
@@ -171,6 +250,285 @@ namespace PinNote.ViewModels
 
         /// <summary>Kept for backward compatibility with existing dashboard XAML bindings.</summary>
         public IEnumerable<NoteViewModel> FilteredNotes => SortedFilteredNotes;
+
+        public ObservableCollection<WorkspaceModel> Workspaces => _workspaces;
+
+        public WorkspaceModel? ActiveWorkspace
+        {
+            get => _activeWorkspace;
+            set
+            {
+                if (SetProperty(ref _activeWorkspace, value))
+                {
+                    OnPropertyChanged(nameof(SortedFilteredNotes));
+                    OnPropertyChanged(nameof(FilteredNotes));
+                }
+            }
+        }
+
+        public ObservableCollection<string> AllTags => _allTags;
+        public IReadOnlyList<string> Categories => DataMigrationService.DefaultCategories;
+
+        public string? SelectedTagFilter
+        {
+            get => _selectedTagFilter;
+            set
+            {
+                if (SetProperty(ref _selectedTagFilter, value))
+                {
+                    OnPropertyChanged(nameof(SortedFilteredNotes));
+                    OnPropertyChanged(nameof(FilteredNotes));
+                }
+            }
+        }
+
+        public string? SelectedCategoryFilter
+        {
+            get => _selectedCategoryFilter;
+            set
+            {
+                if (SetProperty(ref _selectedCategoryFilter, value))
+                {
+                    OnPropertyChanged(nameof(SortedFilteredNotes));
+                    OnPropertyChanged(nameof(FilteredNotes));
+                }
+            }
+        }
+
+        public bool ShowRemindersOnly
+        {
+            get => _showRemindersOnly;
+            set
+            {
+                if (SetProperty(ref _showRemindersOnly, value))
+                {
+                    OnPropertyChanged(nameof(SortedFilteredNotes));
+                    OnPropertyChanged(nameof(FilteredNotes));
+                }
+            }
+        }
+
+        public ObservableCollection<NoteTemplateModel> Templates => _templates;
+        public ReminderService Reminders => _reminderService;
+
+        public ICommand ClearFiltersCommand { get; }
+        public ICommand CreateWorkspaceCommand { get; }
+        public ICommand RenameWorkspaceCommand { get; }
+        public ICommand DeleteWorkspaceCommand { get; }
+        public ICommand SwitchWorkspaceCommand { get; }
+        public ICommand RenameTagCommand { get; }
+        public ICommand DeleteTagCommand { get; }
+        public ICommand NewNoteFromTemplateCommand { get; }
+        public ICommand CreateTemplateFromNoteCommand { get; }
+        public ICommand DuplicateTemplateCommand { get; }
+        public ICommand DeleteTemplateCommand { get; }
+        public ICommand ToggleRemindersFilterCommand { get; }
+
+        public void ClearFilters()
+        {
+            SearchText = string.Empty;
+            SelectedTagFilter = null;
+            SelectedCategoryFilter = null;
+            ShowRemindersOnly = false;
+        }
+
+        public void NotifyTagsChanged()
+        {
+            var tags = _notes.SelectMany(n => n.Tags)
+                             .Where(t => !string.IsNullOrWhiteSpace(t))
+                             .Distinct(StringComparer.OrdinalIgnoreCase)
+                             .OrderBy(t => t, StringComparer.OrdinalIgnoreCase)
+                             .ToList();
+
+            _allTags.Clear();
+            foreach (var tag in tags)
+            {
+                _allTags.Add(tag);
+            }
+            OnPropertyChanged(nameof(AllTags));
+        }
+
+        public void CreateWorkspace(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            string clean = name.Trim();
+            if (_workspaces.Any(w => string.Equals(w.Name, clean, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            var ws = new WorkspaceModel
+            {
+                Id = Guid.NewGuid(),
+                Name = clean,
+                IsDefault = false,
+                Order = _workspaces.Count
+            };
+
+            _workspaces.Add(ws);
+            _workspaceService.SaveWorkspaces(_workspaces.ToList());
+            ActiveWorkspace = ws;
+        }
+
+        public void RenameWorkspace(WorkspaceModel? ws, string? newName)
+        {
+            if (ws == null || string.IsNullOrWhiteSpace(newName)) return;
+            string clean = newName.Trim();
+            string oldName = ws.Name;
+            ws.Name = clean;
+
+            foreach (var note in _notes.Where(n => string.Equals(n.WorkspaceName, oldName, StringComparison.OrdinalIgnoreCase) || n.WorkspaceId == ws.Id))
+            {
+                note.WorkspaceName = clean;
+            }
+
+            _workspaceService.SaveWorkspaces(_workspaces.ToList());
+            SaveNotesImmediately();
+            OnPropertyChanged(nameof(ActiveWorkspace));
+            OnPropertyChanged(nameof(SortedFilteredNotes));
+        }
+
+        public void DeleteWorkspace(WorkspaceModel? ws)
+        {
+            if (ws == null || ws.IsDefault) return;
+
+            var defaultWs = _workspaces.FirstOrDefault(w => w.IsDefault) ?? _workspaces.FirstOrDefault();
+            string targetName = defaultWs?.Name ?? "Default";
+            Guid? targetId = defaultWs?.Id ?? WorkspaceService.DefaultWorkspaceId;
+
+            foreach (var note in _notes.Where(n => string.Equals(n.WorkspaceName, ws.Name, StringComparison.OrdinalIgnoreCase) || n.WorkspaceId == ws.Id))
+            {
+                note.WorkspaceName = targetName;
+                note.WorkspaceId = targetId;
+            }
+
+            _workspaces.Remove(ws);
+            _workspaceService.SaveWorkspaces(_workspaces.ToList());
+            SaveNotesImmediately();
+
+            if (ActiveWorkspace == ws)
+            {
+                ActiveWorkspace = defaultWs;
+            }
+        }
+
+        public void SwitchWorkspace(WorkspaceModel? ws)
+        {
+            if (ws == null) return;
+            ActiveWorkspace = ws;
+
+            if (_windowManager != null)
+            {
+                foreach (var note in _notes)
+                {
+                    if (string.Equals(note.WorkspaceName, ws.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (note.GetModel().IsVisible)
+                        {
+                            _windowManager.OpenNote(note);
+                        }
+                    }
+                    else
+                    {
+                        _windowManager.CloseNote(note.Id);
+                    }
+                }
+            }
+        }
+
+        public void RenameTag(string? oldTag, string? newTag)
+        {
+            if (string.IsNullOrWhiteSpace(oldTag) || string.IsNullOrWhiteSpace(newTag)) return;
+            string oldClean = oldTag.Trim();
+            string newClean = newTag.Trim();
+
+            bool changed = false;
+            foreach (var note in _notes)
+            {
+                if (note.Tags.Contains(oldClean, StringComparer.OrdinalIgnoreCase))
+                {
+                    note.RemoveTag(oldClean);
+                    note.AddTag(newClean);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                NotifyTagsChanged();
+                SaveNotesImmediately();
+            }
+        }
+
+        public void DeleteTag(string? tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return;
+            string clean = tag.Trim();
+
+            bool changed = false;
+            foreach (var note in _notes)
+            {
+                if (note.Tags.Contains(clean, StringComparer.OrdinalIgnoreCase))
+                {
+                    note.RemoveTag(clean);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                NotifyTagsChanged();
+                SaveNotesImmediately();
+            }
+        }
+
+        public void CreateNoteFromTemplate(NoteTemplateModel? template)
+        {
+            if (template == null) return;
+            var noteModel = template.CreateNote();
+            if (ActiveWorkspace != null && !string.IsNullOrWhiteSpace(ActiveWorkspace.Name) && ActiveWorkspace.Name != "All Workspaces")
+            {
+                noteModel.WorkspaceName = ActiveWorkspace.Name;
+                noteModel.WorkspaceId = ActiveWorkspace.Id;
+            }
+            AddNoteViewModel(noteModel, openWindow: true);
+            SaveNotesImmediately();
+        }
+
+        public void CreateTemplateFromNote(NoteViewModel? note)
+        {
+            if (note == null) return;
+            var template = new NoteTemplateModel
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{note.Title} Template",
+                Description = $"Custom template created from '{note.Title}'",
+                Content = note.Content,
+                NoteType = note.NoteType,
+                ChecklistItems = note.ChecklistItems.Select(i => i.GetModel().Clone()).ToList(),
+                Tags = note.Tags.ToList(),
+                Category = note.Category,
+                IsBuiltIn = false
+            };
+
+            _templates.Add(template);
+            _templateService.SaveCustomTemplates(_templates);
+        }
+
+        public void DuplicateTemplate(NoteTemplateModel? source)
+        {
+            if (source == null) return;
+            var dup = _templateService.DuplicateTemplate(source);
+            _templates.Add(dup);
+            _templateService.SaveCustomTemplates(_templates);
+        }
+
+        public void DeleteTemplate(NoteTemplateModel? template)
+        {
+            if (template == null || template.IsBuiltIn) return;
+            _templates.Remove(template);
+            _templateService.SaveCustomTemplates(_templates);
+        }
 
         public NoteSortMode SortMode
         {
@@ -328,7 +686,7 @@ namespace PinNote.ViewModels
 
         public void CreateNewNote(bool openWindow = true)
         {
-            var newNote = new NoteModel();
+            var newNote = new NoteModel { SchemaVersion = 2 };
             AddNoteViewModel(newNote, openWindow);
             SaveNotesImmediately();
         }
@@ -342,6 +700,7 @@ namespace PinNote.ViewModels
 
             var duplicate = new NoteModel
             {
+                SchemaVersion = 2,
                 Title = BuildDuplicateTitle(source.Title),
                 Content = source.Content,
                 NoteType = source.NoteType,
@@ -359,7 +718,13 @@ namespace PinNote.ViewModels
                 IsCrystalClear = source.IsCrystalClear,
                 CustomTextColor = source.CustomTextColor,
                 TextOpacity = source.TextOpacity,
-                IsVisible = true
+                IsVisible = true,
+                Tags = source.Tags.ToList(),
+                Category = source.Category,
+                WorkspaceId = source.WorkspaceId,
+                WorkspaceName = source.WorkspaceName,
+                DueDate = source.DueDate,
+                IsMarkdownPreview = source.IsMarkdownPreview
             };
 
             AddNoteViewModel(duplicate, openWindow: true);
@@ -473,6 +838,32 @@ namespace PinNote.ViewModels
             _saveDebounceTimer.Start();
         }
 
+        private void TriggerDebouncedSave()
+        {
+            _saveDebounceTimer.Stop();
+
+            if (_windowManager != null)
+            {
+                _windowManager.RunOnUiThread(PerformAsyncBackgroundSave);
+            }
+            else
+            {
+                PerformAsyncBackgroundSave();
+            }
+        }
+
+        private void PerformAsyncBackgroundSave()
+        {
+            long snapshotTime = DateTime.UtcNow.Ticks;
+            var models = _notes.Select(n => n.GetModel().Clone()).ToList();
+
+            Task.Run(async () =>
+            {
+                string json = JsonConvert.SerializeObject(models, Formatting.Indented);
+                await _storageService.SaveNotesJsonAsync(json, models.Count, snapshotTime);
+            });
+        }
+
         public void SaveNotesImmediately()
         {
             _saveDebounceTimer.Stop();
@@ -484,6 +875,33 @@ namespace PinNote.ViewModels
             else
             {
                 PerformSave();
+            }
+            _storageService.FlushPendingSave();
+        }
+
+        public async Task SaveNotesImmediatelyAsync()
+        {
+            _saveDebounceTimer.Stop();
+
+            long snapshotTime = DateTime.UtcNow.Ticks;
+            List<NoteModel>? models = null;
+
+            if (_windowManager != null)
+            {
+                _windowManager.RunOnUiThread(() =>
+                {
+                    models = _notes.Select(n => n.GetModel().Clone()).ToList();
+                });
+            }
+            else
+            {
+                models = _notes.Select(n => n.GetModel().Clone()).ToList();
+            }
+
+            if (models != null)
+            {
+                string json = await Task.Run(() => JsonConvert.SerializeObject(models, Formatting.Indented));
+                await _storageService.SaveNotesJsonAsync(json, models.Count, snapshotTime);
             }
         }
 
@@ -517,7 +935,7 @@ namespace PinNote.ViewModels
             _windowManager.FlushPendingEdits();
 
             var models = _notes.Select(n => n.GetModel().Clone()).ToList();
-            var result = ImportExportService.ExportNotes(models, filePath);
+            var result = await ImportExportService.ExportNotesAsync(models, filePath);
 
             if (result.Success)
             {
@@ -542,7 +960,7 @@ namespace PinNote.ViewModels
             _windowManager.FlushPendingEdits();
 
             var existingModels = _notes.Select(n => n.GetModel().Clone()).ToList();
-            var result = ImportExportService.ImportNotes(filePath, existingModels, _storageService.StorageFolderPath);
+            var result = await ImportExportService.ImportNotesAsync(filePath, existingModels, _storageService.StorageFolderPath);
 
             if (result.Success && result.ImportedNotes.Count > 0)
             {
@@ -614,6 +1032,7 @@ namespace PinNote.ViewModels
 
         private void Notes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            NotifyTagsChanged();
             OnPropertyChanged(nameof(SortedFilteredNotes));
             OnPropertyChanged(nameof(FilteredNotes));
         }
@@ -622,7 +1041,9 @@ namespace PinNote.ViewModels
         {
             if (e.PropertyName is nameof(NoteViewModel.Title) or nameof(NoteViewModel.Content)
                 or nameof(NoteViewModel.SearchableText) or nameof(NoteViewModel.IsPinned)
-                or nameof(NoteViewModel.ModifiedAt))
+                or nameof(NoteViewModel.ModifiedAt) or nameof(NoteViewModel.Category)
+                or nameof(NoteViewModel.WorkspaceName) or nameof(NoteViewModel.Tags)
+                or nameof(NoteViewModel.ReminderDateTime) or nameof(NoteViewModel.IsReminderDismissed))
             {
                 OnPropertyChanged(nameof(SortedFilteredNotes));
                 OnPropertyChanged(nameof(FilteredNotes));

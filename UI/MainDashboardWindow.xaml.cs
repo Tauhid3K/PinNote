@@ -33,6 +33,7 @@ namespace PinNote.UI
             this.LocationChanged += MainDashboardWindow_LocationChanged;
             this.SizeChanged += MainDashboardWindow_SizeChanged;
             this.Closing += MainDashboardWindow_Closing;
+            this.KeyDown += MainDashboardWindow_KeyDown;
 
             LoadWindowState();
         }
@@ -187,6 +188,43 @@ namespace PinNote.UI
             this.WindowState = this.WindowState == WindowState.Maximized 
                 ? WindowState.Normal 
                 : WindowState.Maximized;
+        }
+
+        private void MainDashboardWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                if (e.Key == Key.N)
+                {
+                    if (DataContext is MainViewModel vm)
+                    {
+                        vm.NewNoteCommand.Execute(null);
+                        e.Handled = true;
+                        return;
+                    }
+                }
+                if (e.Key == Key.F)
+                {
+                    SearchBox?.Focus();
+                    SearchBox?.SelectAll();
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (e.Key == Key.Escape)
+            {
+                if (DataContext is MainViewModel vm && !string.IsNullOrEmpty(vm.SearchText))
+                {
+                    vm.SearchText = string.Empty;
+                    e.Handled = true;
+                }
+                else
+                {
+                    MinimizeToTray();
+                    e.Handled = true;
+                }
+            }
         }
 
         private void NoteCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
