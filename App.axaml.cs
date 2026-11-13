@@ -18,6 +18,8 @@ namespace PinNote
         private SingleInstanceService? _singleInstanceService;
         private IGlobalShortcutService? _shortcutService;
 
+        public static bool IsShuttingDown { get; set; } = false;
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -49,37 +51,54 @@ namespace PinNote
 
                 try
                 {
-                    _shortcutService = new LinuxGlobalShortcutService();
-                    bool shortcutRegistered = _shortcutService.RegisterQuickNoteShortcut(() =>
+                    if (OperatingSystem.IsWindows())
                     {
-                        windowManager.RunOnUiThread(() =>
+                        _shortcutService = new WindowsGlobalShortcutService();
+                        _shortcutService.RegisterQuickNoteShortcut(() =>
                         {
-                            _mainViewModel.CreateNewNote(openWindow: true);
-                            _mainViewModel.BringNotesOnTop();
+                            windowManager.RunOnUiThread(() =>
+                            {
+                                _mainViewModel.CreateNewNote(openWindow: true);
+                                _mainViewModel.BringNotesOnTop();
+                            });
                         });
-                    });
-
-                    if (!shortcutRegistered && _appStateService.ShouldShowWaylandShortcutNotice())
+                    }
+                    else
                     {
-                        // Defer to avoid racing with window initialization
-                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        _shortcutService = new LinuxGlobalShortcutService();
+                        bool shortcutRegistered = _shortcutService.RegisterQuickNoteShortcut(() =>
                         {
-                            NotificationService.ShowNotification(
-                                "PinNote — Keyboard Shortcut",
-                                "Global shortcut (Ctrl+Alt+N) is not available under Wayland. " +
-                                "To create notes instantly from anywhere, open your desktop keyboard settings " +
-                                "and bind 'pinnote --new-note' to your preferred key combination. " +
-                                "(This notice will not appear again.)");
-                        }, Avalonia.Threading.DispatcherPriority.Background);
+                            windowManager.RunOnUiThread(() =>
+                            {
+                                _mainViewModel.CreateNewNote(openWindow: true);
+                                _mainViewModel.BringNotesOnTop();
+                            });
+                        });
+
+                        if (!shortcutRegistered && _appStateService.ShouldShowWaylandShortcutNotice())
+                        {
+                            // Defer to avoid racing with window initialization
+                            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                            {
+                                NotificationService.ShowNotification(
+                                    "PinNote — Keyboard Shortcut",
+                                    "Global shortcut (Ctrl+Alt+N) is not available under Wayland. " +
+                                    "To create notes instantly from anywhere, open your desktop keyboard settings " +
+                                    "and bind 'pinnote --new-note' to your preferred key combination. " +
+                                    "(This notice will not appear again.)");
+                            }, Avalonia.Threading.DispatcherPriority.Background);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"LinuxGlobalShortcutService error: {ex}");
+                    Debug.WriteLine($"GlobalShortcutService error: {ex}");
                 }
 
                 desktop.Exit += (_, _) =>
                 {
+                    IsShuttingDown = true;
+                    if (_mainViewModel != null) _mainViewModel.IsShuttingDown = true;
                     _mainViewModel?.Storage.FlushPendingSave();
                     _shortcutService?.Dispose();
                     _singleInstanceService?.Dispose();
@@ -143,7 +162,7 @@ namespace PinNote
                 {
                     if (showUi && _mainViewModel.Notes.Count > 0)
                     {
-                        _mainViewModel.ShowAllNotes(minimizeDashboard: true);
+                        _mainViewModel.RestoreVisibleNotes(minimizeDashboard: true);
                     }
                 }
                 else
@@ -151,7 +170,7 @@ namespace PinNote
                     _mainViewModel.ShowDashboard();
                     if (showUi && _mainViewModel.Notes.Count > 0)
                     {
-                        _mainViewModel.ShowAllNotes(minimizeDashboard: false);
+                        _mainViewModel.RestoreVisibleNotes(minimizeDashboard: false);
                     }
                     if (_appStateService.ShouldShowFirstRunUi())
                     {

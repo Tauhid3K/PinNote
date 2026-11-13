@@ -192,16 +192,28 @@
                         </Border>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Content="Import"
+                            <Button x:Name="ImportButton"
+                                    Content="Import ▾"
                                     Margin="0,0,6,0"
                                     Padding="8,4"
                                     Background="Transparent"
                                     BorderThickness="1"
                                     BorderBrush="{DynamicResource SearchBoxBorderBrush}"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Command="{Binding ImportNotesCommand}"
-                                    ToolTip="Import notes from JSON backup"
-                                    AutomationProperties.Name="Import notes" />
+                                    Click="ImportButton_Click"
+                                    ToolTip="Import notes from JSON backup (Merge or Replace)"
+                                    AutomationProperties.Name="Import notes">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="📥 Merge Notes (Keep existing notes)"
+                                                  Command="{Binding ImportNotesMergeCommand}"
+                                                  ToolTip="Adds notes from backup file without removing your existing notes." />
+                                        <MenuItem Header="⚠️ Replace All Notes (Overwrite existing)..."
+                                                  Command="{Binding ImportNotesReplaceCommand}"
+                                                  ToolTip="Replaces all current notes with notes from the backup file. A safety backup will be created first." />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
                             <Button Content="Export"
                                     Margin="0,0,6,0"
                                     Padding="8,4"
@@ -237,9 +249,21 @@
                         <ComboBox ItemsSource="{Binding Workspaces}"
                                   SelectedItem="{Binding ActiveWorkspace, Mode=TwoWay}"
                                   DisplayMemberPath="Name"
-                                  MinWidth="110" Height="26" Margin="0,0,10,0"
+                                  MinWidth="110" Height="26" Margin="0,0,4,0"
                                   ToolTip="Filter by workspace"
                                   AutomationProperties.Name="Workspace selector" />
+
+                        <!-- Workspace Actions Menu -->
+                        <Menu Background="Transparent" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <MenuItem Header="⚙"
+                                      Foreground="{DynamicResource SecondaryTextBrush}"
+                                      ToolTip="Manage Workspaces"
+                                      AutomationProperties.Name="Workspace options">
+                                <MenuItem Header="New Workspace..." Command="{Binding PromptCreateWorkspaceCommand}" />
+                                <MenuItem Header="Rename Current Workspace..." Command="{Binding PromptRenameWorkspaceCommand}" />
+                                <MenuItem Header="Delete Current Workspace" Command="{Binding PromptDeleteWorkspaceCommand}" />
+                            </MenuItem>
+                        </Menu>
 
                         <!-- Category Filter -->
                         <TextBlock Text="Category:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" />
@@ -259,7 +283,7 @@
 
                         <!-- Reminders Toggle -->
                         <CheckBox Content="⏰ Reminders"
-                                  IsChecked="{Binding ShowRemindersOnlyFilter, Mode=TwoWay}"
+                                  IsChecked="{Binding ShowRemindersOnly, Mode=TwoWay}"
                                   VerticalAlignment="Center"
                                   Margin="0,0,10,0"
                                   Foreground="{DynamicResource PrimaryTextBrush}"
@@ -279,20 +303,39 @@
                                 ToolTip="Reset all filters"
                                 AutomationProperties.Name="Clear all filters" />
 
+                        <!-- Sort Menu -->
+                        <Menu Background="Transparent" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <MenuItem Header="Sort Notes ▾"
+                                      Foreground="{DynamicResource PrimaryTextBrush}"
+                                      Height="26"
+                                      AutomationProperties.Name="Sort notes menu">
+                                <MenuItem Header="Default order" Command="{Binding SetSortModeCommand}" CommandParameter="Default" />
+                                <MenuItem Header="Title A → Z" Command="{Binding SetSortModeCommand}" CommandParameter="TitleAscending" />
+                                <MenuItem Header="Title Z → A" Command="{Binding SetSortModeCommand}" CommandParameter="TitleDescending" />
+                                <MenuItem Header="Last modified (newest first)" Command="{Binding SetSortModeCommand}" CommandParameter="ModifiedNewest" />
+                                <MenuItem Header="Last modified (oldest first)" Command="{Binding SetSortModeCommand}" CommandParameter="ModifiedOldest" />
+                                <MenuItem Header="Date created (newest first)" Command="{Binding SetSortModeCommand}" CommandParameter="CreatedNewest" />
+                                <MenuItem Header="Date created (oldest first)" Command="{Binding SetSortModeCommand}" CommandParameter="CreatedOldest" />
+                            </MenuItem>
+                        </Menu>
+
                         <!-- Templates Menu -->
                         <Menu Background="Transparent" VerticalAlignment="Center">
                             <MenuItem Header="Templates ▾"
                                       Foreground="{DynamicResource PrimaryTextBrush}"
-                                      ItemsSource="{Binding Templates}"
                                       Height="26"
                                       AutomationProperties.Name="Templates menu">
-                                <MenuItem.ItemContainerStyle>
-                                    <Style TargetType="MenuItem">
-                                        <Setter Property="Header" Value="{Binding Name}" />
-                                        <Setter Property="Command" Value="{Binding DataContext.NewNoteFromTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                        <Setter Property="CommandParameter" Value="{Binding}" />
-                                    </Style>
-                                </MenuItem.ItemContainerStyle>
+                                <MenuItem Header="New Blank Template..." Command="{Binding PromptCreateBlankTemplateCommand}" />
+                                <Separator />
+                                <MenuItem Header="Templates List" ItemsSource="{Binding Templates}">
+                                    <MenuItem.ItemContainerStyle>
+                                        <Style TargetType="MenuItem">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="Command" Value="{Binding DataContext.NewNoteFromTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                        </Style>
+                                    </MenuItem.ItemContainerStyle>
+                                </MenuItem>
                             </MenuItem>
                         </Menu>
                     </WrapPanel>

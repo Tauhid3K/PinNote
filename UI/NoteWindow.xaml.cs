@@ -361,6 +361,7 @@ namespace PinNote.UI
         private void CloseNote_Click(object sender, RoutedEventArgs e)
         {
             _isClosing = true;
+            _viewModel.IsVisible = false;
             HideChrome();
             SaveEditorContent();
             Close();
@@ -368,6 +369,10 @@ namespace PinNote.UI
 
         private void NoteWindow_Closing(object? sender, CancelEventArgs e)
         {
+            if (!App.IsShuttingDown)
+            {
+                _viewModel.IsVisible = false;
+            }
             _isClosing = true;
             HideChrome();
             SaveEditorContent();
@@ -393,6 +398,57 @@ namespace PinNote.UI
 
             _saveTimer.Stop();
             _saveTimer.Tick -= SaveTimer_Tick;
+        }
+
+        private void AddTagBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (AddTagPopup != null)
+            {
+                AddTagPopup.IsOpen = true;
+                NewTagTextBox?.Focus();
+            }
+        }
+
+        private void NewTagTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                SubmitNewTag();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                if (AddTagPopup != null) AddTagPopup.IsOpen = false;
+                e.Handled = true;
+            }
+        }
+
+        private void ExistingTagsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ExistingTagsCombo?.SelectedItem is string tag && !string.IsNullOrWhiteSpace(tag))
+            {
+                _viewModel.AddTag(tag);
+                if (AddTagPopup != null) AddTagPopup.IsOpen = false;
+                ExistingTagsCombo.SelectedItem = null;
+            }
+        }
+
+        private void ConfirmAddTag_Click(object sender, RoutedEventArgs e)
+        {
+            SubmitNewTag();
+        }
+
+        private void SubmitNewTag()
+        {
+            if (NewTagTextBox != null && !string.IsNullOrWhiteSpace(NewTagTextBox.Text))
+            {
+                _viewModel.AddTag(NewTagTextBox.Text.Trim());
+                NewTagTextBox.Text = string.Empty;
+            }
+            if (AddTagPopup != null)
+            {
+                AddTagPopup.IsOpen = false;
+            }
         }
 
         private void BoldButton_Click(object sender, RoutedEventArgs e)

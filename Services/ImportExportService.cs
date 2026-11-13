@@ -36,6 +36,7 @@ namespace PinNote.Services
     public static class ImportExportService
     {
         public const int CurrentSchemaVersion = 1;
+        public const int MaxSupportedSchemaVersion = 2;
 
         public static ExportResult ExportNotes(IEnumerable<NoteModel> notes, string destinationPath)
         {
@@ -159,7 +160,8 @@ namespace PinNote.Services
         public static ImportResult ImportNotes(
             string sourceFilePath,
             IEnumerable<NoteModel> existingNotes,
-            string storageFolderPath)
+            string storageFolderPath,
+            ImportMode mode = ImportMode.Merge)
         {
             try
             {
@@ -174,7 +176,7 @@ namespace PinNote.Services
                     return new ImportResult { Success = false, Message = "The selected import file is empty." };
                 }
 
-                return ProcessImportJson(json, existingNotes, storageFolderPath, isAsync: false).GetAwaiter().GetResult();
+                return ProcessImportJson(json, existingNotes, storageFolderPath, mode, isAsync: false).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -189,7 +191,8 @@ namespace PinNote.Services
         public static async Task<ImportResult> ImportNotesAsync(
             string sourceFilePath,
             IEnumerable<NoteModel> existingNotes,
-            string storageFolderPath)
+            string storageFolderPath,
+            ImportMode mode = ImportMode.Merge)
         {
             try
             {
@@ -204,7 +207,7 @@ namespace PinNote.Services
                     return new ImportResult { Success = false, Message = "The selected import file is empty." };
                 }
 
-                return await ProcessImportJson(json, existingNotes, storageFolderPath, isAsync: true);
+                return await ProcessImportJson(json, existingNotes, storageFolderPath, mode, isAsync: true);
             }
             catch (Exception ex)
             {
@@ -220,43 +223,128 @@ namespace PinNote.Services
             string json,
             IEnumerable<NoteModel> existingNotes,
             string storageFolderPath,
+            ImportMode mode,
             bool isAsync)
         {
-            List<NoteModel>? candidateNotes = null;
-            int schemaVersion = 1;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new ImportResult { Success = false, Message = "The selected import file is empty." };
+            }
 
-            // Try parsing as NoteExportPackage first
+            JToken token;
             try
             {
-                var token = JToken.Parse(json);
-                if (token is JObject obj)
-                {
-                    if (obj.TryGetValue("schemaVersion", StringComparison.OrdinalIgnoreCase, out var verToken))
-                    {
-                        schemaVersion = verToken.Value<int>();
-                    }
-
-                    if (obj.TryGetValue("notes", StringComparison.OrdinalIgnoreCase, out var notesToken))
-                    {
-                        candidateNotes = notesToken.ToObject<List<NoteModel>>();
-                    }
-                }
-                else if (token is JArray)
-                {
-                    // Raw list of notes from a direct notes.json backup
-                    candidateNotes = JsonConvert.DeserializeObject<List<NoteModel>>(json);
-                }
+                token = JToken.Parse(json);
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
                 return new ImportResult { Success = false, Message = $"Invalid JSON format in import file: {ex.Message}" };
             }
 
-            if (candidateNotes == null || candidateNotes.Count == 0)
+            int packageSchemaVersion = 1;
+            JArray? notesArray = null;
+
+            if (token is JObject obj)
+            {
+                if (obj.TryGetValue("schemaVersion", StringComparison.OrdinalIgnoreCase, out var verToken) ||
+                    obj.TryGetValue("SchemaVersion", StringComparison.OrdinalIgnoreCase, out verToken))
+                {
+                    try
+                    {
+                        packageSchemaVersion = verToken.Value<int>();
+                    }
+                    catch
+                    {
+                        packageSchemaVersion = 1;
+                    }
+                }
+
+                if (packageSchemaVersion > MaxSupportedSchemaVersion)
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = $"Unsupported package schema version {packageSchemaVersion}. " +
+                                  $"This file was created by a newer version of PinNote (maximum supported version is {MaxSupportedSchemaVersion}) and cannot be imported."
+                    };
+                }
+
+                if (packageSchemaVersion < 1)
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = $"Invalid package schema version {packageSchemaVersion}."
+                    };
+                }
+
+                if (obj.TryGetValue("notes", StringComparison.OrdinalIgnoreCase, out var nToken) ||
+                    obj.TryGetValue("Notes", StringComparison.OrdinalIgnoreCase, out nToken))
+                {
+                    notesArray = nToken as JArray;
+                }
+                else
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = "No valid notes found in the import package (missing 'notes' array)."
+                    };
+                }
+            }
+            else if (token is JArray arr)
+            {
+                // Raw list of notes from a direct notes.json backup
+                notesArray = arr;
+                packageSchemaVersion = 1;
+            }
+            else
+            {
+                return new ImportResult
+                {
+                    Success = false,
+                    Message = "Invalid import file format: Root must be a JSON object or array."
+                };
+            }
+
+            if (notesArray == null || notesArray.Count == 0)
             {
                 return new ImportResult { Success = false, Message = "No valid notes found in the import file." };
             }
 
+            var candidateNotes = new List<NoteModel>();
+            int parseErrors = 0;
+
+            foreach (var item in notesArray)
+            {
+                if (item is not JObject noteObj)
+                {
+                    parseErrors++;
+                    continue;
+                }
+
+                try
+                {
+                    var note = noteObj.ToObject<NoteModel>();
+                    if (note == null)
+                    {
+                        parseErrors++;
+                        continue;
+                    }
+                    candidateNotes.Add(note);
+                }
+                catch
+                {
+                    parseErrors++;
+                }
+            }
+
+            if (candidateNotes.Count == 0)
+            {
+                return new ImportResult { Success = false, Message = "No valid notes could be parsed from the import file." };
+            }
+
+            // Upgrade/migrate older notes to current schema
             DataMigrationService.Migrate(candidateNotes, storageFolderPath);
 
             // Create a pre-import backup of existing notes before any changes
@@ -268,7 +356,8 @@ namespace PinNote.Services
                     Directory.CreateDirectory(storageFolderPath);
                 }
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-                backupPath = Path.Combine(storageFolderPath, $"notes_backup_before_import_{timestamp}.json");
+                string backupPrefix = mode == ImportMode.Replace ? "notes_backup_before_replace" : "notes_backup_before_import";
+                backupPath = Path.Combine(storageFolderPath, $"{backupPrefix}_{timestamp}.json");
                 var existingList = existingNotes?.ToList() ?? new List<NoteModel>();
                 string backupJson = JsonConvert.SerializeObject(existingList, Formatting.Indented);
                 if (isAsync)
@@ -285,8 +374,11 @@ namespace PinNote.Services
                 System.Diagnostics.Debug.WriteLine($"Failed to create pre-import backup: {backupEx}");
             }
 
-            // Check for duplicate identifiers to prevent overwriting existing notes
-            var existingIds = new HashSet<Guid>(existingNotes?.Select(n => n.Id) ?? Enumerable.Empty<Guid>());
+            // Deduplicate IDs and validate/sanitize fields
+            var seenIds = mode == ImportMode.Merge
+                ? new HashSet<Guid>(existingNotes?.Select(n => n.Id) ?? Enumerable.Empty<Guid>())
+                : new HashSet<Guid>();
+
             int reassignedCount = 0;
             var validatedNotes = new List<NoteModel>();
 
@@ -296,28 +388,35 @@ namespace PinNote.Services
 
                 var cloned = note.Clone();
 
-                // If Id is empty or already in use by an existing note, assign a new unique ID
-                if (cloned.Id == Guid.Empty || existingIds.Contains(cloned.Id))
+                // If Id is empty or already in use, assign a new unique ID
+                if (cloned.Id == Guid.Empty || seenIds.Contains(cloned.Id))
                 {
                     cloned.Id = Guid.NewGuid();
                     reassignedCount++;
                 }
 
-                // Sanitize dimensions
+                // Sanitize dimensions and values
                 if (cloned.Width < 160) cloned.Width = 250;
                 if (cloned.Height < 120) cloned.Height = 250;
                 if (cloned.Opacity <= 0 || cloned.Opacity > 1.0) cloned.Opacity = 1.0;
                 if (cloned.TextOpacity <= 0 || cloned.TextOpacity > 1.0) cloned.TextOpacity = 1.0;
-                if (string.IsNullOrEmpty(cloned.Title)) cloned.Title = "Imported Note";
+                if (string.IsNullOrWhiteSpace(cloned.Title)) cloned.Title = "Imported Note";
+                if (cloned.Content == null) cloned.Content = string.Empty;
+                if (cloned.Tags == null) cloned.Tags = new List<string>();
+                if (string.IsNullOrWhiteSpace(cloned.WorkspaceName)) cloned.WorkspaceName = "Default";
+                if (cloned.ChecklistItems == null) cloned.ChecklistItems = new List<ChecklistItemModel>();
+                if (cloned.CreatedAt == default) cloned.CreatedAt = DateTime.UtcNow;
+                if (cloned.ModifiedAt == default) cloned.ModifiedAt = cloned.CreatedAt;
 
-                existingIds.Add(cloned.Id);
+                seenIds.Add(cloned.Id);
                 validatedNotes.Add(cloned);
             }
 
             string detail = reassignedCount > 0
-                ? $" ({reassignedCount} IDs re-assigned to prevent conflicts)"
+                ? $" ({reassignedCount} ID(s) re-assigned to prevent conflicts)"
                 : string.Empty;
 
+            string actionWord = mode == ImportMode.Replace ? "replaced" : "imported";
             return new ImportResult
             {
                 Success = true,
@@ -325,7 +424,7 @@ namespace PinNote.Services
                 ReassignedIdCount = reassignedCount,
                 ImportedNotes = validatedNotes,
                 BackupPath = backupPath,
-                Message = $"Successfully imported {validatedNotes.Count} notes{detail}."
+                Message = $"Successfully {actionWord} {validatedNotes.Count} notes{detail}."
             };
         }
     }

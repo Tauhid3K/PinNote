@@ -18,7 +18,7 @@ namespace PinNote
         private SingleInstanceService? _singleInstanceService;
         private IGlobalShortcutService? _shortcutService;
 
-        public bool IsShuttingDown { get; private set; }
+        public static bool IsShuttingDown { get; private set; }
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool DestroyIcon(IntPtr hIcon);
@@ -114,9 +114,9 @@ namespace PinNote
                     }
                     else if (showUi)
                     {
-                        // When the user has enabled "Start with Windows", show notes but keep the
-                        // main dashboard minimized so the app starts quietly with notes visible.
-                        _mainViewModel?.ShowAllNotes(minimizeDashboard: true);
+                        // When the user has enabled "Start with Windows", restore open notes but keep the
+                        // main dashboard minimized so the app starts quietly with visible notes restored.
+                        _mainViewModel?.RestoreVisibleNotes(minimizeDashboard: true);
                         // Ensure the tray icon is present so the user can access the app.
                         EnsureTrayVisible();
                     }
@@ -129,7 +129,7 @@ namespace PinNote
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"App startup UI decision error: {ex}");
-                    _mainViewModel?.ShowAllNotes();
+                    _mainViewModel?.RestoreVisibleNotes();
                 }
 
                 // If this launch came from the installer, show the instructions window.

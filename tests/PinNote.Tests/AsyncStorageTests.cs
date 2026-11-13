@@ -115,5 +115,80 @@ namespace PinNote.Tests
             Assert.Single(importRes.ImportedNotes);
             Assert.Equal("Export Async", importRes.ImportedNotes[0].Title);
         }
+
+        [Fact]
+        public async Task SaveNotesAsync_NewerSnapshotDuringOngoingWrite_IsAcceptedAndPersisted()
+        {
+            // Acceptance Criteria:
+            // 1. Capture snapshot A and begin writing it.
+            // 2. Modify note and capture snapshot B before A finishes.
+            // 3. Complete A's write.
+            // 4. Verify B is still accepted and eventually persisted.
+            // 5. Reload and confirm latest content is present.
+
+            long versionA = StorageService.GetNextSnapshotVersion();
+            var snapshotA = new List<NoteModel>
+            {
+                new() { Title = "Note Version A", Content = "Initial Content" }
+            };
+
+            // Start write A
+            var writeATask = _storage.SaveNotesAsync(snapshotA, snapshotTimestamp: versionA);
+
+            // While A is in-flight, capture snapshot B
+            long versionB = StorageService.GetNextSnapshotVersion();
+            Assert.True(versionB > versionA);
+
+            var snapshotB = new List<NoteModel>
+            {
+                new() { Title = "Note Version B", Content = "Updated Content" }
+            };
+
+            // Queue write B
+            var writeBTask = _storage.SaveNotesAsync(snapshotB, snapshotTimestamp: versionB);
+
+            // Await both writes to finish
+            await Task.WhenAll(writeATask, writeBTask);
+            await _storage.FlushPendingSaveAsync();
+
+            // Verify with a freshly loaded storage service (simulating app reload)
+            var reloadedStorage = new StorageService(_testDir);
+            var loadedNotes = await reloadedStorage.LoadNotesAsync();
+
+            Assert.Single(loadedNotes);
+            Assert.Equal("Note Version B", loadedNotes[0].Title);
+            Assert.Equal("Updated Content", loadedNotes[0].Content);
+        }
+
+        [Fact]
+        public async Task SaveNotesAsync_RapidEditsAndConcurrentSaves_PersistsLatestContent()
+        {
+            // Rapid concurrent edits
+            const int editCount = 20;
+            var tasks = new List<Task>();
+
+            for (int i = 1; i <= editCount; i++)
+            {
+                int index = i;
+                long version = StorageService.GetNextSnapshotVersion();
+                var snapshot = new List<NoteModel>
+                {
+                    new() { Title = $"Note Iteration {index}", Content = $"Content {index}" }
+                };
+
+                tasks.Add(_storage.SaveNotesAsync(snapshot, snapshotTimestamp: version));
+            }
+
+            await Task.WhenAll(tasks);
+            await _storage.FlushPendingSaveAsync();
+
+            var reloaded = new StorageService(_testDir);
+            var loaded = await reloaded.LoadNotesAsync();
+
+            Assert.Single(loaded);
+            // The final persisted note must be the highest iteration
+            Assert.Equal($"Note Iteration {editCount}", loaded[0].Title);
+            Assert.Equal($"Content {editCount}", loaded[0].Content);
+        }
     }
 }

@@ -176,18 +176,65 @@ namespace PinNote.ViewModels
                 {
                     ReminderDateTime = dt;
                 }
+                else if (p is string s && DateTime.TryParse(s, out var parsed))
+                {
+                    ReminderDateTime = parsed;
+                }
             });
 
-            SetReminder1HourCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Now.AddHours(1));
-            SetReminderTodayEveningCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddHours(18) > DateTime.Now ? DateTime.Today.AddHours(18) : DateTime.Now.AddHours(2));
-            SetReminderTomorrowMorningCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddDays(1).AddHours(9));
-            SetReminderNextWeekCommand = new RelayCommand(_ => ReminderDateTime = DateTime.Today.AddDays(7).AddHours(9));
+            SetReminder10MinutesCommand = new RelayCommand(_ => ReminderDateTime = DateTime.UtcNow.AddMinutes(10));
+            SetReminder1HourCommand = new RelayCommand(_ => ReminderDateTime = DateTime.UtcNow.AddHours(1));
+            SetReminderTodayEveningCommand = new RelayCommand(_ =>
+            {
+                DateTime today18 = DateTime.Today.AddHours(18);
+                DateTime targetLocal = today18 > DateTime.Now ? today18 : DateTime.Now.AddHours(2);
+                ReminderDateTime = targetLocal.ToUniversalTime();
+            });
+            SetReminderTomorrowMorningCommand = new RelayCommand(_ =>
+            {
+                DateTime tomorrow9 = DateTime.Today.AddDays(1).AddHours(9);
+                ReminderDateTime = tomorrow9.ToUniversalTime();
+            });
+            SetReminderNextWeekCommand = new RelayCommand(_ =>
+            {
+                DateTime nextWeek9 = DateTime.Today.AddDays(7).AddHours(9);
+                ReminderDateTime = nextWeek9.ToUniversalTime();
+            });
+            SetReminderAtDueDateCommand = new RelayCommand(_ =>
+            {
+                if (DueDate.HasValue)
+                {
+                    ReminderDateTime = DueDate.Value;
+                }
+            });
+
+            SetDueDateCommand = new RelayCommand(p =>
+            {
+                if (p is DateTime dt)
+                {
+                    DueDate = dt;
+                }
+                else if (p is string s && DateTime.TryParse(s, out var parsed))
+                {
+                    DueDate = parsed;
+                }
+            });
+            SetDueDateTodayCommand = new RelayCommand(_ =>
+            {
+                DateTime today18 = DateTime.Today.AddHours(18);
+                DateTime targetLocal = today18 > DateTime.Now ? today18 : DateTime.Now.AddHours(2);
+                DueDate = targetLocal.ToUniversalTime();
+            });
+            SetDueDateTomorrowCommand = new RelayCommand(_ => DueDate = DateTime.Today.AddDays(1).AddHours(17).ToUniversalTime());
+            SetDueDateNextWeekCommand = new RelayCommand(_ => DueDate = DateTime.Today.AddDays(7).AddHours(17).ToUniversalTime());
+            ClearDueDateCommand = new RelayCommand(_ => DueDate = null);
+
+            SaveAsTemplateCommand = new RelayCommand(_ => _mainViewModel?.CreateTemplateFromNote(this));
 
             DismissReminderCommand = new RelayCommand(_ => IsReminderDismissed = true);
             ClearReminderCommand = new RelayCommand(_ =>
             {
                 ReminderDateTime = null;
-                DueDate = null;
                 IsReminderDismissed = false;
             });
         }
@@ -206,10 +253,18 @@ namespace PinNote.ViewModels
         public ICommand SetWorkspaceCommand { get; }
         public ICommand ToggleMarkdownPreviewCommand { get; }
         public ICommand SetReminderCommand { get; }
+        public ICommand SetReminder10MinutesCommand { get; }
         public ICommand SetReminder1HourCommand { get; }
         public ICommand SetReminderTodayEveningCommand { get; }
         public ICommand SetReminderTomorrowMorningCommand { get; }
         public ICommand SetReminderNextWeekCommand { get; }
+        public ICommand SetReminderAtDueDateCommand { get; }
+        public ICommand SetDueDateCommand { get; }
+        public ICommand SetDueDateTodayCommand { get; }
+        public ICommand SetDueDateTomorrowCommand { get; }
+        public ICommand SetDueDateNextWeekCommand { get; }
+        public ICommand ClearDueDateCommand { get; }
+        public ICommand SaveAsTemplateCommand { get; }
         public ICommand DismissReminderCommand { get; }
         public ICommand ClearReminderCommand { get; }
 
@@ -295,17 +350,50 @@ namespace PinNote.ViewModels
             }
         }
 
+        public bool IsVisible
+        {
+            get => _model.IsVisible;
+            set
+            {
+                if (_model.IsVisible != value)
+                {
+                    _model.IsVisible = value;
+                    OnPropertyChanged();
+                    SaveRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public ObservableCollection<WorkspaceModel>? AvailableWorkspaces => _mainViewModel?.Workspaces;
+        public ObservableCollection<string>? AllAvailableTags => _mainViewModel?.AllTags;
+
         public DateTime? DueDate
         {
             get => _model.DueDate;
             set
             {
-                if (_model.DueDate != value)
+                DateTime? utcValue = null;
+                if (value.HasValue)
                 {
-                    _model.DueDate = value;
+                    utcValue = value.Value.Kind switch
+                    {
+                        DateTimeKind.Utc => value.Value,
+                        DateTimeKind.Local => value.Value.ToUniversalTime(),
+                        DateTimeKind.Unspecified => DateTime.SpecifyKind(value.Value, DateTimeKind.Local).ToUniversalTime(),
+                        _ => value.Value.ToUniversalTime()
+                    };
+                }
+
+                if (_model.DueDate != utcValue)
+                {
+                    _model.DueDate = utcValue;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(HasDueDate));
                     OnPropertyChanged(nameof(IsOverdue));
+                    OnPropertyChanged(nameof(IsDueToday));
+                    OnPropertyChanged(nameof(IsUpcoming));
+                    OnPropertyChanged(nameof(DueDateSummary));
+                    OnPropertyChanged(nameof(DueDateLocalFormatted));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -313,26 +401,57 @@ namespace PinNote.ViewModels
 
         public bool HasDueDate => DueDate.HasValue;
         public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateTime.UtcNow;
+        public bool IsDueToday => DueDate.HasValue && DueDate.Value.ToLocalTime().Date == DateTime.Today && DueDate.Value >= DateTime.UtcNow;
+        public bool IsUpcoming => DueDate.HasValue && DueDate.Value.ToLocalTime().Date > DateTime.Today;
+
+        public string DueDateSummary
+        {
+            get
+            {
+                if (!DueDate.HasValue) return string.Empty;
+                var local = DueDate.Value.ToLocalTime();
+                if (IsOverdue) return $"Overdue: {local:MMM d, HH:mm}";
+                if (IsDueToday) return $"Due Today: {local:HH:mm}";
+                return $"Due: {local:MMM d, HH:mm}";
+            }
+        }
+
+        public string DueDateLocalFormatted => DueDate.HasValue ? DueDate.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : string.Empty;
 
         public DateTime? ReminderDateTime
         {
             get => _model.ReminderDateTime;
             set
             {
-                if (_model.ReminderDateTime != value)
+                DateTime? utcValue = null;
+                if (value.HasValue)
                 {
-                    _model.ReminderDateTime = value;
+                    utcValue = value.Value.Kind switch
+                    {
+                        DateTimeKind.Utc => value.Value,
+                        DateTimeKind.Local => value.Value.ToUniversalTime(),
+                        DateTimeKind.Unspecified => DateTime.SpecifyKind(value.Value, DateTimeKind.Local).ToUniversalTime(),
+                        _ => value.Value.ToUniversalTime()
+                    };
+                }
+
+                if (_model.ReminderDateTime != utcValue)
+                {
+                    _model.ReminderDateTime = utcValue;
                     _model.IsReminderDismissed = false;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(HasReminder));
                     OnPropertyChanged(nameof(IsReminderDismissed));
+                    OnPropertyChanged(nameof(ReminderSummary));
+                    OnPropertyChanged(nameof(ReminderLocalFormatted));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
 
         public bool HasReminder => ReminderDateTime.HasValue;
-        public string ReminderSummary => ReminderDateTime.HasValue ? ReminderDateTime.Value.ToString("MMM d, HH:mm") : string.Empty;
+        public string ReminderSummary => ReminderDateTime.HasValue ? ReminderDateTime.Value.ToLocalTime().ToString("MMM d, HH:mm") : string.Empty;
+        public string ReminderLocalFormatted => ReminderDateTime.HasValue ? ReminderDateTime.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : string.Empty;
 
         public bool IsReminderDismissed
         {

@@ -55,6 +55,10 @@ namespace PinNote.Views
         {
             if (_openWindows.TryGetValue(noteId, out var window))
             {
+                if (window.DataContext is NoteViewModel vm)
+                {
+                    vm.IsVisible = false;
+                }
                 window.Close();
                 _openWindows.Remove(noteId);
             }
@@ -162,6 +166,137 @@ namespace PinNote.Views
             return await tcs.Task;
         }
 
+        public async Task<bool> ConfirmActionAsync(string title, string message)
+        {
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            {
+                return await ShowConfirmActionInternalAsync(title, message);
+            }
+
+            return await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ShowConfirmActionInternalAsync(title, message));
+        }
+
+        private async Task<bool> ShowConfirmActionInternalAsync(string title, string message)
+        {
+            var dialog = new Window
+            {
+                Title = title,
+                Width = 380,
+                Height = 180,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                CanResize = false
+            };
+
+            var sp = new StackPanel { Margin = new Avalonia.Thickness(20), Spacing = 14 };
+            var lbl = new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+            var btnPanel = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 10,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
+            };
+
+            bool result = false;
+            var yesBtn = new Button { Content = "Yes", Width = 75, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+            var noBtn = new Button { Content = "No", Width = 75, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+
+            yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
+            noBtn.Click += (_, _) => { result = false; dialog.Close(); };
+
+            btnPanel.Children.Add(yesBtn);
+            btnPanel.Children.Add(noBtn);
+            sp.Children.Add(lbl);
+            sp.Children.Add(btnPanel);
+            dialog.Content = sp;
+
+            Window? owner = _desktop.Windows.FirstOrDefault(w => w.IsActive && w.IsVisible)
+                         ?? (_dashboardWindow != null && _dashboardWindow.IsVisible ? (Window)_dashboardWindow : null);
+
+            if (owner != null)
+            {
+                await dialog.ShowDialog(owner);
+                return result;
+            }
+
+            var tcs = new TaskCompletionSource<bool>();
+            dialog.Closed += (_, _) => tcs.TrySetResult(result);
+            dialog.Show();
+            return await tcs.Task;
+        }
+
+        public async Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultText = "")
+        {
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            {
+                return await ShowInputDialogInternalAsync(title, prompt, defaultText);
+            }
+
+            return await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ShowInputDialogInternalAsync(title, prompt, defaultText));
+        }
+
+        private async Task<string?> ShowInputDialogInternalAsync(string title, string prompt, string defaultText)
+        {
+            var dialog = new Window
+            {
+                Title = title,
+                Width = 380,
+                Height = 180,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                CanResize = false
+            };
+
+            var sp = new StackPanel { Margin = new Avalonia.Thickness(20), Spacing = 10 };
+            var lbl = new TextBlock { Text = prompt, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+            var txt = new TextBox { Text = defaultText, Height = 28 };
+            var btnPanel = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 10,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
+            };
+
+            string? result = null;
+            var okBtn = new Button { Content = "OK", Width = 75, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+            var cancelBtn = new Button { Content = "Cancel", Width = 75, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+
+            okBtn.Click += (_, _) => { result = txt.Text; dialog.Close(); };
+            cancelBtn.Click += (_, _) => { result = null; dialog.Close(); };
+            txt.KeyDown += (_, ke) =>
+            {
+                if (ke.Key == Avalonia.Input.Key.Enter)
+                {
+                    result = txt.Text;
+                    dialog.Close();
+                }
+                else if (ke.Key == Avalonia.Input.Key.Escape)
+                {
+                    result = null;
+                    dialog.Close();
+                }
+            };
+
+            btnPanel.Children.Add(okBtn);
+            btnPanel.Children.Add(cancelBtn);
+            sp.Children.Add(lbl);
+            sp.Children.Add(txt);
+            sp.Children.Add(btnPanel);
+            dialog.Content = sp;
+
+            Window? owner = _desktop.Windows.FirstOrDefault(w => w.IsActive && w.IsVisible)
+                         ?? (_dashboardWindow != null && _dashboardWindow.IsVisible ? (Window)_dashboardWindow : null);
+
+            if (owner != null)
+            {
+                await dialog.ShowDialog(owner);
+                return result;
+            }
+
+            var tcs = new TaskCompletionSource<string?>();
+            dialog.Closed += (_, _) => tcs.TrySetResult(result);
+            dialog.Show();
+            return await tcs.Task;
+        }
+
         public void RunOnUiThread(Action action)
         {
             if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
@@ -176,6 +311,8 @@ namespace PinNote.Views
 
         public void Shutdown()
         {
+            AvaloniaApp.IsShuttingDown = true;
+            _mainViewModel.IsShuttingDown = true;
             FlushPendingEdits();
 
             foreach (var window in new List<AvaloniaNoteWindow>(_openWindows.Values))

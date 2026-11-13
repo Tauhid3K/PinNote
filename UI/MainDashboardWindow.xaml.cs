@@ -227,6 +227,15 @@ namespace PinNote.UI
             }
         }
 
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.ContextMenu != null)
+            {
+                element.ContextMenu.PlacementTarget = element;
+                element.ContextMenu.IsOpen = true;
+            }
+        }
+
         private void NoteCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton != MouseButton.Left)

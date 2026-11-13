@@ -123,7 +123,15 @@ namespace PinNote.ViewModels
             SetThemeCommand = new RelayCommand(p => ThemeMode = (p as string) ?? "System");
 
             ExportNotesCommand = new RelayCommand(async _ => await ExportNotesAsync());
-            ImportNotesCommand = new RelayCommand(async _ => await ImportNotesAsync());
+            ImportNotesCommand = new RelayCommand(async p =>
+            {
+                var mode = ImportMode.Merge;
+                if (p is ImportMode m) mode = m;
+                else if (p is string s && Enum.TryParse<ImportMode>(s, true, out var parsed)) mode = parsed;
+                await ImportNotesAsync(mode);
+            });
+            ImportNotesMergeCommand = new RelayCommand(async _ => await ImportNotesAsync(ImportMode.Merge));
+            ImportNotesReplaceCommand = new RelayCommand(async _ => await ImportNotesAsync(ImportMode.Replace));
             BackupNotesCommand = new RelayCommand(_ => CreateBackup());
             SetSortModeCommand = new RelayCommand(p =>
             {
@@ -161,6 +169,46 @@ namespace PinNote.ViewModels
             DeleteWorkspaceCommand = new RelayCommand(p => DeleteWorkspace(p as WorkspaceModel));
             SwitchWorkspaceCommand = new RelayCommand(p => SwitchWorkspace(p as WorkspaceModel));
 
+            PromptCreateWorkspaceCommand = new RelayCommand(async _ =>
+            {
+                if (_windowManager == null) return;
+                string? name = await _windowManager.ShowInputDialogAsync("New Workspace", "Enter workspace name:");
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    CreateWorkspace(name);
+                }
+            });
+
+            PromptRenameWorkspaceCommand = new RelayCommand(async _ =>
+            {
+                if (_windowManager == null || ActiveWorkspace == null) return;
+                if (ActiveWorkspace.IsDefault)
+                {
+                    _windowManager.ShowErrorMessage("Rename Workspace", "The Default workspace cannot be renamed.");
+                    return;
+                }
+                string? newName = await _windowManager.ShowInputDialogAsync("Rename Workspace", "Enter new workspace name:", ActiveWorkspace.Name);
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    RenameWorkspace(ActiveWorkspace, newName);
+                }
+            });
+
+            PromptDeleteWorkspaceCommand = new RelayCommand(async _ =>
+            {
+                if (_windowManager == null || ActiveWorkspace == null) return;
+                if (ActiveWorkspace.IsDefault)
+                {
+                    _windowManager.ShowErrorMessage("Delete Workspace", "The Default workspace cannot be deleted.");
+                    return;
+                }
+                bool confirmed = await _windowManager.ConfirmActionAsync("Delete Workspace", $"Are you sure you want to delete workspace '{ActiveWorkspace.Name}'?\nAll notes belonging to this workspace will be reassigned to the Default workspace.");
+                if (confirmed)
+                {
+                    DeleteWorkspace(ActiveWorkspace);
+                }
+            });
+
             RenameTagCommand = new RelayCommand(p =>
             {
                 if (p is Tuple<string, string> tuple)
@@ -174,6 +222,42 @@ namespace PinNote.ViewModels
             CreateTemplateFromNoteCommand = new RelayCommand(p => CreateTemplateFromNote(p as NoteViewModel));
             DuplicateTemplateCommand = new RelayCommand(p => DuplicateTemplate(p as NoteTemplateModel));
             DeleteTemplateCommand = new RelayCommand(p => DeleteTemplate(p as NoteTemplateModel));
+            DeleteTemplateWithConfirmationCommand = new RelayCommand(async p =>
+            {
+                if (p is not NoteTemplateModel template || template.IsBuiltIn) return;
+                if (_windowManager != null)
+                {
+                    bool confirmed = await _windowManager.ConfirmActionAsync("Delete Template", $"Are you sure you want to delete template '{template.Name}'?");
+                    if (!confirmed) return;
+                }
+                DeleteTemplate(template);
+            });
+
+            PromptCreateBlankTemplateCommand = new RelayCommand(async _ =>
+            {
+                if (_windowManager == null) return;
+                string? name = await _windowManager.ShowInputDialogAsync("New Template", "Enter custom template name:");
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    CreateBlankTemplate(name);
+                }
+            });
+
+            PromptRenameTemplateCommand = new RelayCommand(async p =>
+            {
+                if (_windowManager == null || p is not NoteTemplateModel template) return;
+                if (template.IsBuiltIn)
+                {
+                    _windowManager.ShowErrorMessage("Rename Template", "Built-in templates cannot be renamed.");
+                    return;
+                }
+                string? newName = await _windowManager.ShowInputDialogAsync("Rename Template", "Enter new template name:", template.Name);
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    RenameTemplate(template, newName);
+                }
+            });
+
             ToggleRemindersFilterCommand = new RelayCommand(_ => ShowRemindersOnly = !ShowRemindersOnly);
 
             _reminderService = new ReminderService(this);
@@ -302,10 +386,17 @@ namespace PinNote.ViewModels
             {
                 if (SetProperty(ref _showRemindersOnly, value))
                 {
+                    OnPropertyChanged(nameof(ShowRemindersOnlyFilter));
                     OnPropertyChanged(nameof(SortedFilteredNotes));
                     OnPropertyChanged(nameof(FilteredNotes));
                 }
             }
+        }
+
+        public bool ShowRemindersOnlyFilter
+        {
+            get => ShowRemindersOnly;
+            set => ShowRemindersOnly = value;
         }
 
         public ObservableCollection<NoteTemplateModel> Templates => _templates;
@@ -316,12 +407,18 @@ namespace PinNote.ViewModels
         public ICommand RenameWorkspaceCommand { get; }
         public ICommand DeleteWorkspaceCommand { get; }
         public ICommand SwitchWorkspaceCommand { get; }
+        public ICommand PromptCreateWorkspaceCommand { get; }
+        public ICommand PromptRenameWorkspaceCommand { get; }
+        public ICommand PromptDeleteWorkspaceCommand { get; }
         public ICommand RenameTagCommand { get; }
         public ICommand DeleteTagCommand { get; }
         public ICommand NewNoteFromTemplateCommand { get; }
         public ICommand CreateTemplateFromNoteCommand { get; }
         public ICommand DuplicateTemplateCommand { get; }
         public ICommand DeleteTemplateCommand { get; }
+        public ICommand DeleteTemplateWithConfirmationCommand { get; }
+        public ICommand PromptCreateBlankTemplateCommand { get; }
+        public ICommand PromptRenameTemplateCommand { get; }
         public ICommand ToggleRemindersFilterCommand { get; }
 
         public void ClearFilters()
@@ -530,6 +627,40 @@ namespace PinNote.ViewModels
             _templateService.SaveCustomTemplates(_templates);
         }
 
+        public NoteTemplateModel CreateBlankTemplate(string name, string content = "", NoteType type = NoteType.Text)
+        {
+            var template = new NoteTemplateModel
+            {
+                Id = Guid.NewGuid(),
+                Name = string.IsNullOrWhiteSpace(name) ? "New Template" : name.Trim(),
+                Description = "Custom template",
+                Content = content,
+                NoteType = type,
+                IsBuiltIn = false
+            };
+            _templates.Add(template);
+            _templateService.SaveCustomTemplates(_templates);
+            OnPropertyChanged(nameof(Templates));
+            return template;
+        }
+
+        public void RenameTemplate(NoteTemplateModel? template, string newName)
+        {
+            if (template == null || template.IsBuiltIn || string.IsNullOrWhiteSpace(newName)) return;
+            template.Name = newName.Trim();
+            _templateService.SaveCustomTemplates(_templates);
+            OnPropertyChanged(nameof(Templates));
+        }
+
+        public void EditTemplate(NoteTemplateModel? template, string newName, string newContent)
+        {
+            if (template == null || template.IsBuiltIn) return;
+            if (!string.IsNullOrWhiteSpace(newName)) template.Name = newName.Trim();
+            template.Content = newContent ?? string.Empty;
+            _templateService.SaveCustomTemplates(_templates);
+            OnPropertyChanged(nameof(Templates));
+        }
+
         public NoteSortMode SortMode
         {
             get => _sortMode;
@@ -568,6 +699,8 @@ namespace PinNote.ViewModels
         public ICommand ExitCommand { get; }
         public ICommand ExportNotesCommand { get; }
         public ICommand ImportNotesCommand { get; }
+        public ICommand ImportNotesMergeCommand { get; }
+        public ICommand ImportNotesReplaceCommand { get; }
         public ICommand BackupNotesCommand { get; }
         public ICommand SetSortModeCommand { get; }
 
@@ -778,8 +911,9 @@ namespace PinNote.ViewModels
 
         public void OpenNote(NoteViewModel viewModel)
         {
-            viewModel.GetModel().IsVisible = true;
+            viewModel.IsVisible = true;
             _windowManager?.OpenNote(viewModel);
+            QueueSave();
         }
 
         public void CloseNote(Guid noteId)
@@ -787,7 +921,7 @@ namespace PinNote.ViewModels
             var vm = _notes.FirstOrDefault(n => n.Id == noteId);
             if (vm != null)
             {
-                vm.GetModel().IsVisible = false;
+                vm.IsVisible = false;
             }
             _windowManager?.CloseNote(noteId);
             QueueSave();
@@ -812,6 +946,24 @@ namespace PinNote.ViewModels
             _windowManager?.HideDashboard();
         }
 
+        public bool IsShuttingDown { get; set; }
+
+        public void RestoreVisibleNotes(bool minimizeDashboard = false)
+        {
+            if (minimizeDashboard)
+            {
+                _windowManager?.HideDashboard();
+            }
+
+            foreach (var note in _notes)
+            {
+                if (note.IsVisible)
+                {
+                    _windowManager?.OpenNote(note);
+                }
+            }
+        }
+
         public void ShowAllNotes()
         {
             ShowAllNotes(minimizeDashboard: false);
@@ -819,7 +971,17 @@ namespace PinNote.ViewModels
 
         public void ShowAllNotes(bool minimizeDashboard)
         {
-            _windowManager?.ShowAllNotes(minimizeDashboard);
+            if (minimizeDashboard)
+            {
+                _windowManager?.HideDashboard();
+            }
+
+            foreach (var note in _notes)
+            {
+                note.IsVisible = true;
+                _windowManager?.OpenNote(note);
+            }
+            QueueSave();
         }
 
         public void HideAllNotes()
@@ -854,7 +1016,7 @@ namespace PinNote.ViewModels
 
         private void PerformAsyncBackgroundSave()
         {
-            long snapshotTime = DateTime.UtcNow.Ticks;
+            long snapshotTime = StorageService.GetNextSnapshotVersion();
             var models = _notes.Select(n => n.GetModel().Clone()).ToList();
 
             Task.Run(async () =>
@@ -883,7 +1045,7 @@ namespace PinNote.ViewModels
         {
             _saveDebounceTimer.Stop();
 
-            long snapshotTime = DateTime.UtcNow.Ticks;
+            long snapshotTime = StorageService.GetNextSnapshotVersion();
             List<NoteModel>? models = null;
 
             if (_windowManager != null)
@@ -909,7 +1071,7 @@ namespace PinNote.ViewModels
         {
             _saveDebounceTimer.Stop();
 
-            long snapshotTime = DateTime.UtcNow.Ticks;
+            long snapshotTime = StorageService.GetNextSnapshotVersion();
 
             // 1. Snapshot and clone on the UI thread: isolated from UI modifications
             var models = _notes.Select(n => n.GetModel().Clone()).ToList();
@@ -947,12 +1109,23 @@ namespace PinNote.ViewModels
             }
         }
 
-        public async Task ImportNotesAsync()
+        public async Task ImportNotesAsync(ImportMode mode = ImportMode.Merge)
         {
             if (_windowManager == null) return;
 
+            if (mode == ImportMode.Replace && _notes.Count > 0)
+            {
+                bool confirmed = await _windowManager.ConfirmActionAsync(
+                    "Confirm Replace All Notes",
+                    $"⚠️ Warning: Replace mode will permanently remove all your existing notes ({_notes.Count} note(s)) and replace them with the notes from the backup file.\n\n" +
+                    "A safety backup copy of your current notes will be saved automatically before replacing.\n\n" +
+                    "Do you want to proceed with REPLACE?");
+                if (!confirmed) return;
+            }
+
+            string title = mode == ImportMode.Replace ? "Import Notes (Replace All)" : "Import Notes (Merge)";
             string filter = "JSON Notes Backup (*.json)|*.json|All Files (*.*)|*.*";
-            string? filePath = await _windowManager.ShowOpenFileDialogAsync("Import Notes", filter);
+            string? filePath = await _windowManager.ShowOpenFileDialogAsync(title, filter);
 
             if (string.IsNullOrWhiteSpace(filePath)) return;
 
@@ -960,17 +1133,41 @@ namespace PinNote.ViewModels
             _windowManager.FlushPendingEdits();
 
             var existingModels = _notes.Select(n => n.GetModel().Clone()).ToList();
-            var result = await ImportExportService.ImportNotesAsync(filePath, existingModels, _storageService.StorageFolderPath);
+            var result = await ImportExportService.ImportNotesAsync(
+                filePath,
+                existingModels,
+                _storageService.StorageFolderPath,
+                mode);
 
             if (result.Success && result.ImportedNotes.Count > 0)
             {
-                foreach (var noteModel in result.ImportedNotes)
+                if (mode == ImportMode.Replace)
                 {
-                    AddNoteViewModel(noteModel, openWindow: true);
-                }
+                    // Close existing windows before clearing collection
+                    foreach (var note in _notes.ToList())
+                    {
+                        _windowManager.CloseNote(note.Id);
+                    }
+                    _notes.Clear();
 
-                SaveNotesImmediately();
-                _windowManager.ShowMessage("Import Successful", result.Message);
+                    foreach (var noteModel in result.ImportedNotes)
+                    {
+                        AddNoteViewModel(noteModel, openWindow: noteModel.IsVisible);
+                    }
+
+                    SaveNotesImmediately();
+                    _windowManager.ShowMessage("Import Successful", $"Successfully replaced all notes with {result.ImportedCount} notes from backup.");
+                }
+                else
+                {
+                    foreach (var noteModel in result.ImportedNotes)
+                    {
+                        AddNoteViewModel(noteModel, openWindow: noteModel.IsVisible);
+                    }
+
+                    SaveNotesImmediately();
+                    _windowManager.ShowMessage("Import Successful", result.Message);
+                }
             }
             else
             {

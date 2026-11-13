@@ -37,6 +37,18 @@ namespace PinNote.Services
 
         public void CheckReminders(bool isStartupCheck = false)
         {
+            if (_mainViewModel.WindowManager != null)
+            {
+                _mainViewModel.WindowManager.RunOnUiThread(() => CheckRemindersCore(isStartupCheck));
+            }
+            else
+            {
+                CheckRemindersCore(isStartupCheck);
+            }
+        }
+
+        private void CheckRemindersCore(bool isStartupCheck)
+        {
             try
             {
                 var now = DateTime.UtcNow;
@@ -51,8 +63,6 @@ namespace PinNote.Services
 
                         if (reminderTime <= now && !_notifiedKeys.Contains(key))
                         {
-                            _notifiedKeys.Add(key);
-
                             string title = isStartupCheck
                                 ? $"Missed Reminder: {note.Title}"
                                 : $"Reminder: {note.Title}";
@@ -61,12 +71,16 @@ namespace PinNote.Services
                                 ? note.PlainTextPreview
                                 : "Due note reminder";
 
-                            NotificationService.ShowNotification(title, preview);
+                            bool delivered = NotificationService.ShowNotification(title, preview);
 
-                            ReminderTriggered?.Invoke(this, note);
-
-                            // Auto-mark dismissed once delivered
-                            note.IsReminderDismissed = true;
+                            // Only mark dismissed if the notification was successfully delivered
+                            if (delivered)
+                            {
+                                _notifiedKeys.Add(key);
+                                ReminderTriggered?.Invoke(this, note);
+                                note.IsReminderDismissed = true;
+                                _mainViewModel.QueueSave();
+                            }
                         }
                     }
                 }
@@ -82,12 +96,14 @@ namespace PinNote.Services
             if (note == null) return;
             note.ReminderDateTime = DateTime.UtcNow.Add(duration);
             note.IsReminderDismissed = false;
+            _mainViewModel.QueueSave();
         }
 
         public void DismissReminder(NoteViewModel note)
         {
             if (note == null) return;
             note.IsReminderDismissed = true;
+            _mainViewModel.QueueSave();
         }
 
         public void Dispose()

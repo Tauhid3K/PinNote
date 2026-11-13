@@ -112,9 +112,16 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <Button.Flyout>
                         <MenuFlyout Placement="BottomEdgeAlignedRight">
-                            <MenuItem Header="Import Notes..." Command="{Binding ImportNotesCommand}">
+                            <MenuItem Header="Import Notes (Merge)..." Command="{Binding ImportNotesMergeCommand}">
                                 <MenuItem.Icon>
                                     <Path Data="M19,9h-4V3H9v6H5l7,7 7,-7zM5,18v2h14v-2H5z"
+                                          Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                          Width="12" Height="12" Stretch="Uniform" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Import Notes (Replace All)..." Command="{Binding ImportNotesReplaceCommand}">
+                                <MenuItem.Icon>
+                                    <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
                                           Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
                                           Width="12" Height="12" Stretch="Uniform" />
                                 </MenuItem.Icon>
@@ -198,6 +205,18 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                    <!-- Workspace Options Button -->
+                    <Button Height="28" Width="28" Padding="0" CornerRadius="4" Cursor="Hand" ToolTip.Tip="Manage Workspaces"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <TextBlock Text="⚙" FontSize="12" />
+                        <Button.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuItem Header="New Workspace..." Command="{Binding PromptCreateWorkspaceCommand}" />
+                                <MenuItem Header="Rename Current Workspace..." Command="{Binding PromptRenameWorkspaceCommand}" />
+                                <MenuItem Header="Delete Current Workspace" Command="{Binding PromptDeleteWorkspaceCommand}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
                 </StackPanel>
 
                 <!-- Category Filter -->
@@ -240,14 +259,18 @@
                         ToolTip.Tip="Create structured note from template">
                     <TextBlock Text="📋 Templates" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <Button.Flyout>
-                        <MenuFlyout ItemsSource="{Binding Templates}">
-                            <MenuFlyout.ItemTemplate>
-                                <DataTemplate>
-                                    <MenuItem Header="{Binding Name}"
-                                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NewNoteFromTemplateCommand}"
-                                              CommandParameter="{Binding}" />
-                                </DataTemplate>
-                            </MenuFlyout.ItemTemplate>
+                        <MenuFlyout>
+                            <MenuItem Header="New Blank Template..." Command="{Binding PromptCreateBlankTemplateCommand}" />
+                            <Separator />
+                            <MenuItem Header="Templates List" ItemsSource="{Binding Templates}">
+                                <MenuItem.ItemTemplate>
+                                    <DataTemplate>
+                                        <MenuItem Header="{Binding Name}"
+                                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NewNoteFromTemplateCommand}"
+                                                  CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </MenuItem.ItemTemplate>
+                            </MenuItem>
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>

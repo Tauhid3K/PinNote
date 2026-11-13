@@ -5,6 +5,17 @@ namespace PinNote.Services
 {
     public static class NotificationService
     {
+        private static INotificationService? _customProvider;
+
+        /// <summary>
+        /// Allows overriding the notification provider (e.g. for unit testing or platform-specific adapters).
+        /// </summary>
+        public static INotificationService? Provider
+        {
+            get => _customProvider;
+            set => _customProvider = value;
+        }
+
         /// <summary>
         /// Allows disabling system notifications (e.g. during unit tests or headless runs).
         /// Automatically defaults to true when running inside a test host process.
@@ -13,35 +24,27 @@ namespace PinNote.Services
             AppDomain.CurrentDomain.FriendlyName.Contains("testhost", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(Environment.GetEnvironmentVariable("PINNOTE_DISABLE_NOTIFICATIONS"), "1", StringComparison.OrdinalIgnoreCase);
 
-        public static void ShowNotification(string title, string message)
+        public static bool ShowNotification(string title, string message)
         {
-            if (IsDisabled) return;
+            if (_customProvider != null)
+            {
+                return _customProvider.ShowNotification(title, message);
+            }
+
+            if (IsDisabled) return true;
 
             if (OperatingSystem.IsWindows())
             {
-                // On Windows, tray balloon or notification is managed via the app window/tray
+                var winService = new WindowsNotificationService();
+                return winService.ShowNotification(title, message);
             }
             else if (OperatingSystem.IsLinux())
             {
-                try
-                {
-                    // Use standard Linux desktop notification daemon via notify-send if present
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "notify-send",
-                        Arguments = $"\"{Escape(title)}\" \"{Escape(message)}\" --app-name=PinNote",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    using var proc = Process.Start(psi);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"NotificationService Linux error: {ex}");
-                }
+                var linuxService = new LinuxNotificationService();
+                return linuxService.ShowNotification(title, message);
             }
-        }
 
-        private static string Escape(string s) => s?.Replace("\"", "\\\"") ?? string.Empty;
+            return false;
+        }
     }
 }

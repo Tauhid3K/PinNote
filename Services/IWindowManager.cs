@@ -16,6 +16,8 @@ namespace PinNote.Services
         void ShowInstructions();
         bool ConfirmDelete(string noteTitle);
         Task<bool> ConfirmDeleteAsync(string noteTitle);
+        Task<bool> ConfirmActionAsync(string title, string message);
+        Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultText = "");
         void RunOnUiThread(Action action);
         void Shutdown();
         void ApplyTheme(string themeMode);

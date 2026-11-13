@@ -58,6 +58,10 @@ namespace PinNote.UI
         {
             if (_openWindows.TryGetValue(noteId, out var window))
             {
+                if (window.DataContext is NoteViewModel vm)
+                {
+                    vm.IsVisible = false;
+                }
                 window.Close();
                 _openWindows.Remove(noteId);
             }
@@ -157,6 +161,48 @@ namespace PinNote.UI
             return Task.FromResult(ConfirmDelete(noteTitle));
         }
 
+        public Task<bool> ConfirmActionAsync(string title, string message)
+        {
+            var res = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            return Task.FromResult(res == MessageBoxResult.Yes);
+        }
+
+        public Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultText = "")
+        {
+            string? result = null;
+            var dialog = new Window
+            {
+                Title = title,
+                Width = 360,
+                Height = 170,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ResizeMode = ResizeMode.NoResize,
+                ShowInTaskbar = false
+            };
+
+            var sp = new StackPanel { Margin = new Thickness(16) };
+            var lbl = new TextBlock { Text = prompt, Margin = new Thickness(0, 0, 0, 8), TextWrapping = TextWrapping.Wrap };
+            var txt = new TextBox { Text = defaultText, Margin = new Thickness(0, 0, 0, 12), Height = 26 };
+            txt.SelectAll();
+
+            var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var okBtn = new Button { Content = "OK", Width = 75, Height = 26, Margin = new Thickness(0, 0, 8, 0), IsDefault = true };
+            var cancelBtn = new Button { Content = "Cancel", Width = 75, Height = 26, IsCancel = true };
+
+            okBtn.Click += (_, _) => { result = txt.Text; dialog.DialogResult = true; dialog.Close(); };
+            cancelBtn.Click += (_, _) => { dialog.DialogResult = false; dialog.Close(); };
+
+            btnPanel.Children.Add(okBtn);
+            btnPanel.Children.Add(cancelBtn);
+            sp.Children.Add(lbl);
+            sp.Children.Add(txt);
+            sp.Children.Add(btnPanel);
+            dialog.Content = sp;
+
+            bool? dialogRes = dialog.ShowDialog();
+            return Task.FromResult(dialogRes == true ? result : null);
+        }
+
         public void RunOnUiThread(Action action)
         {
             if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
@@ -171,6 +217,7 @@ namespace PinNote.UI
 
         public void Shutdown()
         {
+            _mainViewModel.IsShuttingDown = true;
             FlushPendingEdits();
             Application.Current.Shutdown();
         }

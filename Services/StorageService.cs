@@ -16,7 +16,26 @@ namespace PinNote.Services
         private readonly string _filePath;
         private readonly string _backupFilePath;
         private bool _hasLoadError;
+        private static long _sequenceCounter = DateTime.UtcNow.Ticks;
         private long _lastSavedTimestamp;
+
+        /// <summary>
+        /// Generates a strictly monotonically increasing snapshot version number.
+        /// Guaranteed to be greater than any previously generated version.
+        /// </summary>
+        public static long GetNextSnapshotVersion()
+        {
+            long now = DateTime.UtcNow.Ticks;
+            while (true)
+            {
+                long current = Volatile.Read(ref _sequenceCounter);
+                long next = Math.Max(current + 1, now);
+                if (Interlocked.CompareExchange(ref _sequenceCounter, next, current) == current)
+                {
+                    return next;
+                }
+            }
+        }
 
         private readonly object _saveTaskLock = new();
         private Task _inFlightSaveTask = Task.CompletedTask;
@@ -110,7 +129,7 @@ namespace PinNote.Services
                 {
                     if (DataMigrationService.Migrate(notes, _folderPath))
                     {
-                        SaveNotesJsonCore(JsonConvert.SerializeObject(notes, Formatting.Indented), notes.Count, DateTime.UtcNow.Ticks);
+                        SaveNotesJsonCore(JsonConvert.SerializeObject(notes, Formatting.Indented), notes.Count, GetNextSnapshotVersion());
                     }
                     _hasLoadError = false;
                     LoadSucceeded?.Invoke(this, $"Successfully loaded {notes.Count} notes.");
@@ -193,7 +212,7 @@ namespace PinNote.Services
                 {
                     if (DataMigrationService.Migrate(notes, _folderPath))
                     {
-                        SaveNotesJsonCore(JsonConvert.SerializeObject(notes, Formatting.Indented), notes.Count, DateTime.UtcNow.Ticks);
+                        SaveNotesJsonCore(JsonConvert.SerializeObject(notes, Formatting.Indented), notes.Count, GetNextSnapshotVersion());
                     }
                     _hasLoadError = false;
                     LoadSucceeded?.Invoke(this, $"Successfully loaded {notes.Count} notes.");
@@ -291,18 +310,30 @@ namespace PinNote.Services
 
         public void SaveNotes(List<NoteModel> notes, long snapshotTimestamp = 0)
         {
+            if (snapshotTimestamp <= 0)
+            {
+                snapshotTimestamp = GetNextSnapshotVersion();
+            }
             string json = JsonConvert.SerializeObject(notes ?? new List<NoteModel>(), Formatting.Indented);
             SaveNotesJson(json, notes?.Count ?? 0, snapshotTimestamp);
         }
 
         public Task SaveNotesAsync(List<NoteModel> notes, long snapshotTimestamp = 0)
         {
+            if (snapshotTimestamp <= 0)
+            {
+                snapshotTimestamp = GetNextSnapshotVersion();
+            }
             string json = JsonConvert.SerializeObject(notes ?? new List<NoteModel>(), Formatting.Indented);
             return SaveNotesJsonAsync(json, notes?.Count ?? 0, snapshotTimestamp);
         }
 
         public void SaveNotesJson(string json, int noteCount, long snapshotTimestamp = 0)
         {
+            if (snapshotTimestamp <= 0)
+            {
+                snapshotTimestamp = GetNextSnapshotVersion();
+            }
             _asyncLock.Wait();
             try
             {
@@ -316,10 +347,15 @@ namespace PinNote.Services
 
         public Task SaveNotesJsonAsync(string json, int noteCount, long snapshotTimestamp = 0)
         {
+            if (snapshotTimestamp <= 0)
+            {
+                snapshotTimestamp = GetNextSnapshotVersion();
+            }
+
             Task task = SaveNotesJsonAsyncInternal(json, noteCount, snapshotTimestamp);
             lock (_saveTaskLock)
             {
-                _inFlightSaveTask = task;
+                _inFlightSaveTask = Task.WhenAll(_inFlightSaveTask, task).ContinueWith(_ => Task.CompletedTask).Unwrap();
             }
             return task;
         }
@@ -339,7 +375,7 @@ namespace PinNote.Services
                 // Guard against stale async saves overwriting newer content
                 if (snapshotTimestamp > 0 && snapshotTimestamp < _lastSavedTimestamp)
                 {
-                    Debug.WriteLine("StorageService.SaveNotes skipped: snapshot is older than last saved timestamp.");
+                    Debug.WriteLine($"StorageService.SaveNotes skipped: snapshot {snapshotTimestamp} is older than last saved timestamp {_lastSavedTimestamp}.");
                     return;
                 }
 
@@ -366,9 +402,10 @@ namespace PinNote.Services
 
                     await WriteAtomicallyAsync(_filePath, json);
                     _hasLoadError = false;
-                    _lastSavedTimestamp = snapshotTimestamp > 0
-                        ? Math.Max(snapshotTimestamp, DateTime.UtcNow.Ticks)
-                        : DateTime.UtcNow.Ticks;
+                    if (snapshotTimestamp > _lastSavedTimestamp)
+                    {
+                        _lastSavedTimestamp = snapshotTimestamp;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -396,7 +433,7 @@ namespace PinNote.Services
             // Guard against stale async saves overwriting newer content
             if (snapshotTimestamp > 0 && snapshotTimestamp < _lastSavedTimestamp)
             {
-                Debug.WriteLine("StorageService.SaveNotes skipped: snapshot is older than last saved timestamp.");
+                Debug.WriteLine($"StorageService.SaveNotes skipped: snapshot {snapshotTimestamp} is older than last saved timestamp {_lastSavedTimestamp}.");
                 return;
             }
 
@@ -423,9 +460,10 @@ namespace PinNote.Services
 
                 WriteAtomically(_filePath, json);
                 _hasLoadError = false;
-                _lastSavedTimestamp = snapshotTimestamp > 0
-                    ? Math.Max(snapshotTimestamp, DateTime.UtcNow.Ticks)
-                    : DateTime.UtcNow.Ticks;
+                if (snapshotTimestamp > _lastSavedTimestamp)
+                {
+                    _lastSavedTimestamp = snapshotTimestamp;
+                }
             }
             catch (Exception ex)
             {

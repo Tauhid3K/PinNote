@@ -231,13 +231,53 @@ namespace PinNote.Views
 
         private void Close_Click(object? sender, RoutedEventArgs e)
         {
+            if (_viewModel != null)
+            {
+                _viewModel.IsVisible = false;
+            }
             FlushPendingEdits();
             Close();
         }
 
         private void AvaloniaNoteWindow_Closing(object? sender, WindowClosingEventArgs e)
         {
+            if (!AvaloniaApp.IsShuttingDown && _viewModel != null)
+            {
+                _viewModel.IsVisible = false;
+            }
             FlushPendingEdits();
+        }
+
+        private void NewTagInputBox_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                SubmitNewTag();
+                e.Handled = true;
+            }
+        }
+
+        private void ExistingTagsSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (ExistingTagsSelector?.SelectedItem is string tag && !string.IsNullOrWhiteSpace(tag))
+            {
+                _viewModel?.AddTag(tag);
+                ExistingTagsSelector.SelectedItem = null;
+            }
+        }
+
+        private void ConfirmAddTag_Click(object? sender, RoutedEventArgs e)
+        {
+            SubmitNewTag();
+        }
+
+        private void SubmitNewTag()
+        {
+            if (NewTagInputBox != null && !string.IsNullOrWhiteSpace(NewTagInputBox.Text))
+            {
+                _viewModel?.AddTag(NewTagInputBox.Text.Trim());
+                NewTagInputBox.Text = string.Empty;
+            }
         }
 
         private void ContentEditor_KeyDown(object? sender, KeyEventArgs e)

@@ -129,14 +129,17 @@
                         <MenuItem Header="Work" Command="{Binding SetCategoryCommand}" CommandParameter="Work" />
                         <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
                     </MenuItem>
-                    <MenuItem Header="Workspace">
-                        <MenuItem Header="Default" Command="{Binding SetWorkspaceCommand}" CommandParameter="Default" />
-                        <MenuItem Header="University" Command="{Binding SetWorkspaceCommand}" CommandParameter="University" />
-                        <MenuItem Header="Personal" Command="{Binding SetWorkspaceCommand}" CommandParameter="Personal" />
-                        <MenuItem Header="Development" Command="{Binding SetWorkspaceCommand}" CommandParameter="Development" />
-                        <MenuItem Header="Projects" Command="{Binding SetWorkspaceCommand}" CommandParameter="Projects" />
+                    <MenuItem Header="Workspace" ItemsSource="{Binding AvailableWorkspaces}">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding DataContext.SetWorkspaceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Setter Property="CommandParameter" Value="{Binding Name}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
                     </MenuItem>
                     <MenuItem Header="Reminder">
+                        <MenuItem Header="In 10 Minutes" Command="{Binding SetReminder10MinutesCommand}" />
                         <MenuItem Header="In 1 Hour" Command="{Binding SetReminder1HourCommand}" />
                         <MenuItem Header="Today Evening (6 PM)" Command="{Binding SetReminderTodayEveningCommand}" />
                         <MenuItem Header="Tomorrow Morning (9 AM)" Command="{Binding SetReminderTomorrowMorningCommand}" />
@@ -144,6 +147,16 @@
                         <Separator />
                         <MenuItem Header="Clear Reminder" Command="{Binding ClearReminderCommand}" />
                     </MenuItem>
+                    <MenuItem Header="Due Date">
+                        <MenuItem Header="Today (End of Day)" Command="{Binding SetDueDateTodayCommand}" />
+                        <MenuItem Header="Tomorrow (5 PM)" Command="{Binding SetDueDateTomorrowCommand}" />
+                        <MenuItem Header="Next Week" Command="{Binding SetDueDateNextWeekCommand}" />
+                        <Separator />
+                        <MenuItem Header="Set Reminder for Due Date" Command="{Binding SetReminderAtDueDateCommand}" />
+                        <Separator />
+                        <MenuItem Header="Clear Due Date" Command="{Binding ClearDueDateCommand}" />
+                    </MenuItem>
+                    <MenuItem Header="Save as Template" Command="{Binding SaveAsTemplateCommand}" />
                     <Separator />
                     <MenuItem Header="Color">
                         <MenuItem.Icon>
@@ -361,6 +374,32 @@
                         </Button>
                     </Border>
 
+                    <!-- Due Date Badge -->
+                    <Border CornerRadius="3" Padding="4,1" Margin="0,0,4,2"
+                            Visibility="{Binding HasDueDate, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#332196F3" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsOverdue}" Value="True">
+                                        <Setter Property="Background" Value="#55F44336" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsDueToday}" Value="True">
+                                        <Setter Property="Background" Value="#55FF9800" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Button Style="{StaticResource NoteButtonStyle}" Height="16" MinWidth="0" Padding="2,0"
+                                Command="{Binding ClearDueDateCommand}" ToolTip="Click to clear due date">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📅 " FontSize="9" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding DueDateSummary}" FontSize="10" Foreground="{Binding TextBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text=" ×" FontSize="10" FontWeight="Bold" Foreground="{Binding TextBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Border>
+
                     <!-- Markdown Mode Toggle Badge -->
                     <Button Style="{StaticResource NoteButtonStyle}" Height="18" MinWidth="0" Padding="4,0" Margin="0,0,4,2"
                             Command="{Binding ToggleMarkdownPreviewCommand}"
@@ -395,6 +434,23 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <!-- Add Tag Button & Popup -->
+                    <Button x:Name="AddTagBtn" Style="{StaticResource NoteButtonStyle}" Height="16" MinWidth="0" Padding="4,0" Margin="0,0,4,2"
+                            Click="AddTagBtn_Click" ToolTip="Add tag">
+                        <TextBlock Text="+ Tag" FontSize="10" Foreground="{Binding TextBrush}" />
+                    </Button>
+                    <Popup x:Name="AddTagPopup" PlacementTarget="{Binding ElementName=AddTagBtn}" Placement="Bottom" StaysOpen="False">
+                        <Border Background="#F5F5F5" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" Padding="6">
+                            <StackPanel Width="160">
+                                <TextBlock Text="Add Tag" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,4" Foreground="#333333" />
+                                <TextBox x:Name="NewTagTextBox" Height="22" FontSize="11" KeyDown="NewTagTextBox_KeyDown" Margin="0,0,0,4" />
+                                <ComboBox x:Name="ExistingTagsCombo" ItemsSource="{Binding AllAvailableTags}" Height="22" FontSize="11"
+                                          SelectionChanged="ExistingTagsCombo_SelectionChanged" Margin="0,0,0,4" />
+                                <Button Content="Add" Click="ConfirmAddTag_Click" Height="20" FontSize="10" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
                 </WrapPanel>
             </Border>
 

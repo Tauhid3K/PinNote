@@ -131,20 +131,37 @@
                         <MenuItem Header="Work" Command="{Binding SetCategoryCommand}" CommandParameter="Work" />
                         <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
                     </MenuItem>
-                    <MenuItem Header="Workspace">
-                        <MenuItem Header="Default" Command="{Binding SetWorkspaceCommand}" CommandParameter="Default" />
-                        <MenuItem Header="University" Command="{Binding SetWorkspaceCommand}" CommandParameter="University" />
-                        <MenuItem Header="Personal" Command="{Binding SetWorkspaceCommand}" CommandParameter="Personal" />
-                        <MenuItem Header="Development" Command="{Binding SetWorkspaceCommand}" CommandParameter="Development" />
-                        <MenuItem Header="Projects" Command="{Binding SetWorkspaceCommand}" CommandParameter="Projects" />
+                    <MenuItem Header="Workspace" ItemsSource="{Binding AvailableWorkspaces}">
+                        <MenuItem.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding Name}"
+                                          Command="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}"
+                                          CommandParameter="{Binding Name}" />
+                            </DataTemplate>
+                        </MenuItem.ItemTemplate>
                     </MenuItem>
                     <MenuItem Header="Reminder">
+                        <MenuItem Header="In 10 Minutes" Command="{Binding SetReminder10MinutesCommand}" />
                         <MenuItem Header="In 1 Hour" Command="{Binding SetReminder1HourCommand}" />
                         <MenuItem Header="Today Evening (6 PM)" Command="{Binding SetReminderTodayEveningCommand}" />
                         <MenuItem Header="Tomorrow Morning (9 AM)" Command="{Binding SetReminderTomorrowMorningCommand}" />
                         <MenuItem Header="Next Week" Command="{Binding SetReminderNextWeekCommand}" />
                         <Separator />
                         <MenuItem Header="Clear Reminder" Command="{Binding ClearReminderCommand}" />
+                    </MenuItem>
+                    <MenuItem Header="Due Date">
+                        <MenuItem Header="Today (End of Day)" Command="{Binding SetDueDateTodayCommand}" />
+                        <MenuItem Header="Tomorrow (5 PM)" Command="{Binding SetDueDateTomorrowCommand}" />
+                        <MenuItem Header="Next Week" Command="{Binding SetDueDateNextWeekCommand}" />
+                        <Separator />
+                        <MenuItem Header="Set Reminder for Due Date" Command="{Binding SetReminderAtDueDateCommand}" />
+                        <Separator />
+                        <MenuItem Header="Clear Due Date" Command="{Binding ClearDueDateCommand}" />
+                    </MenuItem>
+                    <MenuItem Header="Save as Template" Command="{Binding SaveAsTemplateCommand}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📋" FontSize="11" VerticalAlignment="Center" />
+                        </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Crystal clear"
                               ToggleType="CheckBox"
@@ -372,20 +389,37 @@
                                         <MenuItem Header="Work" Command="{Binding SetCategoryCommand}" CommandParameter="Work" />
                                         <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
                                     </MenuItem>
-                                    <MenuItem Header="Workspace">
-                                        <MenuItem Header="Default" Command="{Binding SetWorkspaceCommand}" CommandParameter="Default" />
-                                        <MenuItem Header="University" Command="{Binding SetWorkspaceCommand}" CommandParameter="University" />
-                                        <MenuItem Header="Personal" Command="{Binding SetWorkspaceCommand}" CommandParameter="Personal" />
-                                        <MenuItem Header="Development" Command="{Binding SetWorkspaceCommand}" CommandParameter="Development" />
-                                        <MenuItem Header="Projects" Command="{Binding SetWorkspaceCommand}" CommandParameter="Projects" />
+                                    <MenuItem Header="Workspace" ItemsSource="{Binding AvailableWorkspaces}">
+                                        <MenuItem.ItemTemplate>
+                                            <DataTemplate>
+                                                <MenuItem Header="{Binding Name}"
+                                                          Command="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}"
+                                                          CommandParameter="{Binding Name}" />
+                                            </DataTemplate>
+                                        </MenuItem.ItemTemplate>
                                     </MenuItem>
                                     <MenuItem Header="Reminder">
+                                        <MenuItem Header="In 10 Minutes" Command="{Binding SetReminder10MinutesCommand}" />
                                         <MenuItem Header="In 1 Hour" Command="{Binding SetReminder1HourCommand}" />
                                         <MenuItem Header="Today Evening (6 PM)" Command="{Binding SetReminderTodayEveningCommand}" />
                                         <MenuItem Header="Tomorrow Morning (9 AM)" Command="{Binding SetReminderTomorrowMorningCommand}" />
                                         <MenuItem Header="Next Week" Command="{Binding SetReminderNextWeekCommand}" />
                                         <Separator />
                                         <MenuItem Header="Clear Reminder" Command="{Binding ClearReminderCommand}" />
+                                    </MenuItem>
+                                    <MenuItem Header="Due Date">
+                                        <MenuItem Header="Today (End of Day)" Command="{Binding SetDueDateTodayCommand}" />
+                                        <MenuItem Header="Tomorrow (5 PM)" Command="{Binding SetDueDateTomorrowCommand}" />
+                                        <MenuItem Header="Next Week" Command="{Binding SetDueDateNextWeekCommand}" />
+                                        <Separator />
+                                        <MenuItem Header="Set Reminder for Due Date" Command="{Binding SetReminderAtDueDateCommand}" />
+                                        <Separator />
+                                        <MenuItem Header="Clear Due Date" Command="{Binding ClearDueDateCommand}" />
+                                    </MenuItem>
+                                    <MenuItem Header="Save as Template" Command="{Binding SaveAsTemplateCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📋" FontSize="11" VerticalAlignment="Center" />
+                                        </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem Header="Crystal clear"
                                               ToggleType="CheckBox"
@@ -604,6 +638,30 @@
                     </Button>
                 </Border>
 
+                <!-- Due Date Badge -->
+                <Border CornerRadius="3"
+                        Padding="5,1"
+                        Margin="0,0,4,2"
+                        ToolTip.Tip="Click to clear due date"
+                        IsVisible="{Binding HasDueDate}">
+                    <Border.Background>
+                        <SolidColorBrush Color="#332196F3" />
+                    </Border.Background>
+                    <Button Classes="title-btn"
+                            Width="NaN" Height="16" Padding="0"
+                            Command="{Binding ClearDueDateCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <TextBlock Text="📅" FontSize="9" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding DueDateSummary}"
+                                       FontSize="10"
+                                       Foreground="{Binding HeaderIconColor}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="×" FontSize="10" FontWeight="Bold" Margin="2,0,0,0"
+                                       Foreground="{Binding HeaderIconColor}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Border>
+
                 <!-- Markdown Mode Toggle Badge -->
                 <Button Classes="title-btn"
                         Width="NaN" Height="18"
@@ -652,6 +710,26 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <!-- Add Tag Button & Flyout -->
+                <Button Classes="title-btn"
+                        Width="NaN" Height="16"
+                        Padding="4,0"
+                        Margin="0,0,4,2"
+                        ToolTip.Tip="Add tag">
+                    <TextBlock Text="+ Tag" FontSize="10" Foreground="{Binding HeaderIconColor}" />
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <StackPanel Width="160" Spacing="4">
+                                <TextBlock Text="Add Tag" FontWeight="SemiBold" FontSize="11" />
+                                <TextBox x:Name="NewTagInputBox" Height="26" FontSize="11" KeyDown="NewTagInputBox_KeyDown" />
+                                <ComboBox x:Name="ExistingTagsSelector" ItemsSource="{Binding AllAvailableTags}" Height="26" FontSize="11"
+                                          HorizontalAlignment="Stretch" SelectionChanged="ExistingTagsSelector_SelectionChanged" />
+                                <Button Content="Add" Click="ConfirmAddTag_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="24" FontSize="11" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
             </WrapPanel>
 
             <!-- Row 2: Note Content Editor (Text Mode / Markdown Edit Mode) -->
