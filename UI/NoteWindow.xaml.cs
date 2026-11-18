@@ -265,6 +265,10 @@ namespace PinNote.UI
             {
                 SyncEditorFontSize();
             }
+            else if (e.PropertyName == nameof(NoteViewModel.IsMarkdown))
+            {
+                LoadEditorContent();
+            }
         }
 
         private void SyncEditorStyles()
@@ -453,26 +457,95 @@ namespace PinNote.UI
 
         private void BoldButton_Click(object sender, RoutedEventArgs e)
         {
-            EditingCommands.ToggleBold.Execute(null, EditorBox);
-            EditorBox.Focus();
+            if (_viewModel.IsMarkdown)
+            {
+                ApplyMarkdownInlineFormatting("**", "**");
+            }
+            else
+            {
+                EditingCommands.ToggleBold.Execute(null, EditorBox);
+                EditorBox.Focus();
+            }
         }
 
         private void ItalicButton_Click(object sender, RoutedEventArgs e)
         {
-            EditingCommands.ToggleItalic.Execute(null, EditorBox);
-            EditorBox.Focus();
+            if (_viewModel.IsMarkdown)
+            {
+                ApplyMarkdownInlineFormatting("*", "*");
+            }
+            else
+            {
+                EditingCommands.ToggleItalic.Execute(null, EditorBox);
+                EditorBox.Focus();
+            }
         }
 
         private void UnderlineButton_Click(object sender, RoutedEventArgs e)
         {
-            EditingCommands.ToggleUnderline.Execute(null, EditorBox);
-            EditorBox.Focus();
+            if (_viewModel.IsMarkdown)
+            {
+                ApplyMarkdownInlineFormatting("<u>", "</u>");
+            }
+            else
+            {
+                EditingCommands.ToggleUnderline.Execute(null, EditorBox);
+                EditorBox.Focus();
+            }
         }
 
         private void BulletsButton_Click(object sender, RoutedEventArgs e)
         {
-            EditingCommands.ToggleBullets.Execute(null, EditorBox);
+            if (_viewModel.IsMarkdown)
+            {
+                var selection = EditorBox.Selection;
+                if (selection != null && !selection.IsEmpty)
+                {
+                    selection.Text = "- " + selection.Text;
+                }
+                else
+                {
+                    EditorBox.CaretPosition?.InsertTextInRun("- ");
+                }
+                EditorBox.Focus();
+                QueueSaveEditorContent();
+            }
+            else
+            {
+                EditingCommands.ToggleBullets.Execute(null, EditorBox);
+                EditorBox.Focus();
+            }
+        }
+
+        private void ApplyMarkdownInlineFormatting(string prefix, string suffix)
+        {
+            var selection = EditorBox.Selection;
+            if (selection == null) return;
+
+            if (!selection.IsEmpty)
+            {
+                string selectedText = selection.Text;
+                if (selectedText.StartsWith(prefix) && selectedText.EndsWith(suffix) && selectedText.Length >= prefix.Length + suffix.Length)
+                {
+                    selection.Text = selectedText.Substring(prefix.Length, selectedText.Length - prefix.Length - suffix.Length);
+                }
+                else
+                {
+                    selection.Text = prefix + selectedText + suffix;
+                }
+            }
+            else
+            {
+                var caret = EditorBox.CaretPosition;
+                if (caret != null)
+                {
+                    caret.InsertTextInRun(prefix + suffix);
+                    var next = caret.GetPositionAtOffset(prefix.Length);
+                    if (next != null) EditorBox.CaretPosition = next;
+                }
+            }
             EditorBox.Focus();
+            QueueSaveEditorContent();
         }
 
         private void ImageButton_Click(object sender, RoutedEventArgs e)
@@ -560,17 +633,25 @@ namespace PinNote.UI
                     return;
                 }
 
-                var range = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
-                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(vm.Content));
-
-                try
-                {
-                    range.Load(stream, DataFormats.Xaml);
-                }
-                catch
+                if (vm.IsMarkdown || !vm.Content.TrimStart().StartsWith("<"))
                 {
                     EditorBox.Document.Blocks.Clear();
                     EditorBox.Document.Blocks.Add(new Paragraph(new Run(vm.Content)));
+                }
+                else
+                {
+                    var range = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
+                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(vm.Content));
+
+                    try
+                    {
+                        range.Load(stream, DataFormats.Xaml);
+                    }
+                    catch
+                    {
+                        EditorBox.Document.Blocks.Clear();
+                        EditorBox.Document.Blocks.Add(new Paragraph(new Run(vm.Content)));
+                    }
                 }
             }
             finally
@@ -590,9 +671,21 @@ namespace PinNote.UI
             try
             {
                 var range = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
-                using var stream = new MemoryStream();
-                range.Save(stream, DataFormats.Xaml);
-                vm.Content = Encoding.UTF8.GetString(stream.ToArray());
+                if (vm.IsMarkdown)
+                {
+                    string text = range.Text;
+                    if (text.EndsWith("\r\n"))
+                    {
+                        text = text.Substring(0, text.Length - 2);
+                    }
+                    vm.Content = text;
+                }
+                else
+                {
+                    using var stream = new MemoryStream();
+                    range.Save(stream, DataFormats.Xaml);
+                    vm.Content = Encoding.UTF8.GetString(stream.ToArray());
+                }
             }
             catch (Exception ex)
             {

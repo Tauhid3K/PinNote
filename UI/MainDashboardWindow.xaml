@@ -471,12 +471,12 @@
                                                        Foreground="{Binding PreviewTextBrush}"
                                                        Opacity="0.8"
                                                        Margin="0,0,6,0"
-                                                       Visibility="{Binding Category, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}" />
+                                                       Visibility="{Binding HasCategory, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             <TextBlock Text="⏰"
                                                        DockPanel.Dock="Left"
                                                        FontSize="10"
                                                        Margin="0,0,4,0"
-                                                       Visibility="{Binding ReminderSummary, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}" />
+                                                       Visibility="{Binding HasReminder, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             <TextBlock Text="Click to open"
                                                        DockPanel.Dock="Right"
                                                        FontSize="10"

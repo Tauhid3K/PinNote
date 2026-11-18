@@ -352,12 +352,13 @@
                 <WrapPanel VerticalAlignment="Center">
                     <!-- Category Badge -->
                     <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2"
-                            Visibility="{Binding Category, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            Visibility="{Binding HasCategory, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding TextBrush}" />
                     </Border>
 
                     <!-- Workspace Badge -->
-                    <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2">
+                    <Border Background="#22000000" CornerRadius="3" Padding="4,1" Margin="0,0,4,2"
+                            Visibility="{Binding HasCustomWorkspace, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{Binding WorkspaceName}" FontSize="10" Foreground="{Binding TextBrush}" />
                     </Border>
 

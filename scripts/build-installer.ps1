@@ -28,6 +28,7 @@ New-Item -ItemType Directory -Force -Path $installerDir | Out-Null
 Push-Location $repoRoot
 try {
     dotnet publish $projectPath `
+        -f net8.0-windows `
         -c $Configuration `
         -r $RuntimeIdentifier `
         --self-contained true `

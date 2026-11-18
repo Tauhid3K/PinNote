@@ -315,6 +315,8 @@ namespace PinNote.ViewModels
                 {
                     _model.Category = clean;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(HasCategory));
+                    OnPropertyChanged(nameof(HasMetadata));
                     InvalidateSearchableText();
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
@@ -331,6 +333,8 @@ namespace PinNote.ViewModels
                 {
                     _model.WorkspaceName = clean;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(HasCustomWorkspace));
+                    OnPropertyChanged(nameof(HasMetadata));
                     SaveRequested?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -508,6 +512,8 @@ namespace PinNote.ViewModels
         public bool IsMarkdownPreviewMode => IsMarkdown && IsMarkdownPreview;
         public bool IsTextEditorVisible => !IsChecklist && !IsMarkdownPreviewMode;
         public string MarkdownModeText => IsMarkdownPreview ? "Preview" : "Edit";
+        public bool HasCategory => !string.IsNullOrWhiteSpace(Category);
+        public bool HasCustomWorkspace => !string.IsNullOrWhiteSpace(WorkspaceName) && WorkspaceName != "Default";
         public bool HasMetadata => !string.IsNullOrEmpty(Category) || HasReminder || IsMarkdown || _tags.Count > 0 || (!string.IsNullOrEmpty(WorkspaceName) && WorkspaceName != "Default");
 
         public NoteType NoteType

@@ -132,8 +132,8 @@ namespace PinNote
                     _mainViewModel?.RestoreVisibleNotes();
                 }
 
-                // If this launch came from the installer, show the instructions window.
-                if (showPostInstallInstructions)
+                // If this launch came from the installer or is the first run, show the instructions window.
+                if (showPostInstallInstructions || _appStateService.ShouldShowFirstRunUi())
                 {
                     _mainViewModel?.ShowInstructions();
                 }
@@ -432,6 +432,15 @@ namespace PinNote
 
                 if (!string.IsNullOrEmpty(exePath))
                 {
+                    // Release single-instance mutex and IPC server before spawning the unelevated process
+                    // so the child process does not detect this dying process as an active first instance.
+                    try
+                    {
+                        _singleInstanceService?.Dispose();
+                        _singleInstanceService = null;
+                    }
+                    catch { }
+
                     var extraArgs = args != null && args.Length > 0 ? " " + string.Join(" ", args) : "";
                     var startInfo = new ProcessStartInfo
                     {

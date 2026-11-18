@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dashBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <filter id="dashShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', Consolas, monospace; }
+  </style>
+
+  <!-- Window Frame -->
+  <rect width="900" height="560" rx="12" fill="url(#dashBg)" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Window Header / Title Bar -->
+  <path d="M 0 12 Q 0 0 12 0 L 888 0 Q 900 0 900 12 L 900 48 L 0 48 Z" fill="#0F172A" />
+  
+  <g transform="translate(16, 16)">
+    <circle cx="6" cy="8" r="6" fill="#EF4444" opacity="0.8" />
+    <circle cx="26" cy="8" r="6" fill="#F59E0B" opacity="0.8" />
+    <circle cx="46" cy="8" r="6" fill="#10B981" opacity="0.8" />
+  </g>
+
+  <!-- Title & Update Pill -->
+  <text x="85" y="30" class="font-sans" font-size="14" font-weight="700" fill="#F8FAFC">PinNote Dashboard</text>
+  <rect x="230" y="16" width="110" height="22" rx="11" fill="#15803D" fill-opacity="0.3" stroke="#22C55E" stroke-width="1" />
+  <text x="242" y="31" class="font-sans" font-size="11" font-weight="600" fill="#4ADE80">🔔 Up to date v1.0.0</text>
+
+  <!-- Right Actions: + New Note & Settings -->
+  <rect x="740" y="14" width="105" height="26" rx="6" fill="#2563EB" />
+  <text x="754" y="31" class="font-sans" font-size="12" font-weight="600" fill="#FFFFFF">+ New Note</text>
+  <text x="862" y="31" class="font-sans" font-size="16" fill="#94A3B8">⚙</text>
+
+  <!-- Secondary Toolbar: Search & Workspace Tabs -->
+  <g transform="translate(24, 64)">
+    <!-- Search Bar -->
+    <rect width="260" height="34" rx="8" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <text x="14" y="22" class="font-sans" font-size="13" fill="#64748B">🔍</text>
+    <text x="36" y="22" class="font-sans" font-size="12" fill="#E2E8F0">study</text>
+
+    <!-- Workspace Selector Pills -->
+    <g transform="translate(280, 2)">
+      <text x="0" y="20" class="font-sans" font-size="11" fill="#94A3B8" font-weight="600">Workspace:</text>
+      
+      <rect x="75" y="0" width="46" height="28" rx="6" fill="#334155" />
+      <text x="88" y="18" class="font-sans" font-size="11" font-weight="600" fill="#F8FAFC">All</text>
+
+      <rect x="127" y="0" width="85" height="28" rx="6" fill="#3B82F6" />
+      <text x="140" y="18" class="font-sans" font-size="11" font-weight="700" fill="#FFFFFF">University</text>
+
+      <rect x="218" y="0" width="68" height="28" rx="6" fill="#1E293B" stroke="#334155" stroke-width="1" />
+      <text x="230" y="18" class="font-sans" font-size="11" fill="#94A3B8">Projects</text>
+
+      <rect x="292" y="0" width="72" height="28" rx="6" fill="#1E293B" stroke="#334155" stroke-width="1" />
+      <text x="304" y="18" class="font-sans" font-size="11" fill="#94A3B8">Personal</text>
+    </g>
+
+    <!-- Reminders Only Checkbox -->
+    <g transform="translate(710, 8)">
+      <rect width="14" height="14" rx="3" fill="#1E293B" stroke="#475569" stroke-width="1.2" />
+      <text x="22" y="12" class="font-sans" font-size="11" fill="#94A3B8">⏰ Reminders</text>
+    </g>
+  </g>
+
+  <!-- ==========================================
+       NOTE CARDS GRID (3 Columns x 2 Rows)
+       ========================================== -->
+  <g transform="translate(24, 120)">
+    <!-- Card 1: Lavender (University Algorithms) -->
+    <g transform="translate(0, 0)">
+      <rect width="270" height="190" rx="8" fill="#EDE9FE" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#DDD6FE" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#4C1D95">Algorithms Exam Cheat Sheet</text>
+      
+      <!-- Tags -->
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#4C1D95" fill-opacity="0.1" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#4C1D95">STUDY</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" font-weight="600" fill="#2E1065">• Big-O Cheatsheet:</text>
+      <text x="12" y="96" class="font-sans" font-size="10.5" fill="#5B21B6">MergeSort: O(N log N) guaranteed</text>
+      <text x="12" y="112" class="font-sans" font-size="10.5" fill="#5B21B6">QuickSort: O(N²) worst-case pivot</text>
+      <text x="12" y="128" class="font-sans" font-size="10.5" fill="#5B21B6">Binary Search: O(log N) sorted</text>
+
+      <rect x="12" y="152" width="90" height="16" rx="3" fill="#EA580C" fill-opacity="0.15" />
+      <text x="16" y="164" class="font-sans" font-size="9" font-weight="600" fill="#C2410C">⏰ Due Tomorrow 9am</text>
+    </g>
+
+    <!-- Card 2: Light Blue (Research Paper Sources) -->
+    <g transform="translate(290, 0)">
+      <rect width="270" height="190" rx="8" fill="#E0F2FE" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#BAE6FD" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#0369A1">Operating Systems Research</text>
+      
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#0369A1" fill-opacity="0.1" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#0369A1">STUDY</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" font-weight="600" fill="#0C4A6E">Reading List (ACM Queue):</text>
+      <text x="12" y="96" class="font-sans" font-size="10.5" fill="#0284C7">1. Virtual Memory & TLB shoots</text>
+      <text x="12" y="112" class="font-sans" font-size="10.5" fill="#0284C7">2. IPC Performance: Pipes vs Sockets</text>
+      <text x="12" y="128" class="font-sans" font-size="10.5" fill="#0284C7">3. Cache Coherency protocols</text>
+
+      <text x="12" y="165" class="font-sans" font-size="10" fill="#64748B">Updated 2 hours ago</text>
+    </g>
+
+    <!-- Card 3: Pastel Yellow (Physics Lab Group) -->
+    <g transform="translate(580, 0)">
+      <rect width="270" height="190" rx="8" fill="#FEF08A" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#FDE047" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#713F12">Physics Lab: Pendulum Oscillation</text>
+      
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#713F12" fill-opacity="0.1" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#713F12">STUDY</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" fill="#854D0E">Lab Partner: Sarah M.</text>
+      <text x="12" y="96" class="font-sans" font-size="11" fill="#854D0E">Measured length: L = 1.05m</text>
+      <text x="12" y="112" class="font-sans" font-size="11" fill="#854D0E">Period average: T = 2.05s</text>
+      <text x="12" y="128" class="font-sans" font-size="11" fill="#854D0E">Calculated g: 9.814 m/s²</text>
+
+      <text x="12" y="165" class="font-sans" font-size="10" fill="#854D0E">Click to edit notes</text>
+    </g>
+
+    <!-- Card 4: Mint Green (Checklist: Semester Project) -->
+    <g transform="translate(0, 205)">
+      <rect width="270" height="190" rx="8" fill="#DCFCE7" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#BBF7D0" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#14532D">Semester Capstone Deliverables</text>
+      
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#14532D" fill-opacity="0.1" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#14532D">STUDY</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" fill="#15803D">✓ Project proposal submitted</text>
+      <text x="12" y="96" class="font-sans" font-size="11" fill="#15803D">✓ Architecture document drafted</text>
+      <text x="12" y="114" class="font-sans" font-size="11" fill="#166534" font-weight="600">☐ Live demo test run</text>
+      <text x="12" y="132" class="font-sans" font-size="11" fill="#166534" font-weight="600">☐ Final presentation slide deck</text>
+
+      <rect x="12" y="156" width="120" height="5" rx="2.5" fill="#86EFAC" />
+      <rect x="12" y="156" width="60" height="5" rx="2.5" fill="#16A34A" />
+      <text x="140" y="162" class="font-sans" font-size="9" fill="#15803D">50%</text>
+    </g>
+
+    <!-- Card 5: Peachy Pink (Study Group Meeting) -->
+    <g transform="translate(290, 205)">
+      <rect width="270" height="190" rx="8" fill="#FEE2E2" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#FECACA" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#991B1B">Library Study Group Schedule</text>
+      
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#991B1B" fill-opacity="0.1" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#991B1B">STUDY</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" fill="#B91C1C">Location: Main Campus Library 3rd Fl.</text>
+      <text x="12" y="96" class="font-sans" font-size="11" fill="#B91C1C">Topic: Past midterm question reviews</text>
+      <text x="12" y="114" class="font-sans" font-size="11" fill="#B91C1C">Bring: Textbook & Graphing calculator</text>
+
+      <text x="12" y="165" class="font-sans" font-size="10" fill="#991B1B">Pinned • Always on Top</text>
+    </g>
+
+    <!-- Card 6: Slate Dark Note (Markdown Lecture Notes) -->
+    <g transform="translate(580, 205)">
+      <rect width="270" height="190" rx="8" fill="#1E293B" stroke="#334155" stroke-width="1" />
+      <path d="M 0 8 Q 0 0 8 0 L 262 0 Q 270 0 270 8 L 270 32 L 0 32 Z" fill="#334155" />
+      <text x="12" y="21" class="font-sans" font-size="12" font-weight="700" fill="#F8FAFC">Compiler Design Lecture #8</text>
+      
+      <rect x="12" y="40" width="46" height="15" rx="3" fill="#38BDF8" fill-opacity="0.15" />
+      <text x="16" y="51" class="font-sans" font-size="9" font-weight="700" fill="#38BDF8">STUDY</text>
+      <rect x="66" y="40" width="24" height="15" rx="3" fill="#F8FAFC" fill-opacity="0.1" />
+      <text x="70" y="51" class="font-sans" font-size="9" fill="#94A3B8">MD</text>
+
+      <text x="12" y="78" class="font-sans" font-size="11" fill="#CBD5E1">## Lexical vs Syntax Analysis</text>
+      <text x="12" y="96" class="font-sans" font-size="10.5" fill="#94A3B8">> Tokens stream into AST parser</text>
+      <text x="12" y="112" class="font-sans" font-size="10.5" fill="#94A3B8">- Shift-Reduce conflicts in LR(1)</text>
+      <text x="12" y="128" class="font-sans" font-size="10.5" fill="#94A3B8">- Operator precedence grammar</text>
+
+      <text x="12" y="165" class="font-sans" font-size="10" fill="#64748B">Press Ctrl+M for split preview</text>
+    </g>
+  </g>
+
+  <!-- Bottom Status Bar -->
+  <g transform="translate(24, 528)">
+    <text x="0" y="12" class="font-sans" font-size="11" fill="#64748B">Showing 6 notes in "University" • Safe local storage (~28 MB RAM)</text>
+    <text x="720" y="12" class="font-sans" font-size="11" fill="#64748B">Import / Export JSON ▾</text>
+  </g>
+</svg>

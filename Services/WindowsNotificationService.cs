@@ -28,10 +28,12 @@ namespace PinNote.Services
                     "try { [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe').Show($toast); } catch { " +
                     "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier().Show($toast); } }";
 
+                string encodedScript = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(psCommand));
+
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{psCommand}\"",
+                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encodedScript}",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };

@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <filter id="shadowHeavy2" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+    <filter id="toastGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#3B82F6" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; }
+  </style>
+
+  <!-- Background -->
+  <rect width="960" height="600" rx="16" fill="url(#bgGrad2)" />
+
+  <!-- LEFT: Note with Reminder Flyout Open -->
+  <g transform="translate(60, 50)" filter="url(#shadowHeavy2)">
+    <!-- Base Note -->
+    <rect width="400" height="490" rx="12" fill="#FFE2D9F3" />
+    <path d="M 0 12 A 12 12 0 0 1 12 0 L 388 0 A 12 12 0 0 1 400 12 L 400 44 L 0 44 Z" fill="#D4C4EB" />
+    <text x="18" y="27" class="font-sans" font-size="13" font-weight="700" fill="#1E293B">Final Exam Preparation</text>
+
+    <!-- Pin & Controls -->
+    <text x="328" y="28" font-size="12">📌</text>
+    <text x="354" y="29" font-size="14" font-weight="bold" fill="#475569">⋯</text>
+    <text x="376" y="27" font-size="14" fill="#475569">×</text>
+
+    <!-- Note Content Mock -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="0" width="60" height="18" rx="3" fill="#000000" opacity="0.1" />
+      <text x="7" y="13" class="font-sans" font-size="10.5" font-weight="600" fill="#334155">Study</text>
+      
+      <rect x="66" y="0" width="76" height="18" rx="3" fill="#000000" opacity="0.1" />
+      <text x="73" y="13" class="font-sans" font-size="10.5" fill="#334155">University</text>
+
+      <text x="0" y="44" class="font-sans" font-size="12" font-weight="600" fill="#1E293B">Chapters to master by Friday:</text>
+      <text x="0" y="68" class="font-sans" font-size="11.5" fill="#334155">• Chapter 4: Distributed Consensus (Raft)</text>
+      <text x="0" y="90" class="font-sans" font-size="11.5" fill="#334155">• Chapter 5: LSM-Trees vs B-Trees</text>
+      <text x="0" y="112" class="font-sans" font-size="11.5" fill="#334155">• Chapter 7: Transaction Isolation Levels</text>
+    </g>
+
+    <!-- Reminder & Due Date Picker Modal Card -->
+    <g transform="translate(20, 190)" filter="url(#shadowHeavy2)">
+      <rect width="360" height="280" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+      
+      <!-- Modal Header -->
+      <path d="M 0 10 A 10 10 0 0 1 10 0 L 350 0 A 10 10 0 0 1 360 10 L 360 40 L 0 40 Z" fill="#F8FAFC" />
+      <text x="16" y="25" class="font-sans" font-size="12.5" font-weight="700" fill="#0F172A">⏰ Schedule Reminder &amp; Due Date</text>
+
+      <!-- Presets -->
+      <g transform="translate(16, 54)">
+        <text x="0" y="10" class="font-sans" font-size="11" font-weight="600" fill="#64748B">QUICK PRESETS</text>
+        
+        <rect x="0" y="20" width="74" height="28" rx="6" fill="#F1F5F9" />
+        <text x="14" y="38" class="font-sans" font-size="11" font-weight="600" fill="#334155">+15 min</text>
+
+        <rect x="82" y="20" width="74" height="28" rx="6" fill="#F1F5F9" />
+        <text x="100" y="38" class="font-sans" font-size="11" font-weight="600" fill="#334155">+1 hour</text>
+
+        <rect x="164" y="20" width="84" height="28" rx="6" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.5" />
+        <text x="175" y="38" class="font-sans" font-size="11" font-weight="700" fill="#1D4ED8">Tomorrow</text>
+
+        <rect x="256" y="20" width="72" height="28" rx="6" fill="#F1F5F9" />
+        <text x="268" y="38" class="font-sans" font-size="11" font-weight="600" fill="#334155">+2 days</text>
+      </g>
+
+      <!-- Date & Time Input -->
+      <g transform="translate(16, 126)">
+        <text x="0" y="10" class="font-sans" font-size="11" font-weight="600" fill="#64748B">SPECIFIC DATE &amp; TIME</text>
+
+        <rect x="0" y="20" width="200" height="34" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" />
+        <text x="12" y="42" class="font-mono" font-size="12" fill="#0F172A">2026-11-20 (Fri)</text>
+        <text x="178" y="42" font-size="12">📅</text>
+
+        <rect x="210" y="20" width="118" height="34" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" />
+        <text x="222" y="42" class="font-mono" font-size="12" fill="#0F172A">09:00 AM</text>
+        <text x="300" y="42" font-size="12">🕒</text>
+      </g>
+
+      <!-- Actions -->
+      <g transform="translate(16, 218)">
+        <rect x="0" y="0" width="156" height="36" rx="6" fill="#F1F5F9" />
+        <text x="44" y="22" class="font-sans" font-size="12" font-weight="600" fill="#64748B">Clear Reminder</text>
+
+        <rect x="168" y="0" width="160" height="36" rx="6" fill="#2563EB" />
+        <text x="206" y="22" class="font-sans" font-size="12" font-weight="700" fill="#FFFFFF">Set Reminder</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- RIGHT: Built-in Templates Showcase & Live OS Toast -->
+  <g transform="translate(500, 50)" filter="url(#shadowHeavy2)">
+    <!-- Templates Window Panel -->
+    <rect width="400" height="340" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+    
+    <!-- Title Bar -->
+    <path d="M 0 12 A 12 12 0 0 1 12 0 L 388 0 A 12 12 0 0 1 400 12 L 400 46 L 0 46 Z" fill="#0F172A" />
+    <text x="18" y="28" class="font-sans" font-size="13" font-weight="700" fill="#F8FAFC">📋 Productivity &amp; Study Templates</text>
+    <rect x="300" y="12" width="86" height="22" rx="4" fill="#3B82F6" />
+    <text x="310" y="27" class="font-sans" font-size="10.5" font-weight="700" fill="#FFFFFF">+ Custom</text>
+
+    <!-- Templates List Items -->
+    <g transform="translate(16, 62)">
+      <!-- Item 1: Lecture Notes -->
+      <rect x="0" y="0" width="368" height="48" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      <text x="14" y="24" font-size="16">🎓</text>
+      <text x="42" y="22" class="font-sans" font-size="12.5" font-weight="700" fill="#0F172A">Lecture Notes</text>
+      <text x="42" y="37" class="font-sans" font-size="11" fill="#64748B">Course, Professor, Key Concepts &amp; Summary</text>
+      <text x="336" y="28" class="font-sans" font-size="12" fill="#2563EB" font-weight="bold">→</text>
+
+      <!-- Item 2: Exam Prep -->
+      <rect x="0" y="56" width="368" height="48" rx="8" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5" />
+      <text x="14" y="80" font-size="16">🎯</text>
+      <text x="42" y="78" class="font-sans" font-size="12.5" font-weight="700" fill="#1D4ED8">Exam Preparation</text>
+      <text x="42" y="93" class="font-sans" font-size="11" fill="#3B82F6">Subject, Exam Date, Key Topics &amp; Checklist</text>
+      <text x="336" y="84" class="font-sans" font-size="12" fill="#1D4ED8" font-weight="bold">→</text>
+
+      <!-- Item 3: Daily Planner -->
+      <rect x="0" y="112" width="368" height="48" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      <text x="14" y="136" font-size="16">📅</text>
+      <text x="42" y="134" class="font-sans" font-size="12.5" font-weight="700" fill="#0F172A">Daily Planner</text>
+      <text x="42" y="149" class="font-sans" font-size="11" fill="#64748B">Top 3 Priorities, Schedule blocks &amp; Notes</text>
+      <text x="336" y="140" class="font-sans" font-size="12" fill="#2563EB" font-weight="bold">→</text>
+
+      <!-- Item 4: Meeting Notes -->
+      <rect x="0" y="168" width="368" height="48" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      <text x="14" y="192" font-size="16">👥</text>
+      <text x="42" y="190" class="font-sans" font-size="12.5" font-weight="700" fill="#0F172A">Meeting Notes</text>
+      <text x="42" y="205" class="font-sans" font-size="11" fill="#64748B">Attendees, Agenda, Action Items &amp; Owners</text>
+      <text x="336" y="196" class="font-sans" font-size="12" fill="#2563EB" font-weight="bold">→</text>
+
+      <!-- Item 5: Personal To-do -->
+      <rect x="0" y="224" width="368" height="44" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      <text x="14" y="247" font-size="16">✅</text>
+      <text x="42" y="245" class="font-sans" font-size="12.5" font-weight="700" fill="#0F172A">Project Sprint Board</text>
+      <text x="42" y="259" class="font-sans" font-size="11" fill="#64748B">Milestones, Backlog items &amp; Next releases</text>
+      <text x="336" y="251" class="font-sans" font-size="12" fill="#2563EB" font-weight="bold">→</text>
+    </g>
+  </g>
+
+  <!-- BOTTOM-RIGHT: Native OS Toast Notification -->
+  <g transform="translate(500, 420)" filter="url(#toastGlow)">
+    <rect width="400" height="110" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
+    <rect width="6" height="110" rx="3" fill="#3B82F6" />
+    
+    <!-- Toast Header -->
+    <g transform="translate(20, 16)">
+      <rect width="24" height="24" rx="5" fill="#3B82F6" />
+      <text x="5" y="17" font-size="13">📌</text>
+      <text x="34" y="16" class="font-sans" font-size="11.5" font-weight="700" fill="#94A3B8">PINNOTE NOTIFICATION</text>
+      <text x="336" y="16" class="font-sans" font-size="10.5" fill="#64748B">Just now</text>
+
+      <!-- Body -->
+      <text x="0" y="42" class="font-sans" font-size="13" font-weight="800" fill="#F8FAFC">⏰ Final Exam Preparation</text>
+      <text x="0" y="60" class="font-sans" font-size="12" fill="#CBD5E1">Review Chapters 4 &amp; 5: Distributed Consensus and LSM-Trees</text>
+      <text x="0" y="78" class="font-sans" font-size="11" font-weight="600" fill="#60A5FA">Click to open note in Study workspace ↗</text>
+    </g>
+  </g>
+</svg>

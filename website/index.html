@@ -6,7 +6,7 @@
   <title>PinNote — Fast, Native Desktop Sticky Notes & Productivity</title>
   
   <!-- SEO & Social Meta Tags -->
-  <meta name="description" content="PinNote is a modern, distraction-free desktop sticky note app for Windows and Linux. Built with .NET 8, Avalonia UI and WPF. Supports Markdown, interactive checklists, workspaces, reminders, and frosted glass transparency. 100% Free & Open Source.">
+  <meta name="description" content="PinNote is a modern, distraction-free desktop sticky note app for Windows and Linux. Built with .NET 8, Avalonia UI and WPF. Supports Markdown, interactive checklists, workspaces, reminders, and crystal-clear transparency. 100% Free & Open Source.">
   <meta name="keywords" content="PinNote, sticky notes, desktop notes, markdown notes, linux sticky notes, windows sticky notes, avalonia, wpf, dot net 8, open source sticky notes, productivity, checklists, workspaces">
   <meta name="author" content="Tauhid3K">
   <meta name="theme-color" content="#090d16">
@@ -55,8 +55,8 @@
       </a>
 
       <nav class="nav-links" aria-label="Main Navigation">
+        <a href="#showcase">Screenshots</a>
         <a href="#features">Features</a>
-        <a href="#playground">Interactive Demo</a>
         <a href="#deep-dive">Workspaces</a>
         <a href="#compare">Why PinNote</a>
         <a href="#shortcuts">Shortcuts</a>
@@ -103,7 +103,7 @@
         </h1>
 
         <p class="hero-description">
-          The fast, distraction-free desktop workspace for thinkers, students, and developers. Capture ideas, format in Markdown, organize interactive checklists, and float crystal-clear notes on Windows and Linux.
+          The fast, distraction-free desktop workspace for thinkers, students, and developers. Capture thoughts, format in Markdown, organize interactive checklists, and float crystal-clear notes on Windows and Linux.
         </p>
 
         <!-- Dynamic OS-Aware Download CTA -->
@@ -118,11 +118,11 @@
                 <span id="hero-smart-download-subtext" class="btn-subtext">v1.0.0 • 64-bit • Standalone Setup</span>
               </div>
             </a>
-            <a href="#download" class="other-downloads-link">View all platforms (Linux .sh, .tar.gz, Flatpak) ↓</a>
+            <a href="#download" class="other-downloads-link">View all platforms (Linux .sh, .tar.gz) ↓</a>
           </div>
 
-          <a href="#playground" class="btn btn-secondary btn-lg">
-            <span>Try Interactive Demo</span>
+          <a href="#showcase" class="btn btn-secondary btn-lg">
+            <span>Explore App Screens ↓</span>
           </a>
         </div>
 
@@ -130,7 +130,7 @@
         <div class="hero-trust-bar">
           <div class="trust-item">
             <span class="trust-item-icon">⚡</span>
-            <span><strong>Native & Fast:</strong> No Electron, &lt;30MB RAM</span>
+            <span><strong>Native &amp; Fast:</strong> No Electron, &lt;30MB RAM</span>
           </div>
           <div class="trust-item">
             <span class="trust-item-icon">🔒</span>
@@ -138,122 +138,50 @@
           </div>
           <div class="trust-item">
             <span class="trust-item-icon">🐧</span>
-            <span><strong>Dual Platform:</strong> Windows (WPF) & Linux (Avalonia)</span>
+            <span><strong>Dual Platform:</strong> Windows (WPF) &amp; Linux (Avalonia)</span>
           </div>
           <div class="trust-item">
             <span class="trust-item-icon">🆓</span>
-            <span><strong>Free & Open:</strong> MIT License, zero ads</span>
+            <span><strong>Free &amp; Open:</strong> MIT License, zero ads</span>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Interactive Sticky Note Playground -->
-      <div class="hero-interactive-col" id="playground">
-        <div class="interactive-hint-badge">
-          <span>✨ Live Playground: Click colors or modes below!</span>
+      <!-- Right Column: Actual Desktop App Screenshot Mockup -->
+      <div class="hero-screen-showcase">
+        <div class="desktop-frame">
+          <div class="desktop-frame-header">
+            <div class="frame-traffic-dots">
+              <span class="dot dot-close"></span>
+              <span class="dot dot-min"></span>
+              <span class="dot dot-max"></span>
+            </div>
+            <div class="frame-title-pill">
+              <span class="pill-dot"></span>
+              <span>PinNote Desktop Canvas — Active Workspace</span>
+            </div>
+            <div class="frame-tag-badge">v1.0.0 Stable</div>
+          </div>
+          <div class="desktop-frame-body">
+            <img src="assets/screen-hero-desktop.svg" alt="PinNote Multi-Note Desktop Experience showing Pinned Checklists, Transparent Code Notes, and OS Notifications" class="hero-screen-img" />
+          </div>
         </div>
 
-        <!-- Interactive Note Window -->
-        <div id="demo-note-card" class="note-window-card" data-active-color="yellow">
-          
-          <!-- Note Title Bar -->
-          <div class="note-title-bar">
-            <div class="note-title-info">
-              <button id="demo-pin-btn" class="note-pin-btn pinned" title="Pinned: Always on Top" aria-label="Toggle Pin Always On Top">
-                📌
-              </button>
-              <span>Project Roadmap & Tasks</span>
-            </div>
-            <div class="note-window-actions">
-              <div class="note-win-btn" title="Duplicate Note">📋</div>
-              <div class="note-win-btn btn-close" title="Close">✕</div>
-            </div>
+        <!-- Floating Callout Badges -->
+        <div class="floating-badge badge-top-right">
+          <span class="badge-icon">📌</span>
+          <div>
+            <div class="badge-title">Always on Top</div>
+            <div class="badge-desc">Float above IDEs &amp; full-screen apps</div>
           </div>
+        </div>
 
-          <!-- Note Control Toolbar -->
-          <div class="note-toolbar">
-            <!-- Mode Selector -->
-            <div class="note-mode-toggle" role="tablist">
-              <button class="mode-btn" data-mode="text" role="tab">Text</button>
-              <button class="mode-btn active" data-mode="checklist" role="tab">Checklist</button>
-              <button class="mode-btn" data-mode="markdown" role="tab">Markdown</button>
-            </div>
-
-            <!-- Color Palette Swatches -->
-            <div class="color-swatches-group" title="Change note color">
-              <span class="color-swatch-dot active" data-color="yellow" style="background:#fef08a" title="Classic Yellow"></span>
-              <span class="color-swatch-dot" data-color="peach" style="background:#fed7aa" title="Soft Peach"></span>
-              <span class="color-swatch-dot" data-color="mint" style="background:#bbf7d0" title="Mint Green"></span>
-              <span class="color-swatch-dot" data-color="sky" style="background:#bae6fd" title="Sky Blue"></span>
-              <span class="color-swatch-dot" data-color="lavender" style="background:#ddd6fe" title="Lavender"></span>
-              <span class="color-swatch-dot" data-color="charcoal" style="background:#1e293b" title="Charcoal"></span>
-            </div>
+        <div class="floating-badge badge-bottom-left">
+          <span class="badge-icon">⚡</span>
+          <div>
+            <div class="badge-title">&lt;30MB RAM</div>
+            <div class="badge-desc">C# .NET 8 • Zero Electron bloat</div>
           </div>
-
-          <!-- Note Content Area -->
-          <div class="note-body-content">
-            
-            <!-- Pane 1: Text Mode -->
-            <div id="pane-text" class="note-pane">
-              <textarea class="note-textarea" placeholder="Type quick thoughts here..." spellcheck="false">
-PinNote lets you jot down rapid thoughts with zero distraction.
-
-Press Ctrl+Alt+N from anywhere on your desktop to spawn a note instantly.
-
-All edits are debounced and autosaved in the background with monotonic timestamp protection!</textarea>
-            </div>
-
-            <!-- Pane 2: Checklist Mode (Default active) -->
-            <div id="pane-checklist" class="note-pane active">
-              <div class="checklist-container">
-                <label class="checklist-item checked">
-                  <input type="checkbox" checked>
-                  <span>Build high-performance native app (.NET 8)</span>
-                </label>
-                <label class="checklist-item checked">
-                  <input type="checkbox" checked>
-                  <span>Add Markdown preview & syntax toggle</span>
-                </label>
-                <label class="checklist-item">
-                  <input type="checkbox">
-                  <span>Schedule meeting reminder (Due 5:00 PM)</span>
-                </label>
-                <label class="checklist-item">
-                  <input type="checkbox">
-                  <span>Switch workspace to "Development"</span>
-                </label>
-                <label class="checklist-item">
-                  <input type="checkbox">
-                  <span>Turn on "Crystal Clear" frosted glass mode</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Pane 3: Markdown Mode -->
-            <div id="pane-markdown" class="note-pane">
-              <div class="markdown-preview">
-                <h3># CS301: Algorithms & Data Structures</h3>
-                <p><strong>Topic:</strong> Graph Traversal & Dynamic Programming</p>
-                <blockquote>"Premature optimization is the root of all evil." — Knuth</blockquote>
-                <p>Run quick command: <code>pinnote --new-note</code></p>
-                <ul>
-                  <li>Complete Practice Problem Set #3</li>
-                  <li>Review Bellman-Ford vs Dijkstra</li>
-                </ul>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Note Footer Controls -->
-          <div class="note-footer-bar">
-            <label class="crystal-clear-toggle" title="Toggle Frosted Glass Transparency">
-              <input type="checkbox" id="demo-crystal-clear">
-              <span>Crystal Clear (Frosted)</span>
-            </label>
-            <span class="note-meta-badge">Modified: Just now</span>
-          </div>
-
         </div>
       </div>
 
@@ -261,108 +189,197 @@ All edits are debounced and autosaved in the background with monotonic timestamp
   </section>
 
   <!-- ==========================================================================
-       Features Grid
+       Interactive Screenshot Showcase Section (Tabbed Gallery)
        ========================================================================== -->
-  <section class="section-padding" id="features">
+  <section class="section" id="showcase">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Powerful Features</span>
-        <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+        <span class="section-tag">ACTUAL APP SCREENS</span>
+        <h2 class="section-title">Designed for Real Daily Productivity</h2>
         <p class="section-subtitle">
-          Designed specifically to keep you focused without the lag, cloud subscriptions, or bloatware of modern tools.
+          See how PinNote replaces cluttered sticky note apps with a refined, keyboard-driven native experience.
+        </p>
+      </div>
+
+      <div class="deep-dive-card">
+        <!-- Left: Interactive Tab Buttons -->
+        <div class="deep-dive-tabs-nav" role="tablist">
+          <button class="deep-tab-btn active" data-tab="canvas" role="tab">
+            <span class="deep-tab-icon">🖥️</span>
+            <div>
+              <span class="deep-tab-title">Multi-Note Canvas</span>
+              <span class="deep-tab-sub">Pin floating notes, checklists, and transparent code snippets anywhere on screen.</span>
+            </div>
+          </button>
+
+          <button class="deep-tab-btn" data-tab="dashboard" role="tab">
+            <span class="deep-tab-icon">📊</span>
+            <div>
+              <span class="deep-tab-title">Command Dashboard</span>
+              <span class="deep-tab-sub">Search notes with Ctrl+F, switch workspaces, filter by tags, and import/export.</span>
+            </div>
+          </button>
+
+          <button class="deep-tab-btn" data-tab="markdown" role="tab">
+            <span class="deep-tab-icon">📝</span>
+            <div>
+              <span class="deep-tab-title">Markdown Powerhouse</span>
+              <span class="deep-tab-sub">Side-by-side editing and formatted preview with code blocks and hotkey Ctrl+M.</span>
+            </div>
+          </button>
+
+          <button class="deep-tab-btn" data-tab="templates" role="tab">
+            <span class="deep-tab-icon">⏰</span>
+            <div>
+              <span class="deep-tab-title">Reminders &amp; Templates</span>
+              <span class="deep-tab-sub">Built-in study &amp; meeting templates, quick presets, and cross-desktop toast notifications.</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Right: Tab Image Preview Panels -->
+        <div class="deep-dive-preview-panel">
+          <!-- Pane 1: Canvas -->
+          <div id="tab-pane-canvas" class="tab-pane active">
+            <div class="screenshot-preview-wrapper">
+              <img src="assets/screen-hero-desktop.svg" alt="PinNote Multi-Note Desktop Experience" />
+            </div>
+          </div>
+
+          <!-- Pane 2: Dashboard -->
+          <div id="tab-pane-dashboard" class="tab-pane">
+            <div class="screenshot-preview-wrapper">
+              <img src="assets/screen-dashboard.svg" alt="PinNote Command Dashboard with Search and Workspaces" />
+            </div>
+          </div>
+
+          <!-- Pane 3: Markdown -->
+          <div id="tab-pane-markdown" class="tab-pane">
+            <div class="screenshot-preview-wrapper">
+              <img src="assets/screen-markdown-split.svg" alt="PinNote Markdown Source and Live Preview Mode" />
+            </div>
+          </div>
+
+          <!-- Pane 4: Templates & Reminders -->
+          <div id="tab-pane-templates" class="tab-pane">
+            <div class="screenshot-preview-wrapper">
+              <img src="assets/screen-reminders-templates.svg" alt="PinNote Productivity Templates and Scheduled Reminders" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       Features Grid Section
+       ========================================================================== -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">ENGINEERED FOR SPEED</span>
+        <h2 class="section-title">Everything You Need. Nothing You Don't.</h2>
+        <p class="section-subtitle">
+          PinNote is built from the ground up for zero latency, keyboard fluidity, and complete privacy.
         </p>
       </div>
 
       <div class="features-grid">
         
-        <!-- Feature 1 -->
+        <!-- Feature 1: Dual Native Architecture -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">📝</div>
-          <h3 class="feature-title">3 Note Modes in One</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+            ⚡
+          </div>
+          <h3 class="feature-title">True Native Performance</h3>
           <p class="feature-desc">
-            Seamlessly toggle between Freeform Text, Interactive Checklists (with keyboard reordering and quick Enter/Backspace handling), and full Markdown formatting with instant preview (<kbd>Ctrl+M</kbd>).
+            No Electron. No Chromium runtime. Built directly with .NET 8, Avalonia UI for Linux and WPF for Windows. Starts in under 200ms and idles at &lt;30MB RAM.
           </p>
-          <span class="feature-tag-pill">Text • Checklist • Markdown</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">.NET 8</span>
+            <span class="feature-pill">Avalonia UI</span>
+            <span class="feature-pill">WPF</span>
+          </div>
         </div>
 
-        <!-- Feature 2 -->
+        <!-- Feature 2: Markdown & Checklists -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">🗂️</div>
-          <h3 class="feature-title">Workspaces & Categories</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            📝
+          </div>
+          <h3 class="feature-title">Markdown &amp; Interactive Checklists</h3>
           <p class="feature-desc">
-            Keep your desktop clutter-free. Group notes into dedicated contexts like <em>Study</em>, <em>Work</em>, <em>Personal</em>, and <em>Projects</em>. Assign multiple tags for instant filtering.
+            Switch effortlessly between freeform text, interactive checklists with Enter/Backspace workflows, and formatted Markdown preview (Ctrl+M).
           </p>
-          <span class="feature-tag-pill">Multi-Workspace Support</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">Markdown</span>
+            <span class="feature-pill">Checklists</span>
+            <span class="feature-pill">Ctrl+M</span>
+          </div>
         </div>
 
-        <!-- Feature 3 -->
+        <!-- Feature 3: Workspaces & Smart Tags -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">⏰</div>
-          <h3 class="feature-title">Reminders & Due Dates</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+            🗂️
+          </div>
+          <h3 class="feature-title">Workspaces &amp; Smart Organization</h3>
           <p class="feature-desc">
-            Set smart alerts with quick presets ("In 1 Hour", "Tomorrow Morning", "Next Week"). Missed reminders are automatically scanned and dispatched when you restart your computer.
+            Keep your university research, work sprints, and personal tasks segregated with dedicated Workspaces. Filter dynamically by color, category, or custom tags.
           </p>
-          <span class="feature-tag-pill">Native OS Notifications</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">Workspaces</span>
+            <span class="feature-pill">Tags</span>
+            <span class="feature-pill">Categories</span>
+          </div>
         </div>
 
-        <!-- Feature 4 -->
+        <!-- Feature 4: Reminders & Due Dates -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">🪟</div>
-          <h3 class="feature-title">Crystal Clear & Pinning</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+            ⏰
+          </div>
+          <h3 class="feature-title">Due Dates &amp; Native Alerts</h3>
           <p class="feature-desc">
-            Pin notes above your code editor, PDF viewer, or browser. Turn on per-note frosted glass transparent mode with custom contrast text so your notes never obstruct your view.
+            Set quick preset reminders (+15m, +1h, tomorrow morning) or schedule precise due dates. Receive native desktop notifications via Windows Toast or Linux notify-send.
           </p>
-          <span class="feature-tag-pill">Acrylic Blur & Always-on-Top</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">Reminders</span>
+            <span class="feature-pill">Native Toast</span>
+            <span class="feature-pill">Recovery on Boot</span>
+          </div>
         </div>
 
-        <!-- Feature 5 -->
+        <!-- Feature 5: Crystal Clear Translucency -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">📚</div>
-          <h3 class="feature-title">Built-in Productivity Templates</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">
+            ✨
+          </div>
+          <h3 class="feature-title">Crystal-Clear &amp; Acrylic Glass</h3>
           <p class="feature-desc">
-            Hit the ground running with curated student and developer templates: <em>Lecture Notes</em>, <em>Exam Preparation</em>, <em>Daily Planner</em>, and <em>Meeting Notes</em>, or save your own custom templates.
+            Pin notes on top of your code editor, documentation, or video call with see-through transparency. Choose between vibrant sticky note colors or subtle frosted acrylic.
           </p>
-          <span class="feature-tag-pill">Pre-Made & Custom Templates</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">Always on Top</span>
+            <span class="feature-pill">Crystal Clear</span>
+            <span class="feature-pill">Opacity Slider</span>
+          </div>
         </div>
 
-        <!-- Feature 6 -->
+        <!-- Feature 6: Safe Atomic Storage -->
         <div class="feature-card">
-          <div class="feature-icon-wrapper">⚡</div>
-          <h3 class="feature-title">Bulletproof Persistence</h3>
+          <div class="feature-icon-wrapper" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+            🔒
+          </div>
+          <h3 class="feature-title">Crash-Safe &amp; 100% Offline</h3>
           <p class="feature-desc">
-            Never lose an edit. Non-blocking asynchronous JSON storage off the UI thread, monotonic timestamp protection against race conditions, <code>.bak</code> snapshot recovery, and clean shutdown flushes.
+            Your data is stored in human-readable JSON files in your local application directory. Automatic schema migration with safety backups guarantees your notes are never lost.
           </p>
-          <span class="feature-tag-pill">Zero Data Loss Guarantee</span>
-        </div>
-
-        <!-- Feature 7 -->
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">🖥️</div>
-          <h3 class="feature-title">Multi-Monitor Restoration</h3>
-          <p class="feature-desc">
-            Smart multi-display positioning handles 4K setups, negative coordinate bounds, and automatically relocates notes back to your primary screen if external monitors are disconnected.
-          </p>
-          <span class="feature-tag-pill">Multi-Monitor Aware</span>
-        </div>
-
-        <!-- Feature 8 -->
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">🔍</div>
-          <h3 class="feature-title">Instant Cross-Note Search</h3>
-          <p class="feature-desc">
-            Blazing-fast case-insensitive search across titles, contents, tags, categories, and checklist items. Filter hundreds of notes in the dashboard without breaking a sweat.
-          </p>
-          <span class="feature-tag-pill">Fuzzy Multi-Word Search</span>
-        </div>
-
-        <!-- Feature 9 -->
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">⌨️</div>
-          <h3 class="feature-title">Global Hotkey Capture</h3>
-          <p class="feature-desc">
-            Spawn a fresh note at any moment with <kbd>Ctrl+Alt+N</kbd> on Windows and X11, or bind a native Wayland shortcut using the <code>pinnote --new-note</code> command line trigger.
-          </p>
-          <span class="feature-tag-pill">Instant Desktop Capture</span>
+          <div class="feature-tag-list">
+            <span class="feature-pill">Local JSON</span>
+            <span class="feature-pill">Safety Backups</span>
+            <span class="feature-pill">Zero Cloud Tracking</span>
+          </div>
         </div>
 
       </div>
@@ -370,243 +387,164 @@ All edits are debounced and autosaved in the background with monotonic timestamp
   </section>
 
   <!-- ==========================================================================
-       Deep Dive Showcase (Workspaces, Markdown, Reminders, Templates)
+       Workspaces Deep-Dive Section
        ========================================================================== -->
-  <section class="section-padding" id="deep-dive">
+  <section class="section" id="deep-dive">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Interactive Showcase</span>
-        <h2 class="section-title">Organized your way, every single day</h2>
+        <span class="section-tag">WORKSPACES &amp; CONTEXT SWITCHING</span>
+        <h2 class="section-title">Separate Your Work, Study, and Life</h2>
         <p class="section-subtitle">
-          See how PinNote keeps you in the flow with seamless workspace isolation and smart note tools.
+          Eliminate visual clutter. Organize your sticky notes into isolated workspaces that you can show, hide, or filter in one click.
         </p>
       </div>
 
-      <div class="deep-dive-card">
-        <!-- Navigation Buttons -->
-        <div class="deep-dive-tabs-nav" role="tablist">
-          <button class="deep-tab-btn active" data-tab="workspaces" role="tab">
-            <span class="deep-tab-icon">🗂️</span>
+      <div class="workspace-showcase-grid">
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <span class="workspace-icon">🎓</span>
             <div>
-              <span class="deep-tab-title">Workspaces & Dashboard</span>
-              <span class="deep-tab-sub">Isolate study, personal, and project notes with one click.</span>
+              <h4 class="workspace-name">University / Study</h4>
+              <span class="workspace-count">4 active notes</span>
             </div>
-          </button>
-
-          <button class="deep-tab-btn" data-tab="markdown" role="tab">
-            <span class="deep-tab-icon">✍️</span>
-            <div>
-              <span class="deep-tab-title">Full Markdown Editing</span>
-              <span class="deep-tab-sub">Headings, code blocks, lists, and formatted live preview.</span>
-            </div>
-          </button>
-
-          <button class="deep-tab-btn" data-tab="reminders" role="tab">
-            <span class="deep-tab-icon">🔔</span>
-            <div>
-              <span class="deep-tab-title">Reminders & Due Dates</span>
-              <span class="deep-tab-sub">Smart intervals with startup missed reminder recovery.</span>
-            </div>
-          </button>
-
-          <button class="deep-tab-btn" data-tab="templates" role="tab">
-            <span class="deep-tab-icon">📑</span>
-            <div>
-              <span class="deep-tab-title">Curated Templates</span>
-              <span class="deep-tab-sub">Built-in setups for lectures, exams, daily plans, and meetings.</span>
-            </div>
-          </button>
+          </div>
+          <p class="workspace-desc">Lecture notes, exam study schedules, paper references, and thesis milestones.</p>
+          <div class="workspace-tags">
+            <span class="pill-chip">#algorithms</span>
+            <span class="pill-chip">#exam-prep</span>
+            <span class="pill-chip">#distributed-systems</span>
+          </div>
         </div>
 
-        <!-- Preview Panels -->
-        <div class="deep-dive-preview-panel">
-          
-          <!-- Pane 1: Workspaces Mockup -->
-          <div id="tab-pane-workspaces" class="tab-pane active">
-            <div class="mockup-dashboard">
-              <div class="mockup-header">
-                <span style="font-weight:700; font-size:0.9rem;">📌 PinNote Dashboard</span>
-                <input type="text" class="mockup-search" value="Filter: Study" readonly>
-              </div>
-              <div class="mockup-pills">
-                <span class="mockup-pill active">University (4)</span>
-                <span class="mockup-pill">Personal (2)</span>
-                <span class="mockup-pill">Development (6)</span>
-                <span class="mockup-pill">Projects (3)</span>
-              </div>
-              <div class="mockup-grid">
-                <div class="mini-note" style="background:#fef08a;">
-                  <h5><span>📌 Calculus II</span> <span>10:30 AM</span></h5>
-                  <p>Integration by parts & series convergence criteria.</p>
-                </div>
-                <div class="mini-note" style="background:#bae6fd;">
-                  <h5><span>Physics Lab</span> <span>Tomorrow</span></h5>
-                  <p>Bring calibrated multimeter & lab manual.</p>
-                </div>
-                <div class="mini-note" style="background:#bbf7d0;">
-                  <h5><span>Algorithm Mock</span> <span>Thursday</span></h5>
-                  <p>Binary Search Trees & Red-Black balance rotation.</p>
-                </div>
-                <div class="mini-note" style="background:#fed7aa;">
-                  <h5><span>Project Sprint</span> <span>Urgent</span></h5>
-                  <p>Submit final report to advisor via portal.</p>
-                </div>
-              </div>
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <span class="workspace-icon">💼</span>
+            <div>
+              <h4 class="workspace-name">Engineering / Work</h4>
+              <span class="workspace-count">6 active notes</span>
             </div>
           </div>
+          <p class="workspace-desc">Sprint backlog, API endpoints, pull request checklists, and architecture diagrams.</p>
+          <div class="workspace-tags">
+            <span class="pill-chip">#v1.0.0</span>
+            <span class="pill-chip">#backend</span>
+            <span class="pill-chip">#performance</span>
+          </div>
+        </div>
 
-          <!-- Pane 2: Markdown Mockup -->
-          <div id="tab-pane-markdown" class="tab-pane">
-            <div class="mockup-dashboard" style="padding:20px; color:#f8fafc; font-family:var(--font-sans);">
-              <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px;">
-                <span style="color:#60a5fa; font-weight:700;">✨ Markdown Preview (Ctrl+M)</span>
-                <span style="font-size:0.75rem; background:rgba(59,130,246,0.2); padding:2px 8px; border-radius:4px;">Rendered</span>
-              </div>
-              <h4 style="font-size:1.1rem; color:#f8fafc; margin-bottom:6px;"># Deploying PinNote on Arch Linux</h4>
-              <p style="font-size:0.88rem; color:#94a3b8; margin-bottom:10px;">Quick setup for Wayland and X11:</p>
-              <pre style="background:#090d16; padding:10px; border-radius:6px; font-family:var(--font-mono); font-size:0.8rem; color:#38bdf8; margin-bottom:10px;"><code>$ chmod +x ./scripts/install-linux.sh
-$ pinnote --new-note</code></pre>
-              <p style="font-size:0.85rem; color:#cbd5e1;">- Supports <strong>bold</strong>, <em>italics</em>, and nested checklists seamlessly.</p>
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <span class="workspace-icon">🏠</span>
+            <div>
+              <h4 class="workspace-name">Personal &amp; Habits</h4>
+              <span class="workspace-count">3 active notes</span>
             </div>
           </div>
-
-          <!-- Pane 3: Reminders Mockup -->
-          <div id="tab-pane-reminders" class="tab-pane">
-            <div class="mockup-dashboard" style="padding:24px; text-align:center;">
-              <div style="width:50px; height:50px; border-radius:50%; background:rgba(16,185,129,0.15); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 14px;">🔔</div>
-              <h4 style="font-size:1.15rem; margin-bottom:6px;">Assignment Due in 1 Hour</h4>
-              <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:18px;">
-                "Database Systems Final Query Optimization Submission"
-              </p>
-              <div style="display:inline-flex; gap:10px;">
-                <span style="font-size:0.8rem; padding:6px 12px; border-radius:6px; background:var(--bg-tertiary); border:1px solid var(--border-color);">Snooze (15 min)</span>
-                <span style="font-size:0.8rem; padding:6px 12px; border-radius:6px; background:#10b981; color:#fff; font-weight:600;">Dismiss</span>
-              </div>
-            </div>
+          <p class="workspace-desc">Daily planner, grocery list, books to read, workout logs, and travel itineraries.</p>
+          <div class="workspace-tags">
+            <span class="pill-chip">#daily</span>
+            <span class="pill-chip">#habits</span>
+            <span class="pill-chip">#reading</span>
           </div>
-
-          <!-- Pane 4: Templates Mockup -->
-          <div id="tab-pane-templates" class="tab-pane">
-            <div class="mockup-dashboard" style="padding:16px;">
-              <h5 style="margin-bottom:12px; font-size:0.9rem; color:var(--text-secondary);">Choose a Template:</h5>
-              <div style="display:flex; flex-direction:column; gap:8px;">
-                <div style="padding:10px 14px; border-radius:6px; background:var(--bg-tertiary); display:flex; justify-content:space-between; align-items:center;">
-                  <div>
-                    <span style="font-weight:700; font-size:0.9rem; display:block;">🎓 Lecture Notes</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Topic, Lecturer, Key Concepts, Questions</span>
-                  </div>
-                  <span style="font-size:0.75rem; background:rgba(59,130,246,0.15); color:#60a5fa; padding:2px 8px; border-radius:4px;">Markdown</span>
-                </div>
-                <div style="padding:10px 14px; border-radius:6px; background:var(--bg-tertiary); display:flex; justify-content:space-between; align-items:center;">
-                  <div>
-                    <span style="font-weight:700; font-size:0.9rem; display:block;">📝 Exam Preparation</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Structured 5-step practice checklist</span>
-                  </div>
-                  <span style="font-size:0.75rem; background:rgba(16,185,129,0.15); color:#10b981; padding:2px 8px; border-radius:4px;">Checklist</span>
-                </div>
-                <div style="padding:10px 14px; border-radius:6px; background:var(--bg-tertiary); display:flex; justify-content:space-between; align-items:center;">
-                  <div>
-                    <span style="font-weight:700; font-size:0.9rem; display:block;">📅 Daily Planner</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Top 3 priorities, schedule blocks, reflection</span>
-                  </div>
-                  <span style="font-size:0.75rem; background:rgba(59,130,246,0.15); color:#60a5fa; padding:2px 8px; border-radius:4px;">Markdown</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
   </section>
 
   <!-- ==========================================================================
-       Comparison Table ("Why PinNote?")
+       Feature Comparison Section
        ========================================================================== -->
-  <section class="section-padding" id="compare">
+  <section class="section" id="compare">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Direct Comparison</span>
-        <h2 class="section-title">Why choose PinNote over bloated alternatives?</h2>
+        <span class="section-tag">HOW PINNOTE COMPARES</span>
+        <h2 class="section-title">Why Developers &amp; Students Choose PinNote</h2>
         <p class="section-subtitle">
-          PinNote gives you desktop speed without sacrificing rich features like Markdown, checklists, or workspaces.
+          Built for speed, offline reliability, and keyboard ergonomics without subscription walls.
         </p>
       </div>
 
-      <div class="comparison-wrapper">
+      <div class="table-container">
         <table class="comparison-table">
           <thead>
             <tr>
               <th>Feature</th>
-              <th class="highlight-col">PinNote (v1.0.0)</th>
+              <th class="highlight-col">PinNote v1.0.0</th>
               <th>Windows Sticky Notes</th>
-              <th>Electron Apps (Notion / Slack)</th>
-              <th>Plain Notepad</th>
+              <th>Notion / OneNote</th>
+              <th>Electron Sticky Apps</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>Memory Footprint</strong></td>
-              <td class="highlight-col"><span class="badge-check">~25 - 40 MB</span></td>
-              <td>~80 - 150 MB</td>
-              <td><span class="badge-cross">500MB - 1GB+</span></td>
-              <td>~15 MB</td>
+              <td class="highlight-col"><span class="badge-good">&lt;30 MB RAM</span></td>
+              <td>~80–120 MB</td>
+              <td>~300–800 MB</td>
+              <td>~200–500 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Startup Latency</strong></td>
+              <td class="highlight-col"><span class="badge-good">&lt;200 ms</span></td>
+              <td>~1–2 sec</td>
+              <td>~3–8 sec</td>
+              <td>~2–5 sec</td>
             </tr>
             <tr>
               <td><strong>Cross-Platform</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Windows & Linux</span></td>
-              <td><span class="badge-cross">Windows only</span></td>
-              <td>✓ Multi-platform</td>
-              <td>Platform specific</td>
+              <td class="highlight-col"><span class="badge-good">Windows &amp; Linux</span></td>
+              <td>Windows only</td>
+              <td>Web / Desktop</td>
+              <td>Varies</td>
             </tr>
             <tr>
-              <td><strong>Markdown Editing & Preview</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Native (Ctrl+M)</span></td>
-              <td><span class="badge-cross">✗ None</span></td>
-              <td>✓ Supported</td>
-              <td><span class="badge-cross">✗ None</span></td>
+              <td><strong>Markdown Mode (Ctrl+M)</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Edit &amp; Preview)</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td>Partial</td>
+              <td>Varies</td>
             </tr>
             <tr>
-              <td><strong>Interactive Checklists with Reordering</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Yes</span></td>
-              <td>Basic bullets only</td>
-              <td>✓ Yes</td>
-              <td><span class="badge-cross">✗ None</span></td>
+              <td><strong>Interactive Checklists</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Enter/Backspace)</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td>Yes</td>
+              <td>Partial</td>
             </tr>
             <tr>
-              <td><strong>Crystal Clear Frosted Glass Mode</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Yes</span></td>
-              <td><span class="badge-cross">✗ None</span></td>
-              <td><span class="badge-cross">✗ None</span></td>
-              <td><span class="badge-cross">✗ None</span></td>
+              <td><strong>Workspaces &amp; Tags</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Unlimited)</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td>Yes</td>
+              <td><span class="badge-bad">No</span></td>
             </tr>
             <tr>
-              <td><strong>Workspaces & Categories</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Yes (5+ workspaces)</span></td>
-              <td><span class="badge-cross">✗ None</span></td>
-              <td>✓ Folders</td>
-              <td><span class="badge-cross">✗ None</span></td>
+              <td><strong>Reminders &amp; Due Dates</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Native Alerts)</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td>Yes</td>
+              <td>Rarely</td>
             </tr>
             <tr>
-              <td><strong>Reminders & Due Dates</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ Built-in + Recovery</span></td>
-              <td>Cortana dependent</td>
-              <td>Cloud dependent</td>
-              <td><span class="badge-cross">✗ None</span></td>
+              <td><strong>100% Offline &amp; Private</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Local JSON)</span></td>
+              <td>Syncs to MS Account</td>
+              <td>Cloud required</td>
+              <td>Varies</td>
             </tr>
             <tr>
-              <td><strong>Privacy & Offline Guarantee</strong></td>
-              <td class="highlight-col"><span class="badge-check">✓ 100% Local JSON</span></td>
-              <td>Requires MS Account sync</td>
-              <td><span class="badge-cross">Cloud servers / Tracking</span></td>
-              <td>✓ Local files</td>
+              <td><strong>Crystal-Clear Transparency</strong></td>
+              <td class="highlight-col"><span class="badge-good">Yes (Glass &amp; Acrylic)</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td><span class="badge-bad">No</span></td>
+              <td>Rarely</td>
             </tr>
             <tr>
-              <td><strong>License & Cost</strong></td>
-              <td class="highlight-col"><span class="badge-check">MIT Open Source (Free)</span></td>
-              <td>Proprietary</td>
-              <td>Freemium / Subscriptions</td>
-              <td>Proprietary</td>
+              <td><strong>License &amp; Cost</strong></td>
+              <td class="highlight-col"><span class="badge-good">100% Free &amp; Open (MIT)</span></td>
+              <td>Bundled OS</td>
+              <td>Freemium / Paid</td>
+              <td>Often Paid</td>
             </tr>
           </tbody>
         </table>
@@ -615,293 +553,265 @@ $ pinnote --new-note</code></pre>
   </section>
 
   <!-- ==========================================================================
-       Download Hub (Windows & Linux Packaging)
+       Keyboard Shortcuts Cheatsheet Section
        ========================================================================== -->
-  <section class="download-hub-section" id="download">
+  <section class="section" id="shortcuts">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Download Center</span>
-        <h2 class="section-title">Get PinNote for your operating system</h2>
+        <span class="section-tag">KEYBOARD-FIRST ERGONOMICS</span>
+        <h2 class="section-title">Keep Your Hands on the Keyboard</h2>
         <p class="section-subtitle">
-          Standalone packages. No mandatory runtimes, no telemetry, no bloat.
-        </p>
-      </div>
-
-      <div class="download-cards-grid">
-        
-        <!-- Windows Card -->
-        <div id="platform-card-windows" class="download-platform-card">
-          <span class="detected-os-badge">Detected System</span>
-          <div class="platform-card-header">
-            <div class="platform-os-icon">🪟</div>
-            <div>
-              <h3 class="platform-name">Windows</h3>
-              <p class="platform-version-text">Windows 10 / 11 (64-bit)</p>
-            </div>
-          </div>
-
-          <p class="feature-desc">
-            Native WPF application built for maximum smoothness and system tray integration on Windows 10 & 11.
-          </p>
-
-          <div class="platform-options-list">
-            <!-- Option 1: Installer -->
-            <div class="platform-option-item">
-              <div class="option-meta">
-                <span class="option-title">Inno Setup Installer (Recommended)</span>
-                <span class="option-sub">PinNote-Setup-1.0.0.exe • Self-contained (No .NET needed)</span>
-              </div>
-              <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.exe" class="btn btn-primary btn-sm">
-                Download .exe
-              </a>
-            </div>
-
-            <!-- Option 2: Portable Release -->
-            <div class="platform-option-item">
-              <div class="option-meta">
-                <span class="option-title">Portable / Zip Archive</span>
-                <span class="option-sub">Direct executable without installation</span>
-              </div>
-              <a href="https://github.com/Tauhid3K/PinNote/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                GitHub Releases
-              </a>
-            </div>
-          </div>
-
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:auto;">
-            ✓ Desktop & Start Menu shortcuts included • Clean uninstaller
-          </div>
-        </div>
-
-        <!-- Linux Card -->
-        <div id="platform-card-linux" class="download-platform-card">
-          <span class="detected-os-badge">Detected System</span>
-          <div class="platform-card-header">
-            <div class="platform-os-icon">🐧</div>
-            <div>
-              <h3 class="platform-name">Linux</h3>
-              <p class="platform-version-text">Ubuntu, Arch, Fedora, Debian & any modern distro</p>
-            </div>
-          </div>
-
-          <p class="feature-desc">
-            Hardware-accelerated native Avalonia UI 11 application with Wayland & X11 desktop integration.
-          </p>
-
-          <div class="platform-options-list">
-            <!-- Option 1: Self-Extracting Installer -->
-            <div class="platform-option-item">
-              <div class="option-meta">
-                <span class="option-title">Self-Extracting Installer (.sh)</span>
-                <span class="option-sub">Installs to ~/.local/share/pinnote + PATH + Desktop icon</span>
-              </div>
-              <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.sh" class="btn btn-primary btn-sm">
-                Download .sh
-              </a>
-            </div>
-
-            <!-- Option 2: Portable Tarball -->
-            <div class="platform-option-item">
-              <div class="option-meta">
-                <span class="option-title">Portable Archive (.tar.gz)</span>
-                <span class="option-sub">PinNote-1.0.0-linux-x64.tar.gz</span>
-              </div>
-              <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-1.0.0-linux-x64.tar.gz" class="btn btn-secondary btn-sm">
-                Download .tar.gz
-              </a>
-            </div>
-
-            <!-- Option 3: Terminal One-Liner -->
-            <div>
-              <span style="font-size:0.82rem; font-weight:600; color:var(--text-secondary);">One-Line Terminal Install:</span>
-              <div class="cli-code-block">
-                <span>curl -sSL https://raw.githubusercontent.com/Tauhid3K/PinNote/master/scripts/install-linux.sh | bash</span>
-                <button class="copy-btn" data-copy="curl -sSL https://raw.githubusercontent.com/Tauhid3K/PinNote/master/scripts/install-linux.sh | bash">Copy</button>
-              </div>
-            </div>
-
-            <!-- Option 4: Flatpak command -->
-            <div>
-              <span style="font-size:0.82rem; font-weight:600; color:var(--text-secondary);">Flatpak:</span>
-              <div class="cli-code-block">
-                <span>flatpak run org.pinnote.PinNote</span>
-                <button class="copy-btn" data-copy="flatpak run org.pinnote.PinNote">Copy</button>
-              </div>
-            </div>
-          </div>
-
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:auto;">
-            ✓ Seamless Wayland & X11 shortcut integration included
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Release Notes Banner -->
-      <div style="text-align:center;">
-        <a href="https://github.com/Tauhid3K/PinNote/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-          <span>Read Full v1.0.0 Release Notes on GitHub →</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       Keyboard Shortcuts Cheat Sheet
-       ========================================================================== -->
-  <section class="section-padding" id="shortcuts">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">Productivity Shortcuts</span>
-        <h2 class="section-title">Built for keyboard navigators</h2>
-        <p class="section-subtitle">
-          Keep your hands on the keyboard and fly through your notes.
+          PinNote is designed to stay out of your way. Navigate and capture thoughts at the speed of thought.
         </p>
       </div>
 
       <div class="shortcuts-grid">
         <div class="shortcut-card">
-          <div class="keys-group">
+          <div class="key-combo">
             <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd>
           </div>
-          <span class="shortcut-action">Global Note Capture from anywhere</span>
+          <h4 class="shortcut-title">Global Quick Note</h4>
+          <p class="shortcut-desc">Spawn a new note instantly from any app, IDE, or game.</p>
         </div>
 
         <div class="shortcut-card">
-          <div class="keys-group">
+          <div class="key-combo">
             <kbd>Ctrl</kbd> + <kbd>N</kbd>
           </div>
-          <span class="shortcut-action">New note inside PinNote</span>
+          <h4 class="shortcut-title">New Note</h4>
+          <p class="shortcut-desc">Create a new sticky note inside the active workspace.</p>
         </div>
 
         <div class="shortcut-card">
-          <div class="keys-group">
-            <kbd>Ctrl</kbd> + <kbd>M</kbd>
-          </div>
-          <span class="shortcut-action">Toggle Markdown Edit / Preview</span>
-        </div>
-
-        <div class="shortcut-card">
-          <div class="keys-group">
-            <kbd>Ctrl</kbd> + <kbd>T</kbd>
-          </div>
-          <span class="shortcut-action">Switch note to Checklist Mode</span>
-        </div>
-
-        <div class="shortcut-card">
-          <div class="keys-group">
+          <div class="key-combo">
             <kbd>Ctrl</kbd> + <kbd>P</kbd>
           </div>
-          <span class="shortcut-action">Toggle Always on Top (Pin)</span>
+          <h4 class="shortcut-title">Toggle Always on Top</h4>
+          <p class="shortcut-desc">Pin or unpin the current note so it floats above all windows.</p>
         </div>
 
         <div class="shortcut-card">
-          <div class="keys-group">
+          <div class="key-combo">
+            <kbd>Ctrl</kbd> + <kbd>M</kbd>
+          </div>
+          <h4 class="shortcut-title">Toggle Markdown Mode</h4>
+          <p class="shortcut-desc">Switch seamlessly between plain markdown edit and rendered preview.</p>
+        </div>
+
+        <div class="shortcut-card">
+          <div class="key-combo">
+            <kbd>Ctrl</kbd> + <kbd>T</kbd>
+          </div>
+          <h4 class="shortcut-title">Toggle Checklist Mode</h4>
+          <p class="shortcut-desc">Transform plain text into an interactive checklist with checkboxes.</p>
+        </div>
+
+        <div class="shortcut-card">
+          <div class="key-combo">
             <kbd>Ctrl</kbd> + <kbd>F</kbd>
           </div>
-          <span class="shortcut-action">Focus Dashboard Search Bar</span>
+          <h4 class="shortcut-title">Find in Notes</h4>
+          <p class="shortcut-desc">Focus the search bar on the dashboard and filter notes in real-time.</p>
         </div>
 
         <div class="shortcut-card">
-          <div class="keys-group">
-            <kbd>Enter</kbd>
+          <div class="key-combo">
+            <kbd>Ctrl</kbd> + <kbd>D</kbd>
           </div>
-          <span class="shortcut-action">Add new item in Checklist</span>
+          <h4 class="shortcut-title">Duplicate Note</h4>
+          <p class="shortcut-desc">Clone the current note including colors, tags, and formatting.</p>
         </div>
 
         <div class="shortcut-card">
-          <div class="keys-group">
+          <div class="key-combo">
             <kbd>Escape</kbd>
           </div>
-          <span class="shortcut-action">Clear search or close note</span>
+          <h4 class="shortcut-title">Close / Clear Filter</h4>
+          <p class="shortcut-desc">Dismiss popups, clear search queries, or minimize dashboard to tray.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ==========================================================================
-       Frequently Asked Questions
+       Downloads Section
        ========================================================================== -->
-  <section class="section-padding" id="faq">
+  <section class="section" id="download">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Got Questions?</span>
-        <h2 class="section-title">Frequently Asked Questions</h2>
+        <span class="section-tag">GET PINNOTE TODAY</span>
+        <h2 class="section-title">Download PinNote v1.0.0</h2>
         <p class="section-subtitle">
-          Everything you need to know about PinNote, privacy, and installation.
+          Free, open-source, and self-contained. No external runtime or .NET installation required.
         </p>
       </div>
 
-      <div class="faq-list">
+      <div class="download-cards-grid">
+
+        <!-- Windows Download Card -->
+        <div id="platform-card-windows" class="download-card">
+          <div class="download-card-header">
+            <div class="platform-icon-box">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="platform-name">Windows</h3>
+              <span class="platform-badge">Windows 10 / 11 (64-bit)</span>
+            </div>
+          </div>
+
+          <p class="download-card-desc">
+            Ultra-responsive WPF native application with system tray integration, Windows Toast notifications, and automatic startup support.
+          </p>
+
+          <div class="download-action-group">
+            <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.exe" class="btn btn-primary btn-block">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span>Download Setup (.exe)</span>
+            </a>
+            <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-1.0.0-win-x64.zip" class="btn btn-secondary btn-block">
+              <span>Download Portable (.zip)</span>
+            </a>
+          </div>
+
+          <ul class="download-specs">
+            <li><span>Version:</span> <strong>1.0.0 (Official Release)</strong></li>
+            <li><span>Architecture:</span> <strong>x64 (Self-Contained)</strong></li>
+            <li><span>License:</span> <strong>MIT License (100% Free)</strong></li>
+          </ul>
+        </div>
+
+        <!-- Linux Download Card -->
+        <div id="platform-card-linux" class="download-card">
+          <div class="download-card-header">
+            <div class="platform-icon-box">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.5 2C10.5 2 9 3.5 9 5.5v2.8C7.5 9 6.5 10.8 6.5 13c0 1.2.3 2.3.8 3.2L6 20h3l1.2-2.5c.6.3 1.2.5 1.8.5s1.2-.2 1.8-.5L15 20h3l-1.3-3.8c.5-.9.8-2 .8-3.2 0-2.2-1-4-2.5-4.7V5.5c0-2-1.5-3.5-3.5-3.5zm-1 5c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1zm2 0c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="platform-name">Linux</h3>
+              <span class="platform-badge">Ubuntu, Fedora, Arch, Debian</span>
+            </div>
+          </div>
+
+          <p class="download-card-desc">
+            Hardware-accelerated Avalonia UI desktop application. Native support for GNOME, KDE Plasma, XFCE, Sway, and Wayland.
+          </p>
+
+          <div class="download-action-group">
+            <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.sh" class="btn btn-primary btn-block">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span>Download Installer (.sh)</span>
+            </a>
+            <a href="https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-1.0.0-linux-x64.tar.gz" class="btn btn-secondary btn-block">
+              <span>Download Archive (.tar.gz)</span>
+            </a>
+          </div>
+
+          <div class="cli-quick-install">
+            <div class="cli-header">
+              <span>Quick Terminal Install</span>
+              <button class="copy-btn" data-copy="curl -sSL https://raw.githubusercontent.com/Tauhid3K/PinNote/master/scripts/install-linux.sh | bash">Copy</button>
+            </div>
+            <code>curl -sSL https://raw.githubusercontent.com/Tauhid3K/PinNote/master/scripts/install-linux.sh | bash</code>
+          </div>
+
+          <ul class="download-specs">
+            <li><span>Version:</span> <strong>1.0.0 (Official Release)</strong></li>
+            <li><span>Display Servers:</span> <strong>Wayland &amp; X11 Native</strong></li>
+            <li><span>Notifications:</span> <strong>notify-send / kdialog</strong></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FAQ Accordion Section
+       ========================================================================== -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">FREQUENTLY ASKED QUESTIONS</span>
+        <h2 class="section-title">Got Questions? We've Got Answers.</h2>
+      </div>
+
+      <div class="faq-accordion">
         
         <div class="faq-item">
           <button class="faq-question">
-            <span>Do I need to install .NET 8 or any other dependencies?</span>
-            <span class="faq-icon">+</span>
+            <span>Does PinNote require an internet connection or an account?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              <strong>No!</strong> The downloadable Windows installer (<code>PinNote-Setup-1.0.0.exe</code>) and Linux packages are published as self-contained binaries. The .NET runtime is bundled inside, so it runs out-of-the-box on clean computers with zero prerequisites.
+              No! PinNote is 100% offline and requires zero account creation or cloud login. All your notes, workspaces, and templates are stored locally on your hard drive in human-readable JSON files.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>Where are my notes stored? Are they private?</span>
-            <span class="faq-icon">+</span>
+            <span>Do I need to install .NET 8 before running PinNote?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              Your notes are 100% private and stored strictly on your local machine in plain, standard JSON format inside your user profile directory. No cloud sync, no tracking, no account required, and no telemetry.
+              No. PinNote is distributed as a self-contained application for both Windows and Linux. The .NET 8 runtime is pre-bundled into the single executable so it runs immediately out of the box with zero prerequisites.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>How does global note creation work on Linux Wayland?</span>
-            <span class="faq-icon">+</span>
+            <span>How does Markdown mode work in PinNote?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              On Wayland (GNOME, KDE Plasma, Sway), compositors handle global hotkeys. PinNote provides a dedicated CLI trigger <code>pinnote --new-note</code>. Simply bind this command to your preferred shortcut (like <kbd>Super+Shift+N</kbd> or <kbd>Ctrl+Alt+N</kbd>) in your desktop settings.
+              Pressing <kbd>Ctrl+M</kbd> toggles Markdown mode. You can write headings (<code># H1</code>, <code>## H2</code>), bullet lists, bold text, code blocks, and blockquotes. Pressing the Mode button switches smoothly between source editing and beautiful rendered preview.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>Can I backup, import, or export my notes?</span>
-            <span class="faq-icon">+</span>
+            <span>Where are my notes saved on disk?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              Yes! PinNote includes full Import and Export functionality in the Dashboard and system tray menu. You can export all your notes into a portable <code>.json</code> or Markdown package, and restore them safely without overwriting existing notes.
+              On Windows, notes are saved in <code>%APPDATA%\PinNote\notes.json</code>.<br>
+              On Linux, notes are saved in <code>~/.config/PinNote/notes.json</code>.<br>
+              Whenever you import or replace notes, PinNote automatically generates timestamped safety backups.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>How do update notifications work?</span>
-            <span class="faq-icon">+</span>
+            <span>How does the global shortcut work under Linux Wayland?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              PinNote asynchronously checks GitHub Releases on startup. When a newer version is released, an unobtrusive green <code>🔔 Update v{version}</code> badge appears in the Dashboard header. Clicking it takes you directly to the download page.
+              Wayland intentionally restricts background applications from capturing global keystrokes for security. PinNote includes a built-in CLI command (<code>pinnote --new-note</code>) that you can bind to <kbd>Ctrl+Alt+N</kbd> or your favorite shortcut in your desktop environment's Keyboard Settings (GNOME, KDE, or Sway).
             </p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>Is PinNote completely free?</span>
-            <span class="faq-icon">+</span>
+            <span>Can I export and import notes between Windows and Linux?</span>
+            <span class="faq-chevron">+</span>
           </button>
           <div class="faq-answer">
             <p>
-              Yes, PinNote is 100% free and open-source under the MIT License. You are free to use it, inspect the source code, modify it, or contribute to it on GitHub.
+              Yes! PinNote's export packages (<code>.json</code>) are 100% cross-platform compatible. You can export all notes and workspaces from Windows and import them seamlessly into Linux, or vice versa, with automatic merge or safe replace options.
             </p>
           </div>
         </div>
@@ -911,22 +821,19 @@ $ pinnote --new-note</code></pre>
   </section>
 
   <!-- ==========================================================================
-       Bottom Call To Action Banner
+       Bottom CTA Banner
        ========================================================================== -->
-  <section class="container">
-    <div class="bottom-cta-banner">
-      <h2 class="bottom-cta-title">Ready to clear your desktop chaos?</h2>
-      <p class="bottom-cta-sub">
-        Download PinNote today. Lightweight, distraction-free, and always within reach.
-      </p>
-      <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
-        <a href="#download" class="btn btn-primary btn-lg">
-          <span>Download PinNote v1.0.0</span>
-        </a>
-        <a href="https://github.com/Tauhid3K/PinNote" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-          <span>Star on GitHub</span>
-        </a>
+  <section class="section">
+    <div class="container">
+      <div class="bottom-cta-banner">
+        <h2 class="bottom-cta-title">Ready for a Cleaner, Faster Desktop?</h2>
+        <p class="bottom-cta-desc">
+          Join thousands of developers, researchers, and students who rely on PinNote for frictionless daily note taking.
+        </p>
+        <div class="bottom-cta-actions">
+          <a href="#download" class="btn btn-primary btn-lg">Download PinNote Free</a>
+          <a href="https://github.com/Tauhid3K/PinNote" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg">View on GitHub ↗</a>
+        </div>
       </div>
     </div>
   </section>
@@ -937,34 +844,43 @@ $ pinnote --new-note</code></pre>
   <footer class="site-footer">
     <div class="container">
       <div class="footer-top">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <img src="assets/logo.svg" alt="PinNote" style="width:28px; height:28px;">
-          <span style="font-weight:700; color:var(--text-primary); font-size:1.1rem;">PinNote</span>
-          <span style="font-size:0.8rem; color:var(--text-muted);">— Desktop Sticky Notes Reimagined</span>
+        <div class="footer-brand-col">
+          <div class="brand-logo">
+            <img src="assets/logo.svg" alt="PinNote Logo" class="brand-icon">
+            <span>PinNote</span>
+          </div>
+          <p class="footer-tagline">
+            Lightweight, distraction-free desktop sticky notes and productivity workspace for Windows and Linux.
+          </p>
         </div>
 
-        <ul class="footer-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#download">Downloads</a></li>
-          <li><a href="#shortcuts">Shortcuts</a></li>
-          <li><a href="https://github.com/Tauhid3K/PinNote" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="https://github.com/Tauhid3K/PinNote/releases" target="_blank" rel="noopener noreferrer">Releases</a></li>
-          <li><a href="https://github.com/Tauhid3K/PinNote/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
-        </ul>
+        <div class="footer-links-col">
+          <h5>Navigation</h5>
+          <a href="#showcase">App Screens</a>
+          <a href="#features">Features</a>
+          <a href="#deep-dive">Workspaces</a>
+          <a href="#compare">Comparison</a>
+          <a href="#shortcuts">Shortcuts</a>
+          <a href="#download">Downloads</a>
+        </div>
+
+        <div class="footer-links-col">
+          <h5>Community &amp; Source</h5>
+          <a href="https://github.com/Tauhid3K/PinNote" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+          <a href="https://github.com/Tauhid3K/PinNote/releases" target="_blank" rel="noopener noreferrer">All Releases</a>
+          <a href="https://github.com/Tauhid3K/PinNote/issues" target="_blank" rel="noopener noreferrer">Issue Tracker</a>
+          <a href="https://github.com/Tauhid3K/PinNote/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </div>
       </div>
 
       <div class="footer-bottom">
-        <div>
-          Created with care by <a href="https://github.com/Tauhid3K" target="_blank" rel="noopener noreferrer" style="color:var(--text-primary); font-weight:600;">Tauhid3K</a>. 100% Free & Open Source.
-        </div>
-        <div>
-          <a href="#hero" style="color:var(--accent-blue);">Back to top ↑</a>
-        </div>
+        <p>© 2026 PinNote. Built with ❤️ for Windows and Linux. Licensed under the MIT License.</p>
+        <p>Created by <a href="https://github.com/Tauhid3K" target="_blank" rel="noopener noreferrer">Tauhid3K</a>.</p>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Interactive Scripts -->
   <script src="app.js"></script>
 </body>
 </html>

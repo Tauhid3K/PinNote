@@ -610,7 +610,8 @@
                 <Border Background="#22000000"
                         CornerRadius="3"
                         Padding="5,1"
-                        Margin="0,0,4,2">
+                        Margin="0,0,4,2"
+                        IsVisible="{Binding HasCustomWorkspace}">
                     <TextBlock Text="{Binding WorkspaceName}"
                                FontSize="10"
                                Foreground="{Binding HeaderIconColor}" />
