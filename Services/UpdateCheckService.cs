@@ -221,25 +221,28 @@ namespace PinNote.Services
             if (string.IsNullOrWhiteSpace(url)) return;
             try
             {
+                if (OperatingSystem.IsLinux())
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "xdg-open",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    psi.ArgumentList.Add(url);
+                    Process.Start(psi);
+                    return;
+                }
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = url,
                     UseShellExecute = true
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                if (OperatingSystem.IsLinux())
-                {
-                    try
-                    {
-                        Process.Start("xdg-open", url);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Failed to open URL with xdg-open: {ex.Message}");
-                    }
-                }
+                Debug.WriteLine($"Failed to open URL: {ex.Message}");
             }
         }
     }

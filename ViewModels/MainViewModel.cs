@@ -865,6 +865,15 @@ namespace PinNote.ViewModels
                     UpdateUrl = info.ReleaseUrl;
                     UpdateNotes = info.ReleaseNotes;
                     IsUpdateAvailable = true;
+
+                    string? lastNotified = _appStateService.GetLastNotifiedUpdateVersion();
+                    if (string.IsNullOrWhiteSpace(lastNotified) || lastNotified != info.LatestVersion)
+                    {
+                        _appStateService.SetLastNotifiedUpdateVersion(info.LatestVersion ?? "");
+                        NotificationService.ShowNotification(
+                            "PinNote Update Available",
+                            $"Update v{info.LatestVersion} is available! Click the green badge on the dashboard to download.");
+                    }
                 }
                 else
                 {

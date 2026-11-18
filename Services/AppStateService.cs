@@ -160,6 +160,9 @@ namespace PinNote.Services
 
             // Wayland shortcut notice — shown once so we don't spam the user on every startup
             public bool HasShownWaylandShortcutNotice { get; set; } = false;
+
+            // Update notification tracking — stores the latest version string we alerted the user about
+            public string? LastNotifiedUpdateVersion { get; set; }
         }
 
         public (double? X, double? Y, double Width, double Height) GetDashboardState()
@@ -303,6 +306,19 @@ namespace PinNote.Services
             state.HasShownWaylandShortcutNotice = true;
             SaveState(state);
             return true;
+        }
+
+        public string? GetLastNotifiedUpdateVersion()
+        {
+            AppState state = LoadState();
+            return state.LastNotifiedUpdateVersion;
+        }
+
+        public void SetLastNotifiedUpdateVersion(string version)
+        {
+            AppState state = LoadState();
+            state.LastNotifiedUpdateVersion = version;
+            SaveState(state);
         }
     }
 }
