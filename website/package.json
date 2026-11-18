@@ -1,6 +1,6 @@
 {
   "name": "pinnote-landing-page",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "Official Landing Page and Download Portal for PinNote Desktop App",
   "scripts": {
     "start": "npx serve .",

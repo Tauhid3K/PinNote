@@ -2,7 +2,7 @@
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TAR_FILE="$REPO_ROOT/artifacts/package/PinNote-1.1.0-linux-x64.tar.gz"
+TAR_FILE="$REPO_ROOT/artifacts/package/PinNote-1.0.0-linux-x64.tar.gz"
 
 INSTALL_DIR="$HOME/.local/share/pinnote"
 BIN_DIR="$HOME/.local/bin"

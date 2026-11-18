@@ -5,6 +5,13 @@ PinNote is a cross-platform desktop sticky note and productivity application bui
 
 ## Development Workflow
 
+## [Version 1.0.0 Unified Release & Synchronization] - November 19, 2026
+
+### Changes
+- **Standardized Version to 1.0.0**: Unified version numbering across the entire application, landing page, and build scripts to official initial production release `1.0.0`.
+- **Synchronized Declarations**: Aligned `Version`, `AssemblyVersion`, and `FileVersion` across `PinNote.csproj`, `NoteExportPackage.cs`, `ImportExportService.cs`, `UpdateCheckService.cs`, `installer/PinNote.iss`, `scripts/build-installer.ps1`, `scripts/build-linux.sh`, `scripts/install-linux.sh`, `README.md`, `website/package.json`, `website/index.html`, and `website/app.js`.
+- **Linux Packages & Distribution**: Standardized distribution targets to `PinNote-Setup-1.0.0.sh` and `PinNote-1.0.0-linux-x64.tar.gz`.
+
 ## [Version 1.1.0 Milestone Release & Semantic Versioning Bump] - November 15, 2026
 
 ### Changes

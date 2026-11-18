@@ -98,7 +98,7 @@ chmod +x ./scripts/build-linux.sh
 ./scripts/build-linux.sh
 ```
 The archive will be created at:
-`artifacts/package/PinNote-1.1.0-linux-x64.tar.gz`
+`artifacts/package/PinNote-1.0.0-linux-x64.tar.gz`
 
 ### Creating a Windows Installer
 To build a standard Windows setup file with shortcuts, uninstall support, a launch-after-install option, and an embedded runtime:

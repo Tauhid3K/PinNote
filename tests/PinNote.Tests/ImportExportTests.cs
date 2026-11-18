@@ -367,7 +367,7 @@ namespace PinNote.Tests
             var package = JsonConvert.DeserializeObject<NoteExportPackage>(json);
 
             Assert.NotNull(package);
-            Assert.Equal("1.1.0", package.AppVersion);
+            Assert.Equal("1.0.0", package.AppVersion);
             Assert.Equal(2, package.Workspaces.Count);
             Assert.Contains(package.Workspaces, w => w.Name == "University");
         }

@@ -11,7 +11,7 @@ Designed specifically for zero-friction hosting on **[Vercel](https://vercel.com
 - **Dynamic OS Detection**: Automatically identifies whether the visitor is on Windows or Linux and adapts the primary download button with the appropriate asset (`.exe` or `.sh`/`.tar.gz`).
 - **Interactive Sticky Note Playground**: Allows visitors to test PinNote's real UI modes (Text, Checklist, Markdown), change pastel colors, toggle "Crystal Clear" frosted-glass acrylic blur, and pin always-on-top right from their browser.
 - **Deep-Dive Showcase**: Interactive tabs highlighting Workspaces, Markdown editing, Reminders & Due dates, and Built-in Templates.
-- **Comprehensive Download Matrix**: Direct links to v1.0.4 Windows Inno Setup installer, Linux shell installer, tarball archive, Flatpak, and one-liner CLI curl script.
+- **Comprehensive Download Matrix**: Direct links to v1.0.0 Windows Inno Setup installer, Linux shell installer, tarball archive, Flatpak, and one-liner CLI curl script.
 - **Keyboard Shortcuts Cheatsheet**: Styled `<kbd>` shortcuts reference for power users.
 - **Zero-Dependency Static Build**: Pure HTML5, modern CSS variables, and vanilla ES6 JavaScript. No heavy bundlers, zero hydration lag, instant loading.
 

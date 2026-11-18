@@ -25,7 +25,7 @@ namespace PinNote.Services
             {
                 return asmVer;
             }
-            return new Version(1, 1, 0);
+            return new Version(1, 0, 0);
         }
 
         public async Task<UpdateInfo> CheckForUpdatesAsync()

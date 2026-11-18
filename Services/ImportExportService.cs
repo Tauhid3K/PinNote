@@ -36,7 +36,7 @@ namespace PinNote.Services
 
     public static class ImportExportService
     {
-        public const string CurrentAppVersion = "1.1.0";
+        public const string CurrentAppVersion = "1.0.0";
         public const int CurrentSchemaVersion = 1;
         public const int MaxSupportedSchemaVersion = 2;
 

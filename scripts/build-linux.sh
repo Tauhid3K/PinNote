@@ -2,7 +2,7 @@
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="1.1.0"
+VERSION="1.0.0"
 PROJECT="$REPO_ROOT/PinNote.csproj"
 PUBLISH_DIR="$REPO_ROOT/artifacts/publish/linux-x64"
 DIST_DIR="$REPO_ROOT/artifacts/package"

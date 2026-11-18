@@ -66,14 +66,14 @@ function initOsDetection() {
   const linuxCard = document.getElementById('platform-card-linux');
 
   // Fallback defaults
-  let targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.4/PinNote-Setup-1.0.4.exe';
+  let targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.exe';
   let targetOs = 'Windows';
 
   if (isLinux) {
-    targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.4/PinNote-Setup-1.0.4.sh';
+    targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.sh';
     targetOs = 'Linux';
 
-    if (smartLabel) smartLabel.textContent = 'Download for Linux (v1.0.4)';
+    if (smartLabel) smartLabel.textContent = 'Download for Linux (v1.0.0)';
     if (smartSubtext) smartSubtext.textContent = 'Standalone .sh Installer & .tar.gz (x64)';
     if (smartIcon) {
       smartIcon.innerHTML = `<path d="M12.5 2C10.5 2 9 3.5 9 5.5v2.8C7.5 9 6.5 10.8 6.5 13c0 1.2.3 2.3.8 3.2L6 20h3l1.2-2.5c.6.3 1.2.5 1.8.5s1.2-.2 1.8-.5L15 20h3l-1.3-3.8c.5-.9.8-2 .8-3.2 0-2.2-1-4-2.5-4.7V5.5c0-2-1.5-3.5-3.5-3.5zm-1 5c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1zm2 0c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z" fill="currentColor"/>`;
@@ -82,10 +82,10 @@ function initOsDetection() {
     if (linuxCard) linuxCard.classList.add('detected-os');
   } else {
     // Windows default or other
-    targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.4/PinNote-Setup-1.0.4.exe';
+    targetUrl = 'https://github.com/Tauhid3K/PinNote/releases/download/v1.0.0/PinNote-Setup-1.0.0.exe';
     targetOs = 'Windows';
 
-    if (smartLabel) smartLabel.textContent = 'Download for Windows (v1.0.4)';
+    if (smartLabel) smartLabel.textContent = 'Download for Windows (v1.0.0)';
     if (smartSubtext) smartSubtext.textContent = 'Self-contained 64-bit Setup .exe • No .NET needed';
     if (smartIcon) {
       smartIcon.innerHTML = `<path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" fill="currentColor"/>`;
