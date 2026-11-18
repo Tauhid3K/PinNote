@@ -78,7 +78,7 @@ website/
 
 ## 🔄 Updating for New Releases
 
-When releasing a new version (e.g. `v1.0.5`):
-1. In `website/index.html`: Update the version badge (`v1.0.4` → `v1.0.5`) and the download URLs pointing to GitHub releases.
+When releasing a new version (e.g. `v1.0.1`):
+1. In `website/index.html`: Update the version badge (`v1.0.0` → `v1.0.1`) and the download URLs pointing to GitHub releases.
 2. In `website/app.js`: Update the default URLs in `initOsDetection()` if needed.
 3. Push to `master` — Vercel will automatically trigger an instant deployment.
