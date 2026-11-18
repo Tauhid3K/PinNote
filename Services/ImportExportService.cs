@@ -29,16 +29,18 @@ namespace PinNote.Services
         public int ImportedCount { get; set; }
         public int ReassignedIdCount { get; set; }
         public List<NoteModel> ImportedNotes { get; set; } = new();
+        public List<WorkspaceModel> ImportedWorkspaces { get; set; } = new();
         public string? BackupPath { get; set; }
         public string Message { get; set; } = string.Empty;
     }
 
     public static class ImportExportService
     {
+        public const string CurrentAppVersion = "1.1.0";
         public const int CurrentSchemaVersion = 1;
         public const int MaxSupportedSchemaVersion = 2;
 
-        public static ExportResult ExportNotes(IEnumerable<NoteModel> notes, string destinationPath)
+        public static ExportResult ExportNotes(IEnumerable<NoteModel> notes, string destinationPath, IEnumerable<WorkspaceModel>? workspaces = null)
         {
             try
             {
@@ -53,9 +55,10 @@ namespace PinNote.Services
                 {
                     SchemaVersion = CurrentSchemaVersion,
                     Application = "PinNote",
-                    AppVersion = "1.0.3",
+                    AppVersion = CurrentAppVersion,
                     ExportedAt = DateTime.UtcNow,
-                    Notes = noteList
+                    Notes = noteList,
+                    Workspaces = workspaces?.Select(w => w.Clone()).ToList() ?? new List<WorkspaceModel>()
                 };
 
                 string json = JsonConvert.SerializeObject(package, Formatting.Indented);
@@ -98,7 +101,7 @@ namespace PinNote.Services
             }
         }
 
-        public static async Task<ExportResult> ExportNotesAsync(IEnumerable<NoteModel> notes, string destinationPath)
+        public static async Task<ExportResult> ExportNotesAsync(IEnumerable<NoteModel> notes, string destinationPath, IEnumerable<WorkspaceModel>? workspaces = null)
         {
             try
             {
@@ -113,9 +116,10 @@ namespace PinNote.Services
                 {
                     SchemaVersion = CurrentSchemaVersion,
                     Application = "PinNote",
-                    AppVersion = "1.0.3",
+                    AppVersion = CurrentAppVersion,
                     ExportedAt = DateTime.UtcNow,
-                    Notes = noteList
+                    Notes = noteList,
+                    Workspaces = workspaces?.Select(w => w.Clone()).ToList() ?? new List<WorkspaceModel>()
                 };
 
                 string json = await Task.Run(() => JsonConvert.SerializeObject(package, Formatting.Indented));
@@ -243,6 +247,7 @@ namespace PinNote.Services
 
             int packageSchemaVersion = 1;
             JArray? notesArray = null;
+            var candidateWorkspaces = new List<WorkspaceModel>();
 
             if (token is JObject obj)
             {
@@ -276,6 +281,31 @@ namespace PinNote.Services
                         Success = false,
                         Message = $"Invalid package schema version {packageSchemaVersion}."
                     };
+                }
+
+                if (obj.TryGetValue("workspaces", StringComparison.OrdinalIgnoreCase, out var wsToken) ||
+                    obj.TryGetValue("Workspaces", StringComparison.OrdinalIgnoreCase, out wsToken))
+                {
+                    if (wsToken is JArray wsArr)
+                    {
+                        foreach (var wsItem in wsArr)
+                        {
+                            if (wsItem is JObject wsObj)
+                            {
+                                try
+                                {
+                                    var ws = wsObj.ToObject<WorkspaceModel>();
+                                    if (ws != null && !string.IsNullOrWhiteSpace(ws.Name))
+                                    {
+                                        if (ws.Id == Guid.Empty) ws.Id = Guid.NewGuid();
+                                        ws.Name = ws.Name.Trim();
+                                        candidateWorkspaces.Add(ws);
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
                 }
 
                 if (obj.TryGetValue("notes", StringComparison.OrdinalIgnoreCase, out var nToken) ||
@@ -368,10 +398,23 @@ namespace PinNote.Services
                 {
                     File.WriteAllText(backupPath, backupJson);
                 }
+
+                if (!File.Exists(backupPath))
+                {
+                    throw new IOException($"Safety backup file '{backupPath}' could not be verified on disk.");
+                }
             }
             catch (Exception backupEx)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to create pre-import backup: {backupEx}");
+                if (mode == ImportMode.Replace)
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = $"Failed to create safety backup prior to replacing notes: {backupEx.Message}. Replace operation aborted to protect your notes."
+                    };
+                }
             }
 
             // Deduplicate IDs and validate/sanitize fields
@@ -404,12 +447,33 @@ namespace PinNote.Services
                 if (cloned.Content == null) cloned.Content = string.Empty;
                 if (cloned.Tags == null) cloned.Tags = new List<string>();
                 if (string.IsNullOrWhiteSpace(cloned.WorkspaceName)) cloned.WorkspaceName = "Default";
+                cloned.WorkspaceName = cloned.WorkspaceName.Trim();
                 if (cloned.ChecklistItems == null) cloned.ChecklistItems = new List<ChecklistItemModel>();
                 if (cloned.CreatedAt == default) cloned.CreatedAt = DateTime.UtcNow;
                 if (cloned.ModifiedAt == default) cloned.ModifiedAt = cloned.CreatedAt;
 
                 seenIds.Add(cloned.Id);
                 validatedNotes.Add(cloned);
+            }
+
+            // Ensure every distinct workspace referenced by notes exists in candidateWorkspaces
+            var distinctWorkspaceNames = validatedNotes
+                .Select(n => string.IsNullOrWhiteSpace(n.WorkspaceName) ? "Default" : n.WorkspaceName.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var wsName in distinctWorkspaceNames)
+            {
+                if (!candidateWorkspaces.Any(w => string.Equals(w.Name, wsName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    var sampleNote = validatedNotes.FirstOrDefault(n => string.Equals(n.WorkspaceName, wsName, StringComparison.OrdinalIgnoreCase));
+                    candidateWorkspaces.Add(new WorkspaceModel
+                    {
+                        Id = sampleNote?.WorkspaceId ?? Guid.NewGuid(),
+                        Name = wsName,
+                        IsDefault = string.Equals(wsName, "Default", StringComparison.OrdinalIgnoreCase),
+                        Order = candidateWorkspaces.Count
+                    });
+                }
             }
 
             string detail = reassignedCount > 0
@@ -423,6 +487,7 @@ namespace PinNote.Services
                 ImportedCount = validatedNotes.Count,
                 ReassignedIdCount = reassignedCount,
                 ImportedNotes = validatedNotes,
+                ImportedWorkspaces = candidateWorkspaces,
                 BackupPath = backupPath,
                 Message = $"Successfully {actionWord} {validatedNotes.Count} notes{detail}."
             };

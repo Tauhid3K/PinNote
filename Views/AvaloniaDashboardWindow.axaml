@@ -39,7 +39,7 @@
                 BorderBrush="#22000000"
                 BorderThickness="0,0,0,1"
                 Padding="16,10">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto">
                 <!-- App Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                     <Path Data="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z"
@@ -57,8 +57,27 @@
                          CornerRadius="6"
                          Height="34" />
 
-                <!-- "+ New Note" Button -->
+                <!-- Update Available Notification Badge -->
                 <Button Grid.Column="2"
+                        Command="{Binding OpenUpdateCommand}"
+                        IsVisible="{Binding IsUpdateAvailable}"
+                        Background="#238636"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        CornerRadius="6"
+                        Padding="10,6"
+                        Height="34"
+                        Margin="0,0,8,0"
+                        Cursor="Hand"
+                        ToolTip.Tip="A newer version of PinNote is available! Click to download.">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="🔔" FontSize="13" />
+                        <TextBlock Text="{Binding UpdateBadgeText}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- "+ New Note" Button -->
+                <Button Grid.Column="3"
                         Command="{Binding NewNoteCommand}"
                         Background="#1F6FEB"
                         Foreground="White"
@@ -76,7 +95,7 @@
                 </Button>
 
                 <!-- Show Instructions -->
-                <Button Grid.Column="3"
+                <Button Grid.Column="4"
                         Command="{Binding HelpCommand}"
                         Width="34" Height="34"
                         Padding="0"
@@ -88,7 +107,7 @@
                 </Button>
 
                 <!-- Show All Notes -->
-                <Button Grid.Column="4"
+                <Button Grid.Column="5"
                         Command="{Binding ShowAllCommand}"
                         Height="34"
                         Padding="12,6"
@@ -99,7 +118,7 @@
                 </Button>
 
                 <!-- Settings Button -->
-                <Button Grid.Column="5"
+                <Button Grid.Column="6"
                         Width="34" Height="34"
                         Padding="0"
                         CornerRadius="6"

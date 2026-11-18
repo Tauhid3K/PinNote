@@ -180,6 +180,7 @@ namespace PinNote.Tests
         public void ReminderService_NotificationFailure_DoesNotDismissReminder()
         {
             // Acceptance criteria: Do not dismiss a reminder unless its notification was successfully delivered
+            _vm.Reminders.Stop();
             var fakeNotifier = new MockNotificationService { ShouldSucceed = false };
             NotificationService.Provider = fakeNotifier;
 
@@ -191,13 +192,13 @@ namespace PinNote.Tests
             // Delivery fails
             _vm.Reminders.CheckReminders();
             Assert.False(note.IsReminderDismissed);
-            Assert.Equal(1, fakeNotifier.CallCount);
+            Assert.Equal(1, fakeNotifier.ReminderCallCount);
 
             // Now delivery succeeds
             fakeNotifier.ShouldSucceed = true;
             _vm.Reminders.CheckReminders();
             Assert.True(note.IsReminderDismissed);
-            Assert.Equal(2, fakeNotifier.CallCount);
+            Assert.Equal(2, fakeNotifier.ReminderCallCount);
         }
 
         [Fact]
@@ -223,11 +224,17 @@ namespace PinNote.Tests
         {
             public bool ShouldSucceed { get; set; } = true;
             public int CallCount { get; private set; }
+            public int ReminderCallCount { get; private set; }
 
             public bool ShowNotification(string title, string message)
             {
                 CallCount++;
-                return ShouldSucceed;
+                if (title.Contains("Reminder"))
+                {
+                    ReminderCallCount++;
+                    return ShouldSucceed;
+                }
+                return true;
             }
         }
     }

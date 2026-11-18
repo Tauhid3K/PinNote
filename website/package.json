@@ -1,0 +1,17 @@
+{
+  "name": "pinnote-landing-page",
+  "version": "1.0.4",
+  "description": "Official Landing Page and Download Portal for PinNote Desktop App",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "pinnote",
+    "sticky-notes",
+    "desktop-app",
+    "landing-page"
+  ],
+  "author": "Tauhid3K",
+  "license": "MIT"
+}

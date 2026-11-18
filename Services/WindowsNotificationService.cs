@@ -24,7 +24,9 @@ namespace PinNote.Services
                     $"$textNodes.Item(0).AppendChild($xml.CreateTextNode('{EscapeForSingleQuotes(safeTitle)}')) > $null; " +
                     $"$textNodes.Item(1).AppendChild($xml.CreateTextNode('{EscapeForSingleQuotes(safeMessage)}')) > $null; " +
                     "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml); " +
-                    "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('PinNote').Show($toast);";
+                    "try { [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('PinNote').Show($toast); } catch { " +
+                    "try { [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe').Show($toast); } catch { " +
+                    "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier().Show($toast); } }";
 
                 var psi = new ProcessStartInfo
                 {

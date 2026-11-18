@@ -2,7 +2,7 @@
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TAR_FILE="$REPO_ROOT/artifacts/package/PinNote-1.0.3-linux-x64.tar.gz"
+TAR_FILE="$REPO_ROOT/artifacts/package/PinNote-1.1.0-linux-x64.tar.gz"
 
 INSTALL_DIR="$HOME/.local/share/pinnote"
 BIN_DIR="$HOME/.local/bin"
@@ -21,17 +21,26 @@ echo "=== Installing PinNote to $INSTALL_DIR ==="
 pkill -x PinNote 2>/dev/null || true
 sleep 0.5
 
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+# Extract package into temporary directory first to prevent conflicts with user data directory
+tar -xzf "$TAR_FILE" -C "$TMP_DIR"
+
+# Clean existing installation directory to prevent stale files from lingering across upgrades
+if [ -d "$INSTALL_DIR" ]; then
+    rm -rf "$INSTALL_DIR"
+fi
+
 mkdir -p "$INSTALL_DIR"
 mkdir -p "$BIN_DIR"
 mkdir -p "$DESKTOP_DIR"
 mkdir -p "$ICON_DIR"
 
-# Extract application files into ~/.local/share/pinnote
-tar -xzf "$TAR_FILE" -C "$HOME/.local/share"
-# Note: tar contains PinNote/ directory, so it unpacks to $HOME/.local/share/PinNote
-if [ -d "$HOME/.local/share/PinNote" ] && [ "$HOME/.local/share/PinNote" != "$INSTALL_DIR" ]; then
-    rm -rf "$INSTALL_DIR"
-    mv "$HOME/.local/share/PinNote" "$INSTALL_DIR"
+if [ -d "$TMP_DIR/PinNote" ]; then
+    cp -r "$TMP_DIR/PinNote"/* "$INSTALL_DIR/"
+else
+    cp -r "$TMP_DIR"/* "$INSTALL_DIR/"
 fi
 
 # Ensure executable permissions

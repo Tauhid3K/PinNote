@@ -233,12 +233,106 @@
 
                     <Border Style="{StaticResource SectionCard}">
                         <StackPanel>
+                            <TextBlock Text="Workspaces &amp; Organization" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryTextBrush}" />
+
+                            <Expander Header="Workspace Groups" IsExpanded="True">
+                                <StackPanel Margin="8,10,0,0">
+                                    <TextBlock Text="Separate notes into groups (Default, University, Personal, Development, Projects)." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Switch workspaces using the switcher on the dashboard top bar, or assign any note from its '...' options menu." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Reminders &amp; Due Dates">
+                                <StackPanel Margin="8,10,0,0">
+                                    <TextBlock Text="Set reminders using quick presets (10 Minutes, 1 Hour, Tonight, Tomorrow Morning, Next Week) or custom dates from the note '...' menu." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Active reminders trigger desktop notifications and are safely preserved across app restarts." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Reusable Note Templates">
+                                <StackPanel Margin="8,10,0,0">
+                                    <TextBlock Text="Click '📋 Templates' on the dashboard to create notes from pre-built student &amp; productivity templates (Lecture Notes, Exam Prep, Daily Planner, Meeting Notes)." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Save any note as a reusable custom template via 'Save as Template' in the note options menu." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Markdown Mode &amp; Live Preview">
+                                <StackPanel Margin="8,10,0,0">
+                                    <TextBlock Text="Write structured notes using Markdown syntax (# headings, - bullet lists, > quotes, `code`)." TextWrapping="Wrap" Margin="0,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="Toggle between edit mode and rendered preview mode anytime using the toolbar icon or Ctrl+M." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="Automatic Update Notifications">
+                                <StackPanel Margin="8,10,0,0">
+                                    <TextBlock Text="PinNote checks for new releases on startup. When an update is ready, a green '🔔 Update' badge appears in the dashboard titlebar. Click it to download." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
                             <TextBlock Text="Useful shortcuts" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryTextBrush}" />
-                            <TextBlock Text="Use these while editing note text." Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,10" />
+                            <TextBlock Text="Master PinNote with these keyboard shortcuts." Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,10" />
 
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl + N" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Create a new note" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl + F" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Focus search box in dashboard" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl + M" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Toggle Markdown edit / live preview mode" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl + P" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Toggle Always on top (Pin)" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl + T" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Toggle Checklist mode" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Ctrl+Alt+N" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="Global hotkey to capture notes from anywhere" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Ctrl + B" FontWeight="SemiBold" />
@@ -247,7 +341,7 @@
 
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Ctrl + I" FontWeight="SemiBold" />
@@ -256,7 +350,7 @@
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Ctrl + U" FontWeight="SemiBold" />

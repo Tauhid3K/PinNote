@@ -58,6 +58,12 @@ namespace PinNote.ViewModels
         private ITrayService? _trayService;
         private readonly System.Timers.Timer _saveDebounceTimer;
         private NoteSortMode _sortMode = NoteSortMode.Default;
+        private readonly IUpdateCheckService _updateCheckService;
+        private bool _isUpdateAvailable;
+        private bool _isSimulateUpdateMode;
+        private string _latestVersion = string.Empty;
+        private string _updateUrl = string.Empty;
+        private string _updateNotes = string.Empty;
 
         public IWindowManager? WindowManager
         {
@@ -77,9 +83,10 @@ namespace PinNote.ViewModels
 
         public StorageService Storage => _storageService;
 
-        public MainViewModel(IWindowManager? windowManager = null, StorageService? customStorageService = null)
+        public MainViewModel(IWindowManager? windowManager = null, StorageService? customStorageService = null, IUpdateCheckService? customUpdateCheckService = null)
         {
             _windowManager = windowManager;
+            _updateCheckService = customUpdateCheckService ?? new UpdateCheckService();
             _showUiOnStartup = _appStateService.GetShowUiOnStartup();
             _showTrayIcon = _appStateService.GetShowTrayIcon();
             _showInTaskbar = _appStateService.GetShowInTaskbar();
@@ -259,12 +266,18 @@ namespace PinNote.ViewModels
             });
 
             ToggleRemindersFilterCommand = new RelayCommand(_ => ShowRemindersOnly = !ShowRemindersOnly);
+            OpenUpdateCommand = new RelayCommand(_ => OpenUpdatePage());
+            CheckForUpdatesCommand = new RelayCommand(async _ => await CheckForUpdatesAsync());
+            ManualCheckForUpdatesCommand = new RelayCommand(async _ => await ManualCheckForUpdatesAsync());
 
             _reminderService = new ReminderService(this);
             _reminderService.Start();
 
             LoadNotes();
             NotifyTagsChanged();
+
+            // Check for updates in background asynchronously
+            _ = CheckForUpdatesAsync();
         }
 
         public ObservableCollection<NoteViewModel> Notes => _notes;
@@ -773,6 +786,137 @@ namespace PinNote.ViewModels
         public ICommand ToggleShowUiOnStartupCommand { get; }
         public ICommand ToggleShowTrayIconCommand { get; }
         public ICommand ToggleShowInTaskbarCommand { get; }
+        public ICommand OpenUpdateCommand { get; }
+        public ICommand CheckForUpdatesCommand { get; }
+        public ICommand ManualCheckForUpdatesCommand { get; }
+
+        public bool IsUpdateAvailable
+        {
+            get => _isUpdateAvailable;
+            set
+            {
+                if (SetProperty(ref _isUpdateAvailable, value))
+                {
+                    OnPropertyChanged(nameof(UpdateBadgeText));
+                }
+            }
+        }
+
+        public bool IsSimulateUpdateMode
+        {
+            get => _isSimulateUpdateMode;
+            set
+            {
+                if (SetProperty(ref _isSimulateUpdateMode, value))
+                {
+                    if (value)
+                    {
+                        LatestVersion = "1.0.5";
+                        UpdateUrl = $"https://github.com/{UpdateCheckService.DefaultGitHubRepo}/releases";
+                        UpdateNotes = "PinNote 1.0.5 update simulation for UI and notification testing.";
+                        IsUpdateAvailable = true;
+                    }
+                    else
+                    {
+                        _ = CheckForUpdatesAsync();
+                    }
+                }
+            }
+        }
+
+        public string LatestVersion
+        {
+            get => _latestVersion;
+            set
+            {
+                if (SetProperty(ref _latestVersion, value))
+                {
+                    OnPropertyChanged(nameof(UpdateBadgeText));
+                }
+            }
+        }
+
+        public string UpdateUrl
+        {
+            get => _updateUrl;
+            set => SetProperty(ref _updateUrl, value);
+        }
+
+        public string UpdateNotes
+        {
+            get => _updateNotes;
+            set => SetProperty(ref _updateNotes, value);
+        }
+
+        public string UpdateBadgeText => string.IsNullOrWhiteSpace(LatestVersion)
+            ? "Update"
+            : $"Update v{LatestVersion}";
+
+        public async Task CheckForUpdatesAsync()
+        {
+            if (IsSimulateUpdateMode) return;
+
+            try
+            {
+                var info = await _updateCheckService.CheckForUpdatesAsync();
+                if (info != null && info.IsUpdateAvailable)
+                {
+                    LatestVersion = info.LatestVersion;
+                    UpdateUrl = info.ReleaseUrl;
+                    UpdateNotes = info.ReleaseNotes;
+                    IsUpdateAvailable = true;
+                }
+                else
+                {
+                    IsUpdateAvailable = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CheckForUpdatesAsync error: {ex.Message}");
+            }
+        }
+
+        public async Task ManualCheckForUpdatesAsync()
+        {
+            if (IsSimulateUpdateMode)
+            {
+                NotificationService.ShowNotification("PinNote Update", "Update v1.0.5 is available! Click the green badge on the dashboard to download.");
+                return;
+            }
+
+            try
+            {
+                var info = await _updateCheckService.CheckForUpdatesAsync();
+                if (info != null && info.IsUpdateAvailable)
+                {
+                    LatestVersion = info.LatestVersion;
+                    UpdateUrl = info.ReleaseUrl;
+                    UpdateNotes = info.ReleaseNotes;
+                    IsUpdateAvailable = true;
+                    NotificationService.ShowNotification("PinNote Update", $"Update v{info.LatestVersion} is available! Click the green badge on the dashboard to download.");
+                }
+                else
+                {
+                    IsUpdateAvailable = false;
+                    string curVer = info?.CurrentVersion ?? _updateCheckService.GetCurrentVersion().ToString(3);
+                    NotificationService.ShowNotification("PinNote Update", $"PinNote is up to date (v{curVer}).");
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationService.ShowNotification("PinNote Update", $"Could not check for updates: {ex.Message}");
+            }
+        }
+
+        public void OpenUpdatePage()
+        {
+            string target = !string.IsNullOrWhiteSpace(UpdateUrl)
+                ? UpdateUrl
+                : $"https://github.com/{UpdateCheckService.DefaultGitHubRepo}/releases";
+            UpdateCheckService.OpenReleaseUrl(target);
+        }
+
         public ICommand SetThemeCommand { get; }
 
         public string ThemeMode
@@ -1097,7 +1241,7 @@ namespace PinNote.ViewModels
             _windowManager.FlushPendingEdits();
 
             var models = _notes.Select(n => n.GetModel().Clone()).ToList();
-            var result = await ImportExportService.ExportNotesAsync(models, filePath);
+            var result = await ImportExportService.ExportNotesAsync(models, filePath, _workspaces.ToList());
 
             if (result.Success)
             {
@@ -1143,6 +1287,56 @@ namespace PinNote.ViewModels
             {
                 if (mode == ImportMode.Replace)
                 {
+                    // Require verified safety backup if replacing non-empty existing notes
+                    if (existingModels.Count > 0 && (string.IsNullOrWhiteSpace(result.BackupPath) || !File.Exists(result.BackupPath)))
+                    {
+                        _windowManager.ShowErrorMessage("Import Failed", "Safety backup file could not be verified on disk. Replace operation has been aborted to protect your notes.");
+                        return;
+                    }
+                }
+
+                // Synchronize imported workspace definitions
+                bool workspacesUpdated = false;
+                foreach (var ws in result.ImportedWorkspaces)
+                {
+                    var existing = _workspaces.FirstOrDefault(w => string.Equals(w.Name, ws.Name, StringComparison.OrdinalIgnoreCase));
+                    if (existing == null)
+                    {
+                        ws.Order = _workspaces.Count;
+                        _workspaces.Add(ws);
+                        workspacesUpdated = true;
+                    }
+                }
+
+                // Ensure every imported note is linked to a registered workspace on this computer
+                foreach (var noteModel in result.ImportedNotes)
+                {
+                    string targetName = string.IsNullOrWhiteSpace(noteModel.WorkspaceName) ? "Default" : noteModel.WorkspaceName.Trim();
+                    var match = _workspaces.FirstOrDefault(w => string.Equals(w.Name, targetName, StringComparison.OrdinalIgnoreCase));
+                    if (match == null)
+                    {
+                        match = new WorkspaceModel
+                        {
+                            Id = noteModel.WorkspaceId ?? Guid.NewGuid(),
+                            Name = targetName,
+                            IsDefault = false,
+                            Order = _workspaces.Count
+                        };
+                        _workspaces.Add(match);
+                        workspacesUpdated = true;
+                    }
+
+                    noteModel.WorkspaceName = match.Name;
+                    noteModel.WorkspaceId = match.Id;
+                }
+
+                if (workspacesUpdated)
+                {
+                    _workspaceService.SaveWorkspaces(_workspaces.ToList());
+                }
+
+                if (mode == ImportMode.Replace)
+                {
                     // Close existing windows before clearing collection
                     foreach (var note in _notes.ToList())
                     {
@@ -1155,14 +1349,36 @@ namespace PinNote.ViewModels
                         AddNoteViewModel(noteModel, openWindow: noteModel.IsVisible);
                     }
 
+                    // Switch ActiveWorkspace to the workspace containing the imported notes (prefer Default if present)
+                    var targetActive = _workspaces.FirstOrDefault(w => w.IsDefault && result.ImportedNotes.Any(n => string.Equals(n.WorkspaceName, w.Name, StringComparison.OrdinalIgnoreCase)))
+                        ?? _workspaces.FirstOrDefault(w => result.ImportedNotes.Any(n => string.Equals(n.WorkspaceName, w.Name, StringComparison.OrdinalIgnoreCase)))
+                        ?? _workspaces.FirstOrDefault();
+                    if (targetActive != null)
+                    {
+                        ActiveWorkspace = targetActive;
+                    }
+
                     SaveNotesImmediately();
                     _windowManager.ShowMessage("Import Successful", $"Successfully replaced all notes with {result.ImportedCount} notes from backup.");
                 }
                 else
                 {
+                    bool wasEmpty = _notes.Count == 0;
                     foreach (var noteModel in result.ImportedNotes)
                     {
                         AddNoteViewModel(noteModel, openWindow: noteModel.IsVisible);
+                    }
+
+                    // If dashboard was empty or current workspace has no notes but imported notes exist in another workspace, switch ActiveWorkspace
+                    if (wasEmpty || !_notes.Any(n => string.Equals(n.WorkspaceName, _activeWorkspace?.Name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var targetActive = _workspaces.FirstOrDefault(w => w.IsDefault && result.ImportedNotes.Any(n => string.Equals(n.WorkspaceName, w.Name, StringComparison.OrdinalIgnoreCase)))
+                            ?? _workspaces.FirstOrDefault(w => result.ImportedNotes.Any(n => string.Equals(n.WorkspaceName, w.Name, StringComparison.OrdinalIgnoreCase)))
+                            ?? _workspaces.FirstOrDefault();
+                        if (targetActive != null)
+                        {
+                            ActiveWorkspace = targetActive;
+                        }
                     }
 
                     SaveNotesImmediately();

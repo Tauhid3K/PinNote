@@ -2,6 +2,8 @@
 
 PinNote is a free, open-source, cross-platform desktop sticky note application built with .NET 8, WPF for Windows, and Avalonia UI for Linux. It provides a reliable way to capture ideas, manage tasks, and keep important information always within reach.
 
+🌐 **Website & Download Portal:** [https://pinnote.vercel.app](https://pinnote.vercel.app) *(Source in [website/](website/))*
+
 ## 🚀 Features
 
 - **Interactive Checklists:** Create, check, uncheck, reorder (up/down), and delete checklist items with intuitive keyboard workflow (Enter adds item, Backspace deletes empty item). Seamlessly switch between text, checklist, and markdown modes.
@@ -19,6 +21,7 @@ PinNote is a free, open-source, cross-platform desktop sticky note application b
 - **Always on Top (Pinning):** Pin critical notes to keep them visible above all other windows.
 - **Crystal Clear Mode:** A per-note frosted glass transparent mode with customizable text colors and opacity.
 - **Quick Duplicate Action:** Duplicate any note with matching contents, colors, size, tags, and checklist items.
+- **Automatic Update Notifications:** Seamless background update checks against GitHub releases with a one-click `🔔 Update v{version}` dashboard notification badge.
 - **System Tray Integration:** Native tray integration on Windows and Linux with customizable themes (System, Light, Dark).
 
 ## 🛠️ Tech Stack
@@ -95,7 +98,7 @@ chmod +x ./scripts/build-linux.sh
 ./scripts/build-linux.sh
 ```
 The archive will be created at:
-`artifacts/package/PinNote-1.0.3-linux-x64.tar.gz`
+`artifacts/package/PinNote-1.1.0-linux-x64.tar.gz`
 
 ### Creating a Windows Installer
 To build a standard Windows setup file with shortcuts, uninstall support, a launch-after-install option, and an embedded runtime:
@@ -120,6 +123,7 @@ The generated installer is self-contained, so the target PC does not need .NET 8
 - **Theme controls:** Light/Dark theme buttons are in the dashboard title bar; the System theme is available in the tray menu.
 - **Show all notes:** Use the tray menu or dashboard `Show All` to restore every saved note window.
 - **Hide notes:** Use the tray menu action `Hide all notes` to hide open note windows while keeping PinNote active in the system tray.
+- **Update Notifications:** PinNote checks for new versions in the background on startup. When an update is published on GitHub, a green `🔔 Update v{version}` button appears in the dashboard header. Click it to navigate directly to the release page.
 - **Tray behavior:** Minimize or close the dashboard to send it to the system tray; click the tray icon to restore the dashboard.
 
 ## 📝 License

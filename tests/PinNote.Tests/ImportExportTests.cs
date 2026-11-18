@@ -344,5 +344,102 @@ namespace PinNote.Tests
             Assert.Contains(recoverResult.ImportedNotes, n => n.Title == "Critical Note 1");
             Assert.Contains(recoverResult.ImportedNotes, n => n.Title == "Critical Note 2");
         }
+
+        [Fact]
+        public void ExportNotes_WritesCurrentAppVersion110_AndIncludesWorkspaces()
+        {
+            var notes = new List<NoteModel>
+            {
+                new() { Title = "Version Test Note", WorkspaceName = "University" }
+            };
+
+            var workspaces = new List<WorkspaceModel>
+            {
+                new() { Id = Guid.NewGuid(), Name = "Default", IsDefault = true, Order = 0 },
+                new() { Id = Guid.NewGuid(), Name = "University", IsDefault = false, Order = 1 }
+            };
+
+            string exportFile = Path.Combine(_testDir, "exported_v110.json");
+            var result = ImportExportService.ExportNotes(notes, exportFile, workspaces);
+
+            Assert.True(result.Success);
+            string json = File.ReadAllText(exportFile);
+            var package = JsonConvert.DeserializeObject<NoteExportPackage>(json);
+
+            Assert.NotNull(package);
+            Assert.Equal("1.1.0", package.AppVersion);
+            Assert.Equal(2, package.Workspaces.Count);
+            Assert.Contains(package.Workspaces, w => w.Name == "University");
+        }
+
+        [Fact]
+        public void ImportNotes_ReplaceMode_WhenBackupFails_AbortsAndReturnsError()
+        {
+            var notes = new List<NoteModel>
+            {
+                new() { Title = "Existing Important Note" }
+            };
+
+            string importFile = Path.Combine(_testDir, "replace_input.json");
+            ImportExportService.ExportNotes(new List<NoteModel>
+            {
+                new() { Title = "Replacement Note" }
+            }, importFile);
+
+            // Pass an invalid storage directory path where directory creation or file writing fails
+            string invalidStorageFolder = Path.Combine(_testDir, "non_existent_sub\0folder");
+
+            var result = ImportExportService.ImportNotes(importFile, notes, invalidStorageFolder, ImportMode.Replace);
+
+            Assert.False(result.Success);
+            Assert.Contains("backup", result.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void ImportNotes_WithWorkspacesInPackage_PreservesAndRestoresWorkspaces()
+        {
+            var notes = new List<NoteModel>
+            {
+                new() { Title = "Lab Note", WorkspaceName = "BioLab" }
+            };
+
+            var workspaces = new List<WorkspaceModel>
+            {
+                new() { Id = Guid.NewGuid(), Name = "BioLab", IsDefault = false, Order = 0 }
+            };
+
+            string importFile = Path.Combine(_testDir, "biolab_export.json");
+            ImportExportService.ExportNotes(notes, importFile, workspaces);
+
+            var result = ImportExportService.ImportNotes(importFile, new List<NoteModel>(), _testDir, ImportMode.Merge);
+
+            Assert.True(result.Success);
+            Assert.NotEmpty(result.ImportedWorkspaces);
+            Assert.Contains(result.ImportedWorkspaces, w => w.Name == "BioLab");
+        }
+
+        [Fact]
+        public void ImportNotes_WhenNoteHasUnknownWorkspace_SynthesizesWorkspaceDefinition()
+        {
+            // Simulate legacy export package without workspaces property
+            string legacyJson = JsonConvert.SerializeObject(new
+            {
+                schemaVersion = 1,
+                application = "PinNote",
+                appVersion = "1.0.3",
+                notes = new[]
+                {
+                    new { id = Guid.NewGuid(), title = "Quantum Note", workspaceName = "QuantumPhysics" }
+                }
+            }, Formatting.Indented);
+
+            string importFile = Path.Combine(_testDir, "legacy_custom_ws.json");
+            File.WriteAllText(importFile, legacyJson);
+
+            var result = ImportExportService.ImportNotes(importFile, new List<NoteModel>(), _testDir, ImportMode.Merge);
+
+            Assert.True(result.Success);
+            Assert.Contains(result.ImportedWorkspaces, w => w.Name == "QuantumPhysics");
+        }
     }
 }

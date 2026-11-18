@@ -64,6 +64,7 @@ namespace PinNote.Tests
         public void SortedFilteredNotes_Default_PinnedLeadsInsertion()
         {
             var vm = CreateVm();
+            vm.SortMode = NoteSortMode.Default;
             AddNote(vm, "Banana");
             AddNote(vm, "Apple", pinned: true);
             AddNote(vm, "Cherry");

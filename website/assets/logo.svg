@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="noteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Accent Pin Gradient -->
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+
+    <!-- Note Shadow -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1E3A8A" flood-opacity="0.35" />
+    </filter>
+
+    <!-- Pin Shadow -->
+    <filter id="pinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Note Backing with modern rounded corners -->
+  <rect x="16" y="16" width="96" height="96" rx="24" fill="url(#noteGrad)" filter="url(#dropShadow)" />
+
+  <!-- Subtle Frosted Glass / Fold Line Accent -->
+  <path d="M 24 24 L 104 24 A 16 16 0 0 1 104 40 L 24 40 Z" fill="#FFFFFF" fill-opacity="0.12" />
+
+  <!-- Pin Graphic -->
+  <g transform="translate(40, 36) scale(2)" filter="url(#pinShadow)">
+    <!-- Pin Head & Needle using the official PinNote pushpin path -->
+    <path d="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z" fill="url(#pinGrad)" />
+    <!-- Pin Highlight -->
+    <path d="M9,4 L15,4 L14,6 L10,6 Z" fill="#FEF08A" />
+  </g>
+</svg>
