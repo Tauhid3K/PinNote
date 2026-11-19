@@ -12,7 +12,8 @@ namespace PinNote.Services
     {
         private const string PipeNamePrefix = "PinNote_IPC_";
         private readonly string _identifier;
-        private readonly Mutex _mutex;
+        private readonly Mutex? _mutex;
+        private FileStream? _lockFileStream;
         private readonly bool _isFirstInstance;
         private readonly CancellationTokenSource _cts = new();
         private bool _isDisposed;
@@ -28,7 +29,29 @@ namespace PinNote.Services
                 : Environment.UserName.Replace('\\', '_').Replace('/', '_');
 
             string mutexName = $"PinNote_SingleInstance_Mutex_{_identifier}";
-            _mutex = new Mutex(true, mutexName, out _isFirstInstance);
+            try
+            {
+                _mutex = new Mutex(true, mutexName, out _isFirstInstance);
+            }
+            catch (Exception)
+            {
+                // Fallback for Linux or restricted environments where POSIX shared memory (/dev/shm) is restricted
+                _mutex = null;
+                string lockFilePath = Path.Combine(Path.GetTempPath(), $"pinnote_{_identifier}.lock");
+                try
+                {
+                    _lockFileStream = new FileStream(lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                    _isFirstInstance = true;
+                }
+                catch (IOException)
+                {
+                    _isFirstInstance = false;
+                }
+                catch (Exception)
+                {
+                    _isFirstInstance = true;
+                }
+            }
         }
 
         public void StartServer()
@@ -200,9 +223,21 @@ namespace PinNote.Services
             {
                 try
                 {
-                    _mutex.ReleaseMutex();
+                    _mutex?.ReleaseMutex();
                 }
                 catch { }
+
+                if (_lockFileStream != null)
+                {
+                    try
+                    {
+                        _lockFileStream.Dispose();
+                        _lockFileStream = null;
+                        string lockFilePath = Path.Combine(Path.GetTempPath(), $"pinnote_{_identifier}.lock");
+                        if (File.Exists(lockFilePath)) File.Delete(lockFilePath);
+                    }
+                    catch { }
+                }
 
                 if (!OperatingSystem.IsWindows())
                 {
@@ -215,7 +250,7 @@ namespace PinNote.Services
                 }
             }
 
-            _mutex.Dispose();
+            _mutex?.Dispose();
         }
     }
 }

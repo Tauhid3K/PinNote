@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:PinNote.ViewModels"
+        xmlns:models="clr-namespace:PinNote.Models"
         xmlns:svc="clr-namespace:PinNote.Services"
         x:Class="PinNote.Views.AvaloniaNoteWindow"
         x:DataType="vm:NoteViewModel"
@@ -132,13 +133,13 @@
                         <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
                     </MenuItem>
                     <MenuItem Header="Workspace" ItemsSource="{Binding AvailableWorkspaces}">
-                        <MenuItem.ItemTemplate>
-                            <DataTemplate>
-                                <MenuItem Header="{Binding Name}"
-                                          Command="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}"
-                                          CommandParameter="{Binding Name}" />
-                            </DataTemplate>
-                        </MenuItem.ItemTemplate>
+                        <MenuItem.Styles>
+                            <Style Selector="MenuItem" x:DataType="models:WorkspaceModel">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}" />
+                                <Setter Property="CommandParameter" Value="{Binding Name}" />
+                            </Style>
+                        </MenuItem.Styles>
                     </MenuItem>
                     <MenuItem Header="Reminder">
                         <MenuItem Header="In 10 Minutes" Command="{Binding SetReminder10MinutesCommand}" />
@@ -391,13 +392,13 @@
                                         <MenuItem Header="Projects" Command="{Binding SetCategoryCommand}" CommandParameter="Projects" />
                                     </MenuItem>
                                     <MenuItem Header="Workspace" ItemsSource="{Binding AvailableWorkspaces}">
-                                        <MenuItem.ItemTemplate>
-                                            <DataTemplate>
-                                                <MenuItem Header="{Binding Name}"
-                                                          Command="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}"
-                                                          CommandParameter="{Binding Name}" />
-                                            </DataTemplate>
-                                        </MenuItem.ItemTemplate>
+                                        <MenuItem.Styles>
+                                            <Style Selector="MenuItem" x:DataType="models:WorkspaceModel">
+                                                <Setter Property="Header" Value="{Binding Name}" />
+                                                <Setter Property="Command" Value="{Binding $parent[Window].((vm:NoteViewModel)DataContext).SetWorkspaceCommand}" />
+                                                <Setter Property="CommandParameter" Value="{Binding Name}" />
+                                            </Style>
+                                        </MenuItem.Styles>
                                     </MenuItem>
                                     <MenuItem Header="Reminder">
                                         <MenuItem Header="In 10 Minutes" Command="{Binding SetReminder10MinutesCommand}" />

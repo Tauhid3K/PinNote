@@ -1,0 +1,158 @@
+name: Automated Release CI/CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to release (e.g. v1.0.1)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine Version
+        id: get_version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            TAG="${{ github.event.inputs.version }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VER="${TAG#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          echo "Building Linux version: $VER"
+
+      - name: Build and Package Linux
+        run: |
+          chmod +x scripts/build-linux.sh
+          # Pass version or update PinNote.csproj dynamically
+          sed -i "s|<Version>.*</Version>|<Version>${VERSION}</Version>|g" PinNote.csproj
+          sed -i "s|VERSION=\".*\"|VERSION=\"${VERSION}\"|g" scripts/build-linux.sh
+          ./scripts/build-linux.sh
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            artifacts/installer/PinNote-Setup-*.sh
+            artifacts/package/PinNote-*-linux-x64.tar.gz
+
+  build-windows:
+    name: Build Windows Packages
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine Version
+        id: get_version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            TAG="${{ github.event.inputs.version }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VER="${TAG#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          echo "Building Windows version: $VER"
+
+      - name: Publish Windows App
+        shell: pwsh
+        run: |
+          $ver = $env:VERSION
+          dotnet publish PinNote.csproj `
+            -f net8.0-windows `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:Version=$ver `
+            -o artifacts/publish/win-x64
+
+      - name: Package Portable Windows Zip
+        shell: pwsh
+        run: |
+          $ver = $env:VERSION
+          New-Item -ItemType Directory -Force -Path artifacts/package | Out-Null
+          $zipPath = "artifacts/package/PinNote-$ver-win-x64.zip"
+          Compress-Archive -Path "artifacts/publish/win-x64/*" -DestinationPath $zipPath -Force
+
+      - name: Compile Inno Setup Installer
+        uses: Min-Shar/inno-setup-action@v1
+        with:
+          filepath: installer/PinNote.iss
+          options: /DMyAppVersion=${{ env.VERSION }} /DMyPublishDir=artifacts/publish/win-x64 /Oartifacts/installer /FPinNote-Setup-${{ env.VERSION }}
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            artifacts/installer/PinNote-Setup-*.exe
+            artifacts/package/PinNote-*-win-x64.zip
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: release_assets
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: release_assets
+
+      - name: Determine Tag
+        id: get_tag
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            TAG="${{ github.event.inputs.version }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "TAG_NAME=$TAG" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: PinNote ${{ env.TAG_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release_assets/*

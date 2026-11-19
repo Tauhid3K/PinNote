@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initOsDetection();
+  initAutoReleaseSync();
   initStickyNotePlayground();
   initFeatureTabs();
   initFaqAccordion();
@@ -101,6 +102,99 @@ function initOsDetection() {
 
   if (smartBtn) {
     smartBtn.href = targetUrl;
+  }
+}
+
+/* ==========================================================================
+   2b. Automatic GitHub Release Synchronization
+   Fetches the latest release info from GitHub REST API and automatically updates
+   all download links, filenames, version badges, and OS Smart CTAs in real-time.
+   ========================================================================== */
+
+async function initAutoReleaseSync() {
+  const repo = 'Tauhid3K/PinNote';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return;
+
+    const data = await res.json();
+    if (!data || !data.tag_name) return;
+
+    const versionTag = data.tag_name.trim(); // e.g. "v1.0.0"
+    const cleanVersion = versionTag.replace(/^v/i, '');
+    const assets = Array.isArray(data.assets) ? data.assets : [];
+
+    // Find binary assets dynamically
+    const winExe = assets.find(a => a.name.endsWith('.exe'));
+    const winZip = assets.find(a => a.name.endsWith('.zip'));
+    const linuxSh = assets.find(a => a.name.endsWith('.sh'));
+    const linuxTar = assets.find(a => a.name.endsWith('.tar.gz') || a.name.endsWith('.tgz'));
+
+    // Dynamically update Windows download cards
+    if (winExe) {
+      document.querySelectorAll('a[data-asset="win-exe"]').forEach(a => {
+        a.href = winExe.browser_download_url;
+      });
+    }
+    if (winZip) {
+      document.querySelectorAll('a[data-asset="win-zip"]').forEach(a => {
+        a.href = winZip.browser_download_url;
+      });
+    }
+
+    // Dynamically update Linux download cards
+    if (linuxSh) {
+      document.querySelectorAll('a[data-asset="linux-sh"]').forEach(a => {
+        a.href = linuxSh.browser_download_url;
+      });
+    }
+    if (linuxTar) {
+      document.querySelectorAll('a[data-asset="linux-tar"]').forEach(a => {
+        a.href = linuxTar.browser_download_url;
+      });
+    }
+
+    // Dynamically update Hero Smart CTA based on client OS
+    const ua = navigator.userAgent || navigator.platform || '';
+    const isLinux = /Linux/i.test(ua) && !/Android/i.test(ua);
+    const smartBtn = document.getElementById('hero-smart-download-btn');
+    const smartLabel = document.getElementById('hero-smart-download-label');
+    const smartSubtext = document.getElementById('hero-smart-download-subtext');
+
+    if (isLinux && linuxSh) {
+      if (smartBtn) smartBtn.href = linuxSh.browser_download_url;
+      if (smartLabel) smartLabel.textContent = `Download for Linux (v${cleanVersion})`;
+      if (smartSubtext) smartSubtext.textContent = `Standalone .sh Installer & .tar.gz (x64)`;
+    } else if (!isLinux && winExe) {
+      if (smartBtn) smartBtn.href = winExe.browser_download_url;
+      if (smartLabel) smartLabel.textContent = `Download for Windows (v${cleanVersion})`;
+      if (smartSubtext) smartSubtext.textContent = `Self-contained 64-bit Setup .exe • No .NET needed`;
+    }
+
+    // Dynamically update version badges and headings across page
+    document.querySelectorAll('[data-version-display]').forEach(el => {
+      el.textContent = `${cleanVersion} (Official Release)`;
+    });
+
+    const versionPill = document.getElementById('hero-version-pill-text');
+    if (versionPill) {
+      versionPill.textContent = `Version ${cleanVersion} Released • Cross-Platform Native`;
+    }
+
+    const versionPillLink = document.getElementById('hero-release-pill-link');
+    if (versionPillLink && data.html_url) {
+      versionPillLink.href = data.html_url;
+    }
+
+    const sectionTitle = document.getElementById('download-section-title');
+    if (sectionTitle) {
+      sectionTitle.textContent = `Download PinNote v${cleanVersion}`;
+    }
+  } catch (err) {
+    // Keep standard fallback defaults if offline or unauthenticated
+    console.debug('Release auto-sync fallback preserved:', err);
   }
 }
 
