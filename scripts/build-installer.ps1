@@ -11,6 +11,7 @@ $projectPath = Join-Path $repoRoot "PinNote.csproj"
 $installerScript = Join-Path $repoRoot "installer\PinNote.iss"
 $publishDir = Join-Path $repoRoot "artifacts\publish\$RuntimeIdentifier"
 $installerDir = Join-Path $repoRoot "artifacts\installer"
+$packageDir = Join-Path $repoRoot "artifacts\package"
 
 $isccCandidates = @(
     "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
@@ -24,6 +25,7 @@ if (-not $iscc) {
 
 New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
 New-Item -ItemType Directory -Force -Path $installerDir | Out-Null
+New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
 
 Push-Location $repoRoot
 try {
@@ -42,7 +44,14 @@ try {
         -p:Version=$Version `
         -o $publishDir
 
+    # 1. Compile Inno Setup installer
     & $iscc "/DMyPublishDir=$publishDir" "/DMyAppVersion=$Version" "/O$installerDir" "/FPinNote-Setup-$Version" $installerScript
+
+    # 2. Package portable .zip archive
+    $zipPath = Join-Path $packageDir "PinNote-$Version-$RuntimeIdentifier.zip"
+    if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+    Compress-Archive -Path "$publishDir\*" -DestinationPath $zipPath -Force
+    Write-Host "=== Portable package ready: $zipPath ==="
 }
 finally {
     Pop-Location

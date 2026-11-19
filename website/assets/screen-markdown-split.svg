@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0F172A" />
@@ -94,7 +94,7 @@
       <text x="0" y="112" class="font-mono" font-size="11" fill="#0F172A">- [x] Debounced flush (500ms queue)</text>
       <text x="0" y="134" class="font-mono" font-size="11" fill="#0F172A">- [ ] Monotonic lock with retry policy</text>
 
-      <text x="0" y="168" class="font-mono" font-size="12" fill="#2563EB" font-weight="bold">## Code Snippet</tspan></text>
+      <text x="0" y="168" class="font-mono" font-size="12" fill="#2563EB" font-weight="bold">## Code Snippet</text>
       <text x="0" y="190" class="font-mono" font-size="11" fill="#7C3AED">```csharp</text>
       <text x="0" y="210" class="font-mono" font-size="11" fill="#0F172A">public async Task SaveAsync(Note note)</text>
       <text x="0" y="228" class="font-mono" font-size="11" fill="#0F172A">{</text>

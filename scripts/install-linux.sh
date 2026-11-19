@@ -1,18 +1,43 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TAR_FILE="$REPO_ROOT/artifacts/package/PinNote-1.0.0-linux-x64.tar.gz"
-
+VERSION="1.0.0"
 INSTALL_DIR="$HOME/.local/share/pinnote"
 BIN_DIR="$HOME/.local/bin"
 DESKTOP_DIR="$HOME/.local/share/applications"
 ICON_DIR="$HOME/.local/share/icons/hicolor/128x128/apps"
+RELEASE_URL="https://github.com/Tauhid3K/PinNote/releases/download/v${VERSION}/PinNote-${VERSION}-linux-x64.tar.gz"
 
-# Ensure package exists
-if [ ! -f "$TAR_FILE" ]; then
-    echo "Package not found at $TAR_FILE. Building it now..."
-    "$REPO_ROOT/scripts/build-linux.sh"
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+# Detect if running from local repo or standalone curl
+SCRIPT_DIR=""
+if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
+LOCAL_REPO=""
+if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/build-linux.sh" ]; then
+    LOCAL_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+
+LOCAL_TAR=""
+if [ -n "$LOCAL_REPO" ] && [ -f "$LOCAL_REPO/artifacts/package/PinNote-${VERSION}-linux-x64.tar.gz" ]; then
+    LOCAL_TAR="$LOCAL_REPO/artifacts/package/PinNote-${VERSION}-linux-x64.tar.gz"
+fi
+
+if [ -n "$LOCAL_TAR" ]; then
+    echo "Found local package at $LOCAL_TAR"
+    TAR_FILE="$LOCAL_TAR"
+elif [ -n "$LOCAL_REPO" ] && [ -f "$LOCAL_REPO/scripts/build-linux.sh" ]; then
+    echo "Building local package..."
+    "$LOCAL_REPO/scripts/build-linux.sh"
+    TAR_FILE="$LOCAL_REPO/artifacts/package/PinNote-${VERSION}-linux-x64.tar.gz"
+else
+    echo "Downloading PinNote v${VERSION} from GitHub releases..."
+    TAR_FILE="$TMP_DIR/PinNote-${VERSION}-linux-x64.tar.gz"
+    curl -fL "$RELEASE_URL" -o "$TAR_FILE"
 fi
 
 echo "=== Installing PinNote to $INSTALL_DIR ==="
@@ -20,9 +45,6 @@ echo "=== Installing PinNote to $INSTALL_DIR ==="
 # Stop any running instances before updating files
 pkill -x PinNote 2>/dev/null || true
 sleep 0.5
-
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TMP_DIR"' EXIT
 
 # Extract package into temporary directory first to prevent conflicts with user data directory
 tar -xzf "$TAR_FILE" -C "$TMP_DIR"
