@@ -620,14 +620,14 @@ button {
 }
 
 .floating-badge.badge-top-right {
-  top: -18px;
-  right: -20px;
+  top: 14px;
+  right: 14px;
   animation-delay: 0s;
 }
 
 .floating-badge.badge-bottom-left {
-  bottom: -20px;
-  left: -20px;
+  bottom: 14px;
+  left: 14px;
   animation-delay: 2.5s;
 }
 

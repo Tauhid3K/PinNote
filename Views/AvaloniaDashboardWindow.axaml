@@ -6,7 +6,7 @@
         Title="PinNote - All Notes"
         Width="820"
         Height="580"
-        MinWidth="540"
+        MinWidth="640"
         MinHeight="400"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="{Binding ShowInTaskbar}">
@@ -39,98 +39,93 @@
                 BorderBrush="#22000000"
                 BorderThickness="0,0,0,1"
                 Padding="16,10">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto">
-                <!-- App Title -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- App Title & Update Badge -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                     <Path Data="M16,12V4H17V2H7V4H8V12L6,14V16H11V22H13V16H18V14L16,12Z"
                           Fill="#1F6FEB" Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center" />
                     <TextBlock Text="PinNote" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" />
+
+                    <!-- Update Available Notification Badge -->
+                    <Button Command="{Binding OpenUpdateCommand}"
+                            IsVisible="{Binding IsUpdateAvailable}"
+                            Background="#238636"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            CornerRadius="12"
+                            Padding="8,4"
+                            Height="26"
+                            Margin="6,0,0,0"
+                            Cursor="Hand"
+                            ToolTip.Tip="A newer version of PinNote is available! Click to download.">
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="🔔" FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding UpdateBadgeText}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <!-- Search Box -->
                 <TextBox Name="SearchBox"
                          Grid.Column="1"
-                         Margin="24,0,16,0"
+                         Margin="16,0"
+                         MinWidth="160"
                          Text="{Binding SearchText, Mode=TwoWay}"
                          Watermark="Search notes... (Ctrl+F)"
                          VerticalAlignment="Center"
                          CornerRadius="6"
                          Height="34" />
 
-                <!-- Update Available Notification Badge -->
-                <Button Grid.Column="2"
-                        Command="{Binding OpenUpdateCommand}"
-                        IsVisible="{Binding IsUpdateAvailable}"
-                        Background="#238636"
-                        Foreground="White"
-                        FontWeight="SemiBold"
-                        CornerRadius="6"
-                        Padding="10,6"
-                        Height="34"
-                        Margin="0,0,8,0"
-                        Cursor="Hand"
-                        ToolTip.Tip="A newer version of PinNote is available! Click to download.">
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <TextBlock Text="🔔" FontSize="13" />
-                        <TextBlock Text="{Binding UpdateBadgeText}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                <!-- Action Buttons Group -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- "+ New Note" Button -->
+                    <Button Command="{Binding NewNoteCommand}"
+                            Background="#1F6FEB"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            CornerRadius="6"
+                            Padding="14,6"
+                            Height="34"
+                            Cursor="Hand"
+                            ToolTip.Tip="New Note (Ctrl+N)">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="New Note" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                <!-- "+ New Note" Button -->
-                <Button Grid.Column="3"
-                        Command="{Binding NewNoteCommand}"
-                        Background="#1F6FEB"
-                        Foreground="White"
-                        FontWeight="SemiBold"
-                        CornerRadius="6"
-                        Padding="14,6"
-                        Height="34"
-                        Margin="0,0,8,0"
-                        Cursor="Hand"
-                        ToolTip.Tip="New Note (Ctrl+N)">
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <TextBlock Text="+" FontSize="16" FontWeight="Bold" />
-                        <TextBlock Text="New Note" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                    <!-- Show All Notes -->
+                    <Button Command="{Binding ShowAllCommand}"
+                            Height="34"
+                            Padding="12,6"
+                            CornerRadius="6"
+                            ToolTip.Tip="Show all note windows"
+                            Cursor="Hand">
+                        <TextBlock Text="Show All" VerticalAlignment="Center" />
+                    </Button>
 
-                <!-- Show Instructions -->
-                <Button Grid.Column="4"
-                        Command="{Binding HelpCommand}"
-                        Width="34" Height="34"
-                        Padding="0"
-                        CornerRadius="6"
-                        Margin="0,0,8,0"
-                        ToolTip.Tip="Keyboard Shortcuts &amp; Help"
-                        Cursor="Hand">
-                    <TextBlock Text="?" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Button>
+                    <!-- Show Instructions -->
+                    <Button Command="{Binding HelpCommand}"
+                            Width="34" Height="34"
+                            Padding="0"
+                            CornerRadius="6"
+                            ToolTip.Tip="Keyboard Shortcuts &amp; Help"
+                            Cursor="Hand">
+                        <TextBlock Text="?" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
 
-                <!-- Show All Notes -->
-                <Button Grid.Column="5"
-                        Command="{Binding ShowAllCommand}"
-                        Height="34"
-                        Padding="12,6"
-                        CornerRadius="6"
-                        ToolTip.Tip="Show all note windows"
-                        Cursor="Hand">
-                    <TextBlock Text="Show All" VerticalAlignment="Center" />
-                </Button>
-
-                <!-- Settings Button -->
-                <Button Grid.Column="6"
-                        Width="34" Height="34"
-                        Padding="0"
-                        CornerRadius="6"
-                        Margin="8,0,0,0"
-                        ToolTip.Tip="Settings and Options"
-                        Cursor="Hand">
-                    <Path Data="M19.14,12.94C19.18,12.63 19.2,12.32 19.2,12C19.2,11.68 19.18,11.37 19.14,11.06L21.41,9.29C21.62,9.13 21.68,8.83 21.54,8.6L19.4,4.89C19.26,4.66 18.98,4.57 18.74,4.66L16.07,5.74C15.52,5.31 14.91,4.96 14.25,4.69L13.85,1.85C13.81,1.6 13.6,1.41 13.34,1.41H9.06C8.8,1.41 8.59,1.6 8.55,1.85L8.15,4.69C7.49,4.96 6.88,5.31 6.33,5.74L3.66,4.66C3.42,4.57 3.14,4.66 3,4.89L0.86,8.6C0.72,8.83 0.78,9.13 0.99,9.29L3.26,11.06C3.22,11.37 3.2,11.68 3.2,12C3.2,12.32 3.22,12.63 3.26,12.94L0.99,14.71C0.78,14.87 0.72,15.17 0.86,15.4L3,19.11C3.14,19.34 3.42,19.43 3.66,19.34L6.33,18.26C6.88,18.69 7.49,19.04 8.15,19.31L8.55,22.15C8.59,22.4 8.8,22.59 9.06,22.59H13.34C13.6,22.59 13.81,22.4 13.85,22.15L14.25,19.31C14.91,19.04 15.52,18.69 16.07,18.26L18.74,19.34C18.98,19.43 19.26,19.34 19.4,19.11L21.54,15.4C21.68,15.17 21.62,14.87 21.41,14.71L19.14,12.94ZM11.2,15.6C9.21,15.6 7.6,13.99 7.6,12C7.6,10.01 9.21,8.4 11.2,8.4C13.19,8.4 14.8,10.01 14.8,12C14.8,13.99 13.19,15.6 11.2,15.6Z"
-                          Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                          Width="15" Height="15" Stretch="Uniform"
-                          HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <Button.Flyout>
-                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <!-- Settings Button -->
+                    <Button Width="34" Height="34"
+                            Padding="0"
+                            CornerRadius="6"
+                            ToolTip.Tip="Settings and Options"
+                            Cursor="Hand">
+                        <Path Data="M19.14,12.94C19.18,12.63 19.2,12.32 19.2,12C19.2,11.68 19.18,11.37 19.14,11.06L21.41,9.29C21.62,9.13 21.68,8.83 21.54,8.6L19.4,4.89C19.26,4.66 18.98,4.57 18.74,4.66L16.07,5.74C15.52,5.31 14.91,4.96 14.25,4.69L13.85,1.85C13.81,1.6 13.6,1.41 13.34,1.41H9.06C8.8,1.41 8.59,1.6 8.55,1.85L8.15,4.69C7.49,4.96 6.88,5.31 6.33,5.74L3.66,4.66C3.42,4.57 3.14,4.66 3,4.89L0.86,8.6C0.72,8.83 0.78,9.13 0.99,9.29L3.26,11.06C3.22,11.37 3.2,11.68 3.2,12C3.2,12.32 3.22,12.63 3.26,12.94L0.99,14.71C0.78,14.87 0.72,15.17 0.86,15.4L3,19.11C3.14,19.34 3.42,19.43 3.66,19.34L6.33,18.26C6.88,18.69 7.49,19.04 8.15,19.31L8.55,22.15C8.59,22.4 8.8,22.59 9.06,22.59H13.34C13.6,22.59 13.81,22.4 13.85,22.15L14.25,19.31C14.91,19.04 15.52,18.69 16.07,18.26L18.74,19.34C18.98,19.43 19.26,19.34 19.4,19.11L21.54,15.4C21.68,15.17 21.62,14.87 21.41,14.71L19.14,12.94ZM11.2,15.6C9.21,15.6 7.6,13.99 7.6,12C7.6,10.01 9.21,8.4 11.2,8.4C13.19,8.4 14.8,10.01 14.8,12C14.8,13.99 13.19,15.6 11.2,15.6Z"
+                              Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                              Width="15" Height="15" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Button.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedRight">
                             <MenuItem Header="Import Notes (Merge)..." Command="{Binding ImportNotesMergeCommand}">
                                 <MenuItem.Icon>
                                     <Path Data="M19,9h-4V3H9v6H5l7,7 7,-7zM5,18v2h14v-2H5z"
@@ -202,8 +197,9 @@
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>
-            </Grid>
-        </Border>
+            </StackPanel>
+        </Grid>
+    </Border>
 
         <!-- Filter & Organization Bar (Workspaces, Categories, Tags, Reminders, Templates) -->
         <Border Grid.Row="1"
@@ -213,7 +209,7 @@
                 Padding="16,8">
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Workspace Switcher -->
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,4,12,4">
                     <TextBlock Text="Workspace:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
                     <ComboBox ItemsSource="{Binding Workspaces}"
                               SelectedItem="{Binding ActiveWorkspace, Mode=TwoWay}"
@@ -239,7 +235,7 @@
                 </StackPanel>
 
                 <!-- Category Filter -->
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,4,12,4">
                     <TextBlock Text="Category:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
                     <ComboBox SelectedItem="{Binding SelectedCategoryFilter, Mode=TwoWay}"
                               Height="28" FontSize="12" CornerRadius="4">
@@ -252,7 +248,7 @@
                 </StackPanel>
 
                 <!-- Tag Filter -->
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,4,12,4">
                     <TextBlock Text="Tag:" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Opacity="0.75" />
                     <ComboBox ItemsSource="{Binding AllTags}"
                               SelectedItem="{Binding SelectedTagFilter, Mode=TwoWay}"
@@ -261,20 +257,20 @@
 
                 <!-- Reminders Toggle Button -->
                 <ToggleButton IsChecked="{Binding ShowRemindersOnly, Mode=TwoWay}"
-                              Height="28" Padding="10,0" Margin="0,0,8,0" CornerRadius="4" Cursor="Hand"
+                              Height="28" Padding="10,0" Margin="0,4,8,4" CornerRadius="4" Cursor="Hand"
                               ToolTip.Tip="Filter notes with reminders">
                     <TextBlock Text="⏰ Reminders" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </ToggleButton>
 
                 <!-- Clear Filters Button -->
                 <Button Command="{Binding ClearFiltersCommand}"
-                        Height="28" Padding="10,0" Margin="0,0,10,0" CornerRadius="4" Cursor="Hand"
+                        Height="28" Padding="10,0" Margin="0,4,8,4" CornerRadius="4" Cursor="Hand"
                         ToolTip.Tip="Reset all filters">
                     <TextBlock Text="Reset Filters" FontSize="11" VerticalAlignment="Center" />
                 </Button>
 
                 <!-- New Note From Template Button -->
-                <Button Height="28" Padding="10,0" CornerRadius="4" Cursor="Hand"
+                <Button Height="28" Padding="10,0" Margin="0,4,0,4" CornerRadius="4" Cursor="Hand"
                         ToolTip.Tip="Create structured note from template">
                     <TextBlock Text="📋 Templates" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <Button.Flyout>
